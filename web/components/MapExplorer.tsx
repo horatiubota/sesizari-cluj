@@ -211,6 +211,9 @@ export default function MapExplorer() {
             210.721 sesizări publice din martie 2017 până azi, preluate din platforma
             My Cluj a Primăriei Cluj-Napoca.
           </p>
+          <a href="/recurente" className="mt-2 inline-block text-xs underline underline-offset-4">
+            Probleme recurente →
+          </a>
         </header>
 
         <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
