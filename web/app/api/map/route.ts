@@ -22,7 +22,13 @@ function precisionFor(zoom: number): number {
   return 2;
 }
 
-const POINT_LIMIT = 3000;
+const POINT_LIMIT = 6000;
+
+/**
+ * Above this zoom the grid is finer than ~1 m, so cells degenerate into points
+ * that merely lack a ticket number. Return real tickets instead.
+ */
+const POINT_ZOOM = 16;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const sp = req.nextUrl.searchParams;
@@ -36,27 +42,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   );
   const total = Number(n);
 
-  // Small enough to draw individually: send real tickets.
-  if (total <= POINT_LIMIT) {
+  // Small enough to draw individually, or zoomed in far enough that aggregating
+  // would only strip ticket identity without saving bandwidth.
+  if (total <= POINT_LIMIT || zoom >= POINT_ZOOM) {
+    // Deliberately lean: no description. Detail is fetched per ticket on click,
+    // which keeps a 6,000-point response around a tenth of the size.
     const points = await query<Record<string, unknown>>(
-      `select t.ticket_number, t.lat, t.lon, t.category_id, t.status_code,
-              t.status_label, t.created_at, t.neighborhood,
-              left(coalesce(t.description,''), 160) as excerpt
+      `select t.ticket_number, t.lat, t.lon, t.category_id,
+              t.status_code, t.status_label, t.created_at, t.neighborhood
        from public.tickets t where ${clause}
        order by t.created_at desc limit ${POINT_LIMIT}`,
       params,
     );
-    return NextResponse.json({ mode: 'points', total, points });
+    return NextResponse.json({
+      mode: 'points', total, points, truncated: total > points.length,
+    });
   }
 
   // Otherwise aggregate onto a grid sized for the current zoom.
   const p = precisionFor(zoom);
   const cells = await query<Record<string, unknown>>(
-    `select round(t.lat::numeric, ${p})::float8 lat,
-            round(t.lon::numeric, ${p})::float8 lon,
-            count(*)::int n,
-            mode() within group (order by t.category_id) top_category,
-            round(100.0 * count(*) filter (where t.status_label = 'Favorabil') / count(*))::int pct_favorabil
+    `select round(t.lat::numeric, ${p})::float8 as lat,
+            round(t.lon::numeric, ${p})::float8 as lon,
+            count(*)::int as n,
+            mode() within group (order by t.category_id) as top_category,
+            round(100.0 * count(*) filter (where t.status_label = 'Favorabil') / count(*))::int as pct_favorabil
      from public.tickets t where ${clause}
      group by 1, 2 order by n desc limit 6000`,
     params,
