@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 // MapLibre 6 ships named exports only; there is no default export.
 import {
   AttributionControl, Map as MLMap, NavigationControl, setWorkerUrl,
@@ -46,6 +46,44 @@ interface MapResponse {
 }
 interface Term { word: string; n: number; ratio: number }
 
+type RangeKey = '7d' | '30d' | '90d' | 'ytd' | 'custom';
+
+const RANGES: { key: RangeKey; label: string }[] = [
+  { key: '7d',     label: '7 zile' },
+  { key: '30d',    label: '30 de zile' },
+  { key: '90d',    label: '90 de zile' },
+  { key: 'ytd',    label: 'Anul curent' },
+  { key: 'custom', label: 'Interval propriu' },
+];
+
+/**
+ * Today as YYYY-MM-DD in Europe/Bucharest, matching how the server buckets days.
+ * Using the browser's own timezone would shift the boundary for anyone abroad.
+ */
+const BUCHAREST_DAY = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Bucharest', year: 'numeric', month: '2-digit', day: '2-digit',
+});
+
+function shiftDays(iso: string, delta: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y!, m! - 1, d!));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  return dt.toISOString().slice(0, 10);
+}
+
+/** Never notifies: the client/server answer flips once, at hydration. */
+const subscribeNever = (): (() => void) => () => {};
+
+/** Presets are inclusive of today, so "7 zile" spans today and the six before it. */
+function resolveRange(key: RangeKey, customFrom: string, customTo: string):
+{ from: string; to: string } {
+  if (key === 'custom') return { from: customFrom, to: customTo };
+  const today = BUCHAREST_DAY.format(new Date());
+  if (key === 'ytd') return { from: `${today.slice(0, 4)}-01-01`, to: today };
+  const span = key === '7d' ? 7 : key === '30d' ? 30 : 90;
+  return { from: shiftDays(today, -(span - 1)), to: today };
+}
+
 export default function MapExplorer() {
   const mapNode = useRef<HTMLDivElement>(null);
   const map = useRef<MLMap | null>(null);
@@ -53,8 +91,18 @@ export default function MapExplorer() {
 
   const [cats, setCats] = useState<number[]>([]);
   const [outcome, setOutcome] = useState<string>('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [range, setRange] = useState<RangeKey>('7d');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+
+  // The preset resolves against the current date, which the server render cannot
+  // know: this route is prerendered at build time, so a date baked into the HTML
+  // would be stale within a day and mismatch on hydration. Resolve on the client
+  // only. useSyncExternalStore is the hydration-safe way to ask "am I client yet".
+  const isClient = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const { from, to } = isClient
+    ? resolveRange(range, customFrom, customTo)
+    : { from: '', to: '' };
   const [q, setQ] = useState('');
   const [qLive, setQLive] = useState('');
 
@@ -283,17 +331,49 @@ export default function MapExplorer() {
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block">
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">De la</span>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-              className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm dark:border-neutral-700" />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Până la</span>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
-              className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm dark:border-neutral-700" />
-          </label>
+        <div>
+          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Perioadă</span>
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {RANGES.map((r) => (
+              <button key={r.key} type="button" onClick={() => setRange(r.key)}
+                aria-pressed={range === r.key}
+                className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+                  range === r.key
+                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
+                    : 'border-neutral-300 text-neutral-600 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-400'
+                }`}>
+                {r.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <label className="block">
+              <span className={`text-xs font-medium ${range === 'custom'
+                ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}`}>
+                De la
+              </span>
+              <input type="date" value={range === 'custom' ? customFrom : from}
+                disabled={range !== 'custom'}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 dark:border-neutral-700 dark:disabled:border-neutral-800 dark:disabled:text-neutral-600" />
+            </label>
+            <label className="block">
+              <span className={`text-xs font-medium ${range === 'custom'
+                ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}`}>
+                Până la
+              </span>
+              <input type="date" value={range === 'custom' ? customTo : to}
+                disabled={range !== 'custom'}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 dark:border-neutral-700 dark:disabled:border-neutral-800 dark:disabled:text-neutral-600" />
+            </label>
+          </div>
+          {range === 'custom' && !customFrom && !customTo && (
+            <p className="mt-1 text-[11px] text-neutral-500">
+              Fără date completate: toate sesizările, din martie 2017.
+            </p>
+          )}
         </div>
 
         <label className="block">

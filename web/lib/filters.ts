@@ -60,8 +60,14 @@ export function buildWhere(f: Filters, opts: { spatial?: boolean } = {}): SqlWhe
   if (f.categories.length) add(`t.category_id = any($${params.length + 1}::int[])`, f.categories);
   if (f.status) add(`t.status_code = $${params.length + 1}`, f.status);
   if (f.outcome) add(`t.status_label = $${params.length + 1}`, f.outcome);
-  if (f.from) add(`t.created_at >= $${params.length + 1}::date`, f.from);
-  if (f.to) add(`t.created_at < ($${params.length + 1}::date + 1)`, f.to);
+  // Day boundaries are Europe/Bucharest, not the session's UTC. Upstream stamps
+  // are local wall-clock, so a bare ::date comparison starts the day at 03:00
+  // local and moves three hours of evening reports into the next day -- 68 vs 66
+  // tickets on a sample day, and systematically wrong at both ends of a range.
+  if (f.from)
+    add(`t.created_at >= ($${params.length + 1}::date::timestamp at time zone 'Europe/Bucharest')`, f.from);
+  if (f.to)
+    add(`t.created_at < (($${params.length + 1}::date + 1)::timestamp at time zone 'Europe/Bucharest')`, f.to);
   if (f.neighborhood) add(`t.neighborhood = $${params.length + 1}`, f.neighborhood);
   if (f.q)
     add(
