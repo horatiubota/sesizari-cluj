@@ -47,5 +47,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     params,
   );
 
-  return NextResponse.json({ meaning, minYears, minCount, clusters });
+  return NextResponse.json(
+    { meaning, minYears, minCount, clusters },
+    // Backed by a materialised view that only changes when it is rebuilt.
+    { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
+  );
 }

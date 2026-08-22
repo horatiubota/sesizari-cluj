@@ -53,8 +53,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     params,
   );
 
-  return NextResponse.json({
-    totals: Object.fromEntries(Object.entries(totals ?? {}).map(([k, v]) => [k, Number(v)])),
-    byMonth, byCategory, byNeighborhood,
-  });
+  return NextResponse.json(
+    {
+      totals: Object.fromEntries(Object.entries(totals ?? {}).map(([k, v]) => [k, Number(v)])),
+      byMonth, byCategory, byNeighborhood,
+    },
+    { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } },
+  );
 }

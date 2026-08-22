@@ -54,9 +54,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
        order by t.created_at desc limit ${POINT_LIMIT}`,
       params,
     );
-    return NextResponse.json({
-      mode: 'points', total, points, truncated: total > points.length,
-    });
+    return NextResponse.json(
+      { mode: 'points', total, points, truncated: total > points.length },
+      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } },
+    );
   }
 
   // Otherwise aggregate onto a grid sized for the current zoom.
@@ -71,5 +72,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
      group by 1, 2 order by n desc limit 6000`,
     params,
   );
-  return NextResponse.json({ mode: 'cells', total, precision: p, cells });
+  return NextResponse.json(
+    { mode: 'cells', total, precision: p, cells },
+    { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } },
+  );
 }

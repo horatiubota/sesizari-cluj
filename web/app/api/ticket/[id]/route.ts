@@ -20,5 +20,7 @@ export async function GET(
     [id],
   );
   if (!rows.length) return NextResponse.json({ error: 'not found' }, { status: 404 });
-  return NextResponse.json(rows[0]);
+  return NextResponse.json(rows[0], {
+    headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+  });
 }

@@ -22,7 +22,14 @@ import { buildWhere, parseFilters } from '@/lib/filters';
 
 export const runtime = 'nodejs';
 
-const SAMPLE_LIMIT = 20_000;
+/**
+ * Tokenising descriptions is the most expensive query in the app: it splits,
+ * unnests and groups every word in the sample. At 20,000 rows that was ~900k
+ * words per request, fired on every map pan, which exhausted the database's
+ * shared CPU. Term *ratios* converge long before that -- a few thousand
+ * descriptions give the same ranking for a fraction of the work.
+ */
+const SAMPLE_LIMIT = 2_500;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const filters = parseFilters(req.nextUrl.searchParams);
@@ -55,5 +62,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     params,
   );
 
-  return NextResponse.json({ terms: rows });
+  return NextResponse.json(
+    { terms: rows },
+    // Panning revisits the same viewports constantly; let the edge absorb that.
+    { headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' } },
+  );
 }

@@ -65,7 +65,9 @@ export default function MapExplorer() {
     return p;
   }, [cats, outcome, from, to, q]);
 
-  const refresh = useCallback(async () => {
+  const inflight = useRef<AbortController | null>(null);
+
+  const refresh = useCallback(async (signal?: AbortSignal) => {
     const m = map.current;
     if (!m) return;
     const b = m.getBounds();
@@ -75,14 +77,23 @@ export default function MapExplorer() {
 
     setLoading(true);
     try {
-      const [mapRes, termRes] = await Promise.all([
-        fetch(`/api/map?${p}`).then((r) => r.json() as Promise<MapResponse>),
-        fetch(`/api/terms?${p}`).then((r) => r.json() as Promise<{ terms: Term[] }>),
-      ]);
+      // The map response is what the user is waiting for, so it goes first and
+      // renders on its own. Terms are supplementary and much more expensive, so
+      // they are never allowed to hold up the map.
+      const mapRes = await fetch(`/api/map?${p}`, { signal }).then(
+        (r) => r.json() as Promise<MapResponse>,
+      );
+      if (signal?.aborted) return;
       setData(mapRes);
-      setTerms(termRes.terms ?? []);
+
+      fetch(`/api/terms?${p}`, { signal })
+        .then((r) => r.json() as Promise<{ terms: Term[] }>)
+        .then((t) => { if (!signal?.aborted) setTerms(t.terms ?? []); })
+        .catch(() => { /* aborted or failed; the map is already usable */ });
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') throw err;
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [filterQS]);
 
@@ -116,10 +127,28 @@ export default function MapExplorer() {
   useEffect(() => {
     const m = map.current;
     if (!m || !ready) return;
-    const handler = () => void refresh();
+
+    let timer: ReturnType<typeof setTimeout>;
+    const run = (): void => {
+      inflight.current?.abort();
+      const ac = new AbortController();
+      inflight.current = ac;
+      void refresh(ac.signal);
+    };
+    // A single drag emits many moveend events; querying on each one is what
+    // exhausted the database's shared CPU.
+    const handler = (): void => {
+      clearTimeout(timer);
+      timer = setTimeout(run, 450);
+    };
+
     m.on('moveend', handler);
-    void refresh();
-    return () => { m.off('moveend', handler); };
+    run();
+    return () => {
+      clearTimeout(timer);
+      inflight.current?.abort();
+      m.off('moveend', handler);
+    };
   }, [ready, refresh]);
 
   // Draw whatever the server returned.
