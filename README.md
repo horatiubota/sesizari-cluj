@@ -16,9 +16,37 @@ tracked over time.
 | Crawler + local store | done |
 | PII scrubbing | done, 16 tests |
 | Postgres schema | done — `sql/001_schema.sql` |
-| Historical backfill (2017→now) | done |
-| Loader into Supabase | next |
+| Historical backfill (2017→now) | done — 210,718 records |
+| Loader into Supabase | done |
 | Web frontend | not started |
+
+### The corpus
+
+210,718 tickets, 2017-03-22 → present, covering 98.5% of the upstream ticket
+number space (absences are non-public tickets and other intake channels; the
+largest contiguous gap is 271, so there is no crawl hole).
+
+| Year | Tickets |     | Top category | Tickets |
+|---|---:|---|---|---:|
+| 2017 | 11,954 |  | Parcări neregulamentare | 39,784 |
+| 2018 | 15,205 |  | Străzi/Alei/Trotuare/Poduri | 38,976 |
+| 2019 | 23,707 |  | Spații verzi/Parcuri | 25,179 |
+| 2020 | 19,707 |  | Altele | 18,657 |
+| 2021 | 22,413 |  | Salubritate | 17,699 |
+| 2022 | 20,778 |  | Semnalizare rutieră | 14,051 |
+| 2023 | 28,352 |  | Parcări/Parking-uri | 13,069 |
+| 2024 | 25,419 |  | Iluminat public | 12,979 |
+| 2025 | 23,552 |  |  |  |
+| 2026 | 19,631 (partial) |  |  |  |
+
+Loaded into Supabase Postgres at **292 MB of the 500 MB free tier** (~42%
+headroom, roughly 30 MB/year growth):
+
+| Object | Size |
+|---|---:|
+| `public.tickets` (150 MB heap + 84 MB indexes) | 242 MB |
+| `public.ticket_events` | 28 MB |
+| `private.ticket_raw` (12,999 rows) | 11 MB |
 
 ## Quick start
 
@@ -98,9 +126,22 @@ roughly 0.02% of records.
 }
 ```
 
-`status` is a pipe-separated state code and label. Observed vocabulary:
-`O|Noua`, `O|In lucru`, `C|Favorabil`, `C|Partial`, `C|Nefavorabil`,
-`C|Transferata operatorului`.
+`status` is a pipe-separated state code and label. Full observed vocabulary
+across all 210,718 records:
+
+| Status | Count |
+|---|---:|
+| `C\|Favorabil` | 182,754 |
+| `C\|Partial` | 12,606 |
+| `C\|Transferata operatorului` | 9,707 |
+| `O\|In lucru` | 2,105 |
+| `C\|Nefavorabil` | 2,038 |
+| `C\|Respinsa` | 1,496 |
+| `O\|Noua` | 12 |
+
+Only ~1% of tickets are open at any time; the city closes nearly everything,
+which makes *how* it closes them (`Favorabil` vs `Partial` vs `Respinsa`) the
+more interesting signal.
 
 Data begins **2017-03-22**. Earlier dates return empty.
 
@@ -110,10 +151,24 @@ Permalink back to the official record: `https://mycluj.e-primariaclujnapoca.ro/?
 
 The upstream API exposes only *current* status and offers no "modified since"
 filter. It publishes no history at all. By re-reading every window on a schedule
-and appending an observation whenever mutable content changes, this project
-accumulates something that does not otherwise exist publicly: **actual
-time-to-resolution per category, per neighbourhood, over time.** That record
-starts accruing from the first crawl and compounds.
+and appending an event whenever status or the official response changes, this
+project accumulates something that does not otherwise exist publicly: **actual
+time-to-resolution per category, per neighbourhood, over time.**
+
+Both the event log and `closed_at` are maintained by database triggers rather
+than by application code, so every writer produces the same history.
+
+**Known limitation.** `closed_at` is null across the entire backfilled corpus,
+and this is deliberate. The API never exposes a close date — only current status
+— so for a historical ticket we know *that* it is closed, never *when*. Stamping
+the load time would assert something false. Resolution times therefore accrue
+only from transitions this project actually observes, starting from the first
+sync. 2,117 of the 210,718 tickets are currently open, so that is roughly the
+population being watched for a first measurable transition.
+
+The events table stores the *superseded* response text on change, not the current
+one — the current text always lives on the ticket. Copying it into every event
+made the table 100 MB against a 500 MB quota for zero information.
 
 ## Privacy
 
@@ -138,8 +193,10 @@ signature position (trailing name lines, `Subsemnatul/a <Name>`).
 **Deliberately kept:** street addresses and vehicle plates. They are the *subject*
 of the complaint, not an identifier, and removing them would gut the dataset.
 
-Validated against 5,080 real records: 3.43% modified, every name redaction
-manually audited for false positives.
+Measured over the full corpus: **3.89% of records modified** — 6,697 names,
+2,382 phone numbers, 538 emails, 172 CNPs, 7 IBANs. Name redactions were
+manually audited for false positives on a sample; the two found (`Cluj-Napoca`
+read as a name, and a four-word subject line) are fixed and regression-tested.
 
 ## Layout
 

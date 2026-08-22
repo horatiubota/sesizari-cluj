@@ -153,14 +153,9 @@ async function loadTickets(client: pg.Client, rows: Row[]): Promise<void> {
        lon            = excluded.lon,
        created_at     = excluded.created_at,
        redactions     = excluded.redactions,
-       last_seen_at   = now(),
-       -- Stamp the first time we observe a close; clear it if it reopens.
-       closed_at      = case
-                          when excluded.status_code = 'C' and public.tickets.closed_at is null
-                            then now()
-                          when excluded.status_code = 'O' then null
-                          else public.tickets.closed_at
-                        end`,
+       last_seen_at   = now()`,
+    // closed_at is intentionally absent: the trg_closed_at trigger owns it, so
+    // there is one source of truth regardless of which client writes.
     values,
   );
 }

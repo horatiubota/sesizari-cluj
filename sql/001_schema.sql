@@ -105,6 +105,8 @@ create table if not exists public.ticket_events (
   observed_at    timestamptz not null default now(),
   status_code    char(1),
   status_label   text,
+  -- The response text this event superseded. Null when the response did not
+  -- change, or when it is still the current one on public.tickets.
   resolve_reason text
 );
 
@@ -117,19 +119,62 @@ create table if not exists public.ticket_events (
 create or replace function public.record_ticket_event() returns trigger
 language plpgsql as $$
 begin
-  if tg_op = 'INSERT'
-     or new.status_code    is distinct from old.status_code
-     or new.status_label   is distinct from old.status_label
-     or new.resolve_reason is distinct from old.resolve_reason
-  then
+  if tg_op = 'INSERT' then
+    -- First sighting. resolve_reason is left null on purpose: it is identical to
+    -- public.tickets.resolve_reason, and copying it here duplicated the single
+    -- largest text field across every row (~85 MB on a 210k-row load).
     insert into public.ticket_events
       (ticket_number, observed_at, status_code, status_label, resolve_reason)
     values
-      (new.ticket_number, now(), new.status_code, new.status_label, new.resolve_reason);
+      (new.ticket_number, now(), new.status_code, new.status_label, null);
+
+  elsif new.status_code    is distinct from old.status_code
+     or new.status_label   is distinct from old.status_label
+     or new.resolve_reason is distinct from old.resolve_reason
+  then
+    -- On change, record the SUPERSEDED response text, which is the part that
+    -- would otherwise be lost. The current text always lives on the ticket.
+    insert into public.ticket_events
+      (ticket_number, observed_at, status_code, status_label, resolve_reason)
+    values
+      (new.ticket_number, now(), new.status_code, new.status_label,
+       case
+         when new.resolve_reason is distinct from old.resolve_reason then old.resolve_reason
+         else null
+       end);
   end if;
   return new;
 end;
 $$;
+
+-- closed_at is maintained by the database rather than by whichever client is
+-- writing, for the same reason as the event log.
+--
+-- Deliberately NOT set when a ticket first arrives already closed: the upstream
+-- API exposes only current status, never a close date, so for the historical
+-- backfill we know only *that* a ticket is closed, not *when*. Stamping now()
+-- would assert something false. closed_at therefore accrues only from observed
+-- open -> closed transitions, and is null across the backfilled corpus.
+create or replace function public.maintain_closed_at() returns trigger
+language plpgsql as $$
+begin
+  if tg_op = 'UPDATE' then
+    if new.status_code = 'C' and old.status_code = 'O' then
+      new.closed_at := coalesce(old.closed_at, now());
+    elsif new.status_code = 'O' then
+      new.closed_at := null;          -- reopened
+    else
+      new.closed_at := old.closed_at; -- unchanged; ignore whatever the writer sent
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_closed_at on public.tickets;
+create trigger trg_closed_at
+  before update on public.tickets
+  for each row execute function public.maintain_closed_at();
 
 drop trigger if exists trg_ticket_event on public.tickets;
 create trigger trg_ticket_event
