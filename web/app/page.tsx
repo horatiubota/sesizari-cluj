@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Nav from '@/components/Nav';
 import { Bar, DailyBars, Delta, Sparkline, StackedBars } from '@/components/charts';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
@@ -115,10 +114,7 @@ export default async function Dashboard() {
   return (
     <main className="mx-auto max-w-6xl px-5 py-8">
       <header className="pb-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">Sesizări Cluj</h1>
-          <Nav current="/" />
-        </div>
+        <h1 className="text-xl font-semibold tracking-tight">Panou general</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
           {nf.format(overview.total)} sesizări publice trimise Primăriei Cluj-Napoca prin
           platforma My Cluj, din {fmtLong(overview.first_day)} până

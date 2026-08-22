@@ -7,7 +7,6 @@ import {
   type GeoJSONSource,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import Nav from '@/components/Nav';
 import {
   CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL, readableOn,
 } from '@/lib/categories';
@@ -347,17 +346,16 @@ export default function MapExplorer() {
     setCats((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
 
   return (
-    <div className="flex h-dvh w-full flex-col-reverse md:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-neutral-200 bg-white p-4 md:h-full md:w-96 md:border-r md:border-t-0 dark:border-neutral-800 dark:bg-neutral-950">
+    <div className="flex min-h-0 w-full flex-1 flex-col-reverse md:flex-row">
+      <aside className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-neutral-200 bg-white p-4 md:min-h-0 md:w-96 md:border-r md:border-t-0 dark:border-neutral-800 dark:bg-neutral-950">
         <header>
-          <h1 className="text-lg font-semibold tracking-tight">Sesizări Cluj</h1>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
+          {/* The visible title lives in the site header; this keeps the page a
+              labelled document without repeating the brand inside the filters. */}
+          <h1 className="sr-only">Hartă</h1>
+          <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
             Sesizările publice din martie 2017 până azi, preluate din platforma
             My Cluj a Primăriei Cluj-Napoca.
           </p>
-          <div className="mt-2 text-xs">
-            <Nav current="/harta" />
-          </div>
         </header>
 
         <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
@@ -493,12 +491,13 @@ export default function MapExplorer() {
 
       {/* The map and its overlay share a positioning context so the detail panel
           can sit on top of the map rather than pushing the layout around. */}
-      <div className="relative h-full min-h-[50dvh] w-full flex-1">
-        {/* Not `absolute inset-0`: maplibre-gl.css sets `.maplibregl-map {
-            position: relative }` and its stylesheet loads after Tailwind's, so
-            the absolute positioning is overridden and the element collapses to
-            zero height. A plain full-size box is what MapLibre expects. */}
-        <div ref={mapNode} className="h-full w-full" />
+      <div className="relative flex min-h-[50dvh] w-full flex-1">
+        {/* Sized by flex, not by percentage or absolute positioning. `h-full`
+            resolves to 0 because no ancestor has a definite height (the shell is
+            min-h-dvh), and `absolute inset-0` loses to maplibre-gl.css's
+            `.maplibregl-map { position: relative }`, whose stylesheet loads after
+            Tailwind's. Stretching a flex item gives a real box in both cases. */}
+        <div ref={mapNode} className="min-h-0 w-full flex-1" />
 
         {selectedId && (
           <aside
