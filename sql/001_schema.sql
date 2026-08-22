@@ -102,13 +102,39 @@ comment on column public.tickets.description is
 create table if not exists public.ticket_events (
   id             bigint generated always as identity primary key,
   ticket_number  text not null references public.tickets(ticket_number) on delete cascade,
-  observed_at    timestamptz not null,
+  observed_at    timestamptz not null default now(),
   status_code    char(1),
   status_label   text,
-  resolve_reason text,
-  content_hash   text not null,
-  unique (ticket_number, content_hash)
+  resolve_reason text
 );
+
+-- Recording history is enforced by the database rather than by application code,
+-- so any writer -- loader, sync job, manual fix -- produces the same history.
+-- Deliberately no unique constraint on the state: a ticket that goes
+-- open -> closed -> reopened -> closed must record all four transitions, which a
+-- uniqueness constraint on the state hash would silently collapse. The
+-- `is distinct from` guard below is what prevents no-op re-loads from logging.
+create or replace function public.record_ticket_event() returns trigger
+language plpgsql as $$
+begin
+  if tg_op = 'INSERT'
+     or new.status_code    is distinct from old.status_code
+     or new.status_label   is distinct from old.status_label
+     or new.resolve_reason is distinct from old.resolve_reason
+  then
+    insert into public.ticket_events
+      (ticket_number, observed_at, status_code, status_label, resolve_reason)
+    values
+      (new.ticket_number, now(), new.status_code, new.status_label, new.resolve_reason);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_ticket_event on public.tickets;
+create trigger trg_ticket_event
+  after insert or update on public.tickets
+  for each row execute function public.record_ticket_event();
 
 -- ---------------------------------------------------------------------------
 -- Private: verbatim originals

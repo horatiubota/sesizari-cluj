@@ -1,0 +1,75 @@
+name: sync
+
+# Daily pass catches new tickets cheaply (~5 requests).
+# Weekly pass re-reads all history, which is the only way to notice that an old
+# ticket changed status: the upstream API has no "modified since" filter.
+on:
+  schedule:
+    - cron: '17 4 * * 1-6'   # Mon-Sat 04:17 UTC — recent only
+    - cron: '17 4 * * 0'     # Sunday  04:17 UTC — full re-sweep
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'recent (last 30 days) or full (entire history)'
+        type: choice
+        options: [recent, full]
+        default: recent
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Decide mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "full=${{ inputs.mode == 'full' }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "17 4 * * 0" ]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "full=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The runner's SQLite is ephemeral and only stages this run's fetch.
+      # Change detection lives in Postgres: the upsert compares against stored
+      # state and the trigger appends history, so a fresh staging file is fine.
+      - name: Crawl
+        env:
+          MYCLUJ_DELAY_MS: '500'   # gentler than local default
+        run: |
+          if [ "${{ steps.mode.outputs.full }}" = "true" ]; then
+            node --no-warnings=ExperimentalWarning src/sync.ts --full
+          else
+            node --no-warnings=ExperimentalWarning src/sync.ts --days 30
+          fi
+
+      - name: Load into Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node --no-warnings=ExperimentalWarning src/load.ts
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Sync complete"
+            echo "- mode: \`${{ steps.mode.outputs.full == 'true' && 'full' || 'recent' }}\`"
+            echo "- staged db: \`$(du -h data/mycluj.db 2>/dev/null | cut -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
