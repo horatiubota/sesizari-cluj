@@ -77,7 +77,11 @@ create table if not exists public.tickets (
 
   -- Crawl bookkeeping.
   first_seen_at   timestamptz not null,
-  last_seen_at    timestamptz not null,
+  -- Last time this ticket's content was observed to DIFFER from what we held.
+  -- Not "last time we looked at it": unchanged rows are skipped on purpose, so
+  -- that a full re-sweep does not rewrite the whole table. Crawl coverage is
+  -- recorded separately in the fetch log.
+  last_changed_at timestamptz not null,
   -- First observation at which the ticket was closed; null while open.
   closed_at       timestamptz,
 

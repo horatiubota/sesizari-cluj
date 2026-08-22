@@ -39,14 +39,19 @@ largest contiguous gap is 271, so there is no crawl hole).
 | 2025 | 23,552 |  |  |  |
 | 2026 | 19,631 (partial) |  |  |  |
 
-Loaded into Supabase Postgres at **292 MB of the 500 MB free tier** (~42%
+Loaded into Supabase Postgres at **280 MB of the 500 MB free tier** (~44%
 headroom, roughly 30 MB/year growth):
 
 | Object | Size |
 |---|---:|
-| `public.tickets` (150 MB heap + 84 MB indexes) | 242 MB |
+| `public.tickets` | 224 MB |
 | `public.ticket_events` | 28 MB |
 | `private.ticket_raw` (12,999 rows) | 11 MB |
+
+Upserts skip rows whose content has not changed. Without that guard every full
+re-sweep rewrote all 210k rows and left a dead tuple behind for each, taking the
+database from 292 MB to 402 MB in a single no-op re-load. Re-loading 20,000
+unchanged rows now produces zero dead tuples and no size change.
 
 ## Quick start
 

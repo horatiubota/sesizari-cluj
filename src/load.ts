@@ -140,7 +140,7 @@ async function loadTickets(client: pg.Client, rows: Row[]): Promise<void> {
     `INSERT INTO public.tickets
        (ticket_number, category_id, description, resolve_reason, status_code,
         status_label, is_edited, lat, lon, created_at, redactions,
-        first_seen_at, last_seen_at)
+        first_seen_at, last_changed_at)
      VALUES ${tuples.join(',')}
      ON CONFLICT (ticket_number) DO UPDATE SET
        category_id    = excluded.category_id,
@@ -153,7 +153,21 @@ async function loadTickets(client: pg.Client, rows: Row[]): Promise<void> {
        lon            = excluded.lon,
        created_at     = excluded.created_at,
        redactions     = excluded.redactions,
-       last_seen_at   = now()`,
+       last_changed_at = now()
+     -- Only write when something actually differs. Without this guard every
+     -- full re-sweep rewrites all 210k rows, and Postgres leaves a dead tuple
+     -- behind for each one: a single no-op re-load grew the database from
+     -- 292 MB to 402 MB against a 500 MB quota. Skipping unchanged rows also
+     -- means the trigger sees no UPDATE, so no spurious history is recorded.
+     where public.tickets.category_id    is distinct from excluded.category_id
+        or public.tickets.description    is distinct from excluded.description
+        or public.tickets.resolve_reason is distinct from excluded.resolve_reason
+        or public.tickets.status_code    is distinct from excluded.status_code
+        or public.tickets.status_label   is distinct from excluded.status_label
+        or public.tickets.is_edited      is distinct from excluded.is_edited
+        or public.tickets.lat            is distinct from excluded.lat
+        or public.tickets.lon            is distinct from excluded.lon
+        or public.tickets.created_at     is distinct from excluded.created_at`,
     // closed_at is intentionally absent: the trg_closed_at trigger owns it, so
     // there is one source of truth regardless of which client writes.
     values,
@@ -176,7 +190,11 @@ async function loadRaw(client: pg.Client, rows: Row[]): Promise<number> {
      VALUES ${tuples.join(',')}
      ON CONFLICT (ticket_number) DO UPDATE SET
        description_raw    = excluded.description_raw,
-       resolve_reason_raw = excluded.resolve_reason_raw`,
+       resolve_reason_raw = excluded.resolve_reason_raw
+     -- Same no-op guard as the tickets upsert: avoid rewriting rows that have
+     -- not changed, so repeated full sweeps do not accumulate dead tuples.
+     where private.ticket_raw.description_raw    is distinct from excluded.description_raw
+        or private.ticket_raw.resolve_reason_raw is distinct from excluded.resolve_reason_raw`,
     values,
   );
   return withRaw.length;
