@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // MapLibre 6 ships named exports only; there is no default export.
-import { AttributionControl, Map as MLMap, NavigationControl, type GeoJSONSource } from 'maplibre-gl';
+import {
+  AttributionControl, Map as MLMap, NavigationControl, setWorkerUrl,
+  type GeoJSONSource,
+} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL } from '@/lib/categories';
 
@@ -15,6 +18,16 @@ import { CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME
  */
 
 const BASEMAP = 'https://tiles.openfreemap.org/styles/positron';
+
+// MapLibre 6 loads its worker from a separate file and resolves the path from
+// `import.meta.url`. Turbopack rewrites that to something unusable: the URL
+// collapses to an empty string, the browser resolves it against the document,
+// and the worker load fails with "non-JavaScript MIME type of text/html".
+// Nothing renders when that happens — tile parsing lives entirely in the
+// worker, so the basemap stays blank and `load` never fires, which also means
+// the ticket layer is never requested. scripts/copy-maplibre-worker.mjs places
+// the worker under public/ so we can name it explicitly.
+setWorkerUrl('/maplibre/maplibre-gl-worker.mjs');
 
 interface Cell { lat: number; lon: number; n: number; top_category: number; pct_favorabil: number }
 interface Point {
