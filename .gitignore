@@ -7,3 +7,11 @@ data/
 .DS_Store
 .next/
 dist/
+
+# Editor swap/backup files. A vim swap of .env.local leaked a live credential
+# into a public commit: .env*.local does not match .env.local.swp.
+*.swp
+*.swo
+*.sw?
+*~
+.*.swp
