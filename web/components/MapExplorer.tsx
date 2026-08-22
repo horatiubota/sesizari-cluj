@@ -22,6 +22,19 @@ import {
 
 const BASEMAP = 'https://tiles.openfreemap.org/styles/positron';
 
+/**
+ * Circle outline, as a data expression keyed on the open ticket.
+ *
+ * Selection is drawn on the map itself rather than only in the panel, so it stays
+ * obvious which of several nearby pins is the one being read. Repainting via
+ * setPaintProperty keeps the source data untouched -- re-setting the GeoJSON
+ * would throw away the layer's render state on every click.
+ */
+const isSelected = (id: string | null) => ['==', ['get', 'ticket'], id ?? ''] as const;
+const STROKE_WIDTH = (id: string | null) => ['case', isSelected(id), 3, 1] as unknown as never;
+const STROKE_COLOR = (id: string | null) =>
+  ['case', isSelected(id), '#111111', 'rgba(255,255,255,0.85)'] as unknown as never;
+
 // MapLibre 6 loads its worker from a separate file and resolves the path from
 // `import.meta.url`. Turbopack rewrites that to something unusable: the URL
 // collapses to an empty string, the browser resolves it against the document,
@@ -40,7 +53,8 @@ interface Point {
 }
 interface Detail {
   ticket_number: string; description: string | null; resolve_reason: string | null;
-  status_label: string; created_at: string; neighborhood: string | null; category: string;
+  status_label: string; created_at: string; neighborhood: string | null;
+  category: string; category_id: number;
 }
 interface MapResponse {
   mode: 'cells' | 'points'; total: number;
@@ -110,7 +124,11 @@ export default function MapExplorer() {
 
   const [data, setData] = useState<MapResponse | null>(null);
   const [terms, setTerms] = useState<Term[]>([]);
+  // `selectedId` opens the panel immediately on click; `selected` arrives when
+  // the fetch lands. Splitting them avoids a dead beat between the two.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Detail | null>(null);
+  const detailReq = useRef<AbortController | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Debounce the free-text box so typing does not fire a query per keystroke.
@@ -172,7 +190,9 @@ export default function MapExplorer() {
       maxBounds: [[23.2, 46.5], [24.0, 47.0]],
       attributionControl: false,
     });
-    m.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+    // Top-right belongs to the detail panel, which would otherwise cover the
+    // zoom buttons exactly when you want to zoom while reading a report.
+    m.addControl(new NavigationControl({ showCompass: false }), 'top-left');
     m.addControl(
       new AttributionControl({
         customAttribution:
@@ -258,8 +278,8 @@ export default function MapExplorer() {
       paint: {
         'circle-color': ['get', 'color'],
         'circle-opacity': 0.72,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': 'rgba(255,255,255,0.85)',
+        'circle-stroke-width': STROKE_WIDTH(null),
+        'circle-stroke-color': STROKE_COLOR(null),
         'circle-radius': [
           'interpolate', ['linear'], ['get', 'n'],
           1, 5, 10, 9, 50, 15, 200, 22, 1000, 32,
@@ -283,14 +303,45 @@ export default function MapExplorer() {
         m.easeTo({ center: coords, zoom: m.getZoom() + 2 });
       } else {
         const tn = f.properties?.ticket as string;
-        void fetch(`/api/ticket/${tn}`)
+        detailReq.current?.abort();
+        const ac = new AbortController();
+        detailReq.current = ac;
+        setSelectedId(tn);
+        setSelected(null);
+        void fetch(`/api/ticket/${tn}`, { signal: ac.signal })
           .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
-          .then(setSelected);
+          .then((d) => { if (!ac.signal.aborted) setSelected(d); })
+          .catch(() => { /* superseded by a newer click, or offline */ });
       }
     });
     m.on('mouseenter', 'tickets-circles', () => { m.getCanvas().style.cursor = 'pointer'; });
     m.on('mouseleave', 'tickets-circles', () => { m.getCanvas().style.cursor = ''; });
   }, [data, ready]);
+
+  const closeDetail = useCallback((): void => {
+    detailReq.current?.abort();
+    setSelectedId(null);
+    setSelected(null);
+  }, []);
+
+  // Escape closes the panel, the convention for anything overlaying content.
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (e: KeyboardEvent): void => { if (e.key === 'Escape') closeDetail(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId, closeDetail]);
+
+  const cat = selected ? CATEGORY_BY_ID.get(selected.category_id) : undefined;
+
+  // Re-paint the outline when the selection changes. Guarded on the layer
+  // existing: it is added by the draw effect, which may not have run yet.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready || !m.getLayer('tickets-circles')) return;
+    m.setPaintProperty('tickets-circles', 'circle-stroke-width', STROKE_WIDTH(selectedId));
+    m.setPaintProperty('tickets-circles', 'circle-stroke-color', STROKE_COLOR(selectedId));
+  }, [selectedId, ready, data]);
 
   const toggleCat = (id: number): void =>
     setCats((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
@@ -438,40 +489,83 @@ export default function MapExplorer() {
           </div>
         )}
 
-        {selected && (
-          <div className="rounded-md border border-neutral-300 p-3 text-sm dark:border-neutral-700">
-            <div className="flex items-start justify-between gap-2">
-              <span className="font-mono text-xs">{selected.ticket_number}</span>
-              <button onClick={() => setSelected(null)} className="text-xs text-neutral-500">închide</button>
-            </div>
-            <p className="mt-1 text-xs text-neutral-500">
-              {selected.category} ·{' '}
-              {OUTCOME_LABEL[selected.status_label] ?? selected.status_label}
-              {selected.neighborhood ? ` · ${selected.neighborhood}` : ''}
-              {' · '}
-              {new Date(selected.created_at).toLocaleDateString('ro-RO')}
-            </p>
-            <p className="mt-2 max-h-40 overflow-y-auto text-xs leading-relaxed whitespace-pre-line">
-              {selected.description ?? '(fără descriere)'}
-            </p>
-            {selected.resolve_reason && (
-              <div className="mt-2 border-l-2 border-neutral-300 pl-2 dark:border-neutral-700">
-                <span className="text-[11px] font-medium text-neutral-500">Răspuns oficial</span>
-                <p className="max-h-32 overflow-y-auto text-xs leading-relaxed whitespace-pre-line">
-                  {selected.resolve_reason}
-                </p>
-              </div>
-            )}
-            <a href={`https://mycluj.e-primariaclujnapoca.ro/?c=${selected.ticket_number}`}
-              target="_blank" rel="noreferrer"
-              className="mt-2 inline-block text-xs underline underline-offset-2">
-              Vezi pe platforma oficială
-            </a>
-          </div>
-        )}
       </aside>
 
-      <div ref={mapNode} className="h-full min-h-[50dvh] w-full flex-1" />
+      {/* The map and its overlay share a positioning context so the detail panel
+          can sit on top of the map rather than pushing the layout around. */}
+      <div className="relative h-full min-h-[50dvh] w-full flex-1">
+        {/* Not `absolute inset-0`: maplibre-gl.css sets `.maplibregl-map {
+            position: relative }` and its stylesheet loads after Tailwind's, so
+            the absolute positioning is overridden and the element collapses to
+            zero height. A plain full-size box is what MapLibre expects. */}
+        <div ref={mapNode} className="h-full w-full" />
+
+        {selectedId && (
+          <aside
+            role="dialog" aria-modal="false" aria-label={`Detalii sesizarea ${selectedId}`}
+            className="absolute inset-x-2 top-2 z-10 flex max-h-[calc(100%-1rem)] flex-col overflow-hidden rounded-md border border-neutral-300 bg-white shadow-lg md:inset-x-auto md:top-3 md:right-3 md:max-h-[calc(100%-1.5rem)] md:w-[22rem] dark:border-neutral-700 dark:bg-neutral-950"
+          >
+            <header className="flex items-start justify-between gap-2 border-b border-neutral-200 px-3 py-2 dark:border-neutral-800">
+              <div className="min-w-0">
+                <span className="block font-mono text-xs text-neutral-500">{selectedId}</span>
+                {cat && (
+                  <span className="mt-0.5 inline-flex items-center gap-1.5 text-sm font-medium">
+                    <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: cat.color }} />
+                    <span className="truncate">{cat.short}</span>
+                  </span>
+                )}
+              </div>
+              <button onClick={closeDetail} aria-label="Închide detaliile"
+                className="-mr-1 shrink-0 rounded p-1 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100">
+                <svg viewBox="0 0 16 16" className="h-4 w-4" aria-hidden="true">
+                  <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5"
+                    strokeLinecap="round" fill="none" />
+                </svg>
+              </button>
+            </header>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+              {!selected ? (
+                <div className="space-y-2" aria-live="polite">
+                  <span className="sr-only">Se încarcă</span>
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+                  <div className="h-3 w-full animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+                  <div className="h-3 w-5/6 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-neutral-500">
+                    {OUTCOME_LABEL[selected.status_label] ?? selected.status_label}
+                    {selected.neighborhood ? ` · ${selected.neighborhood}` : ''}
+                    {' · '}
+                    {new Date(selected.created_at).toLocaleDateString('ro-RO')}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">
+                    {selected.description ?? '(fără descriere)'}
+                  </p>
+                  {selected.resolve_reason && (
+                    <div className="mt-3 border-l-2 border-neutral-300 pl-2 dark:border-neutral-700">
+                      <span className="text-[11px] font-medium text-neutral-500">Răspuns oficial</span>
+                      <p className="text-sm leading-relaxed whitespace-pre-line">
+                        {selected.resolve_reason}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <footer className="border-t border-neutral-200 px-3 py-2 dark:border-neutral-800">
+              <a href={`https://mycluj.e-primariaclujnapoca.ro/?c=${selectedId}`}
+                target="_blank" rel="noreferrer"
+                className="text-xs underline underline-offset-2">
+                Vezi pe platforma oficială →
+              </a>
+            </footer>
+          </aside>
+        )}
+      </div>
     </div>
   );
 }
