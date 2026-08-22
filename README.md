@@ -163,6 +163,10 @@ time-to-resolution per category, per neighbourhood, over time.**
 Both the event log and `closed_at` are maintained by database triggers rather
 than by application code, so every writer produces the same history.
 
+`snapshot/stats.json` holds aggregate totals, refreshed monthly by the keepalive
+workflow. It gives the repo a versioned history of the dataset and the frontend
+instant totals without querying Postgres.
+
 **Known limitation.** `closed_at` is null across the entire backfilled corpus,
 and this is deliberate. The API never exposes a close date — only current status
 — so for a historical ticket we know *that* it is closed, never *when*. Stamping
@@ -215,7 +219,23 @@ src/scrub/pii.ts      PII scrubbing (+ pii.test.ts)
 src/store/local.ts    SQLite landing zone + change detection
 sql/001_schema.sql    Postgres schema
 scripts/stats.ts      QA report and size projection
+scripts/snapshot.ts   aggregate snapshot -> snapshot/stats.json
 ```
+
+## Scheduled jobs
+
+| Workflow | Schedule | Purpose |
+|---|---|---|
+| `sync` (recent) | Mon–Sat 04:17 UTC | last 30 days, ~5 requests |
+| `sync` (full) | Sunday 04:17 UTC | entire history, ~495 requests |
+| `keepalive` | 1st monthly 05:00 UTC | refresh snapshot, keep the schedule alive |
+
+GitHub disables scheduled workflows in public repositories after 60 days with no
+repository activity, and does not document what counts as activity. `sync` never
+commits, so `keepalive` commits a real content change monthly — 2× margin against
+the 60-day limit, since scheduled runs are best-effort and can be skipped. Its
+snapshot step is allowed to fail: a paused database must not defeat the one job
+that has to succeed.
 
 The crawl writes to local SQLite first, and Postgres is loaded from that. The
 crawl is the only expensive, rate-limit-exposed step, so a schema change costs a
