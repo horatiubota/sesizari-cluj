@@ -3,11 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "backfill": "node --no-warnings=ExperimentalWarning src/backfill.ts",
-    "sync": "node --no-warnings=ExperimentalWarning src/sync.ts",
-    "stats": "node --no-warnings=ExperimentalWarning scripts/stats.ts",
+    "backfill": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env.local src/backfill.ts",
+    "sync": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env.local src/sync.ts",
+    "load": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env.local src/load.ts",
+    "stats": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env.local scripts/stats.ts",
     "test": "node --no-warnings=ExperimentalWarning --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
   }
 }
