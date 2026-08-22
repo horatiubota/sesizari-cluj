@@ -1,0 +1,13 @@
+{
+  "name": "mycluj",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "backfill": "node --no-warnings=ExperimentalWarning src/backfill.ts",
+    "sync": "node --no-warnings=ExperimentalWarning src/sync.ts",
+    "stats": "node --no-warnings=ExperimentalWarning scripts/stats.ts",
+    "test": "node --no-warnings=ExperimentalWarning --test src/**/*.test.ts"
+  }
+}
