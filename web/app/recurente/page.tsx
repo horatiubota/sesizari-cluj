@@ -1,3 +1,4 @@
+import Nav from '@/components/Nav';
 import Link from 'next/link';
 import { query } from '@/lib/db';
 
@@ -53,9 +54,9 @@ export default async function Recurente({
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-10">
-      <nav className="mb-8 text-sm">
-        <Link href="/" className="underline underline-offset-4">← Hartă</Link>
-      </nav>
+      <div className="mb-8">
+        <Nav current="/recurente" />
+      </div>
 
       <h1 className="text-2xl font-semibold tracking-tight">Probleme recurente</h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">

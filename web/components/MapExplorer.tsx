@@ -7,6 +7,7 @@ import {
   type GeoJSONSource,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import Nav from '@/components/Nav';
 import { CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL } from '@/lib/categories';
 
 /**
@@ -250,12 +251,12 @@ export default function MapExplorer() {
         <header>
           <h1 className="text-lg font-semibold tracking-tight">Sesizări Cluj</h1>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
-            210.721 sesizări publice din martie 2017 până azi, preluate din platforma
+            Sesizările publice din martie 2017 până azi, preluate din platforma
             My Cluj a Primăriei Cluj-Napoca.
           </p>
-          <a href="/recurente" className="mt-2 inline-block text-xs underline underline-offset-4">
-            Probleme recurente →
-          </a>
+          <div className="mt-2 text-xs">
+            <Nav current="/harta" />
+          </div>
         </header>
 
         <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">

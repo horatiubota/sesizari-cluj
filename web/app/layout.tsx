@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     'Toate sesizările publice trimise Primăriei Cluj-Napoca prin platforma My Cluj, din 2017 până azi — căutabile, pe hartă și analizate.',
   openGraph: {
     title: 'Sesizări Cluj',
-    description: '210.721 sesizări publice din Cluj-Napoca, din 2017 până azi.',
+    description: 'Sesizările publice din Cluj-Napoca, din 2017 până azi.',
     locale: 'ro_RO',
     type: 'website',
   },
