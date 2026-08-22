@@ -8,7 +8,9 @@ import {
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Nav from '@/components/Nav';
-import { CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL } from '@/lib/categories';
+import {
+  CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL, readableOn,
+} from '@/lib/categories';
 
 /**
  * Map-first explorer.
@@ -393,11 +395,22 @@ export default function MapExplorer() {
             {CATEGORIES.map((c) => {
               const on = cats.includes(c.id);
               return (
-                <button key={c.id} onClick={() => toggleCat(c.id)}
-                  className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                    on ? 'border-transparent text-white' : 'border-neutral-300 text-neutral-700 dark:border-neutral-700 dark:text-neutral-300'
+                <button key={c.id} onClick={() => toggleCat(c.id)} aria-pressed={on}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] transition ${
+                    on
+                      ? 'border-transparent'
+                      : 'border-neutral-300 text-neutral-700 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
-                  style={on ? { backgroundColor: c.color } : undefined}>
+                  style={on ? { backgroundColor: c.color, color: readableOn(c.color) } : undefined}>
+                  {/* Same colour as this category's pins, so the list doubles as
+                      the map legend. Kept in both states so toggling a chip does
+                      not change its width and reflow the wrapped rows. When the
+                      chip is filled the dot goes solid contrast rather than
+                      ringed: a ringed dot reads as an *unchecked* radio, which is
+                      the opposite of what a selected chip should signal. */}
+                  <span aria-hidden="true"
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: on ? readableOn(c.color) : c.color }} />
                   {c.short}
                 </button>
               );

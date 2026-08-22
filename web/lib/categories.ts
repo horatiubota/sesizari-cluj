@@ -20,6 +20,23 @@ export const CATEGORIES: { id: number; name: string; short: string; color: strin
 
 export const CATEGORY_BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]));
 
+/**
+ * Black or white, whichever reads better on `hex` (WCAG relative luminance).
+ *
+ * The 16 category colours span a wide lightness range -- #d9a441 and #6f7f52 are
+ * light enough that white text on them falls below 3:1 -- so the foreground has
+ * to be chosen per colour rather than fixed to white.
+ */
+export function readableOn(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  const lin = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map((v) => v / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  const L = 0.2126 * lin[0]! + 0.7152 * lin[1]! + 0.0722 * lin[2]!;
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.05 ? '#ffffff' : '#111111';
+}
+
+
 /** Outcome labels, ordered from most to least favourable to the reporter. */
 export const OUTCOMES = [
   'Favorabil',
