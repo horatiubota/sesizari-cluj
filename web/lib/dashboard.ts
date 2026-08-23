@@ -192,3 +192,19 @@ export async function getMonthlyOutcome(): Promise<MonthlyOutcomeRow[]> {
      from public.tickets group by 1 order by 1`,
   );
 }
+
+export interface WeeklySummary {
+  period_start: string; period_end: string; generated_at: string;
+  model: string; n_tickets: number; summary: string;
+}
+
+/** Newest stored weekly summary, or null before the first run. */
+export async function getWeeklySummary(): Promise<WeeklySummary | null> {
+  const rows = await query<WeeklySummary>(
+    `select period_start::text, period_end::text,
+            to_char(generated_at at time zone 'Europe/Bucharest', 'YYYY-MM-DD HH24:MI') as generated_at,
+            model, n_tickets, summary
+     from public.weekly_summary order by period_end desc limit 1`,
+  );
+  return rows[0] ?? null;
+}

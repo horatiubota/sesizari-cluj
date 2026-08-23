@@ -4,7 +4,7 @@ import { Bar, Delta, Sparkline, StackedBars } from '@/components/charts';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
   getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
-  getLatest, getMonthlyOutcome, getOverview, getRollingTotals,
+  getLatest, getMonthlyOutcome, getOverview, getRollingTotals, getWeeklySummary,
   type WindowCounts,
 } from '@/lib/dashboard';
 
@@ -131,11 +131,11 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor }: {
 }
 
 export default async function Dashboard() {
-  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly] =
+  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly] =
     await Promise.all([
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
       getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
-      getMonthlyOutcome(),
+      getMonthlyOutcome(), getWeeklySummary(),
     ]);
 
   // Pivot per-category daily counts once: the stacked chart needs every day, the
@@ -234,6 +234,31 @@ export default async function Dashboard() {
           />
         </div>
       </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      {weekly && (
+        <Section
+          title="Săptămâna pe scurt"
+          note={
+            <>
+              Text generat automat de un model de limbaj ({weekly.model}) pe baza celor{' '}
+              {nf.format(weekly.n_tickets)} sesizări depuse
+              între {fmtLong(weekly.period_start)} și {fmtLong(weekly.period_end)}.
+              Generat la {weekly.generated_at}. Nu este text redactat de o persoană și
+              nu a fost verificat manual; restul cifrelor de pe această pagină vin direct
+              din date.
+            </>
+          }
+        >
+          <div className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
+            {weekly.summary.split(/\n\s*\n/).filter(Boolean).map((para, i) => (
+              <p key={i} className="mt-3 text-sm leading-relaxed first:mt-0">
+                {para}
+              </p>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* ------------------------------------------------------------------ */}
       <Section
