@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import MapExplorer from '@/components/MapExplorer';
 
 export const metadata: Metadata = {
@@ -9,5 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default function HartaPage() {
-  return <MapExplorer />;
+  // MapExplorer reads the query string so the dashboard can link in with a filter
+  // already applied; useSearchParams needs a boundary on a prerendered route.
+  return (
+    <Suspense fallback={<div className="flex-1" aria-busy="true" />}>
+      <MapExplorer />
+    </Suspense>
+  );
 }

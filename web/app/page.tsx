@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { Bar, DailyBars, Delta, Sparkline, StackedBars } from '@/components/charts';
+import DailyCategoryChart, { type Day } from '@/components/DailyCategoryChart';
+import { Bar, Delta, Sparkline, StackedBars } from '@/components/charts';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
-  getBacklogByYear, getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
-  getLatest, getMonthlyOutcome, getOverview, getWeekTotals,
+  getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
+  getLatest, getMonthlyOutcome, getOverview, getRollingTotals,
+  type WindowCounts,
 } from '@/lib/dashboard';
 
 /**
@@ -13,6 +15,8 @@ import {
  * once a day when the sync job runs, so every visitor can share one render.
  */
 export const revalidate = 1800;
+
+const DAILY_DAYS = 182;
 
 const OUTCOME_BANDS = [
   { key: 'favorabil',  color: '#3f9142', label: OUTCOME_LABEL.Favorabil },
@@ -40,30 +44,70 @@ function Section({ title, note, children }: {
   );
 }
 
-/** Ranked table shared by the category and neighbourhood breakdowns. */
-function RankedTable({ rows, colorFor, trendFor }: {
+/** Headline count with both comparisons for the same rolling window. */
+function CountCard({ label, value, sub, window: w }: {
+  label: string; value: number; sub: string; window?: WindowCounts;
+}) {
+  return (
+    <div className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
+      <div className="text-xs text-neutral-500">{label}</div>
+      <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">{nf.format(value)}</div>
+      <div className="mt-0.5 text-xs text-neutral-500">{sub}</div>
+      {w && (
+        <dl className="mt-3 space-y-1 border-t border-neutral-200 pt-2 text-xs dark:border-neutral-800">
+          <div className="flex items-baseline justify-between gap-2">
+            <dt className="text-neutral-500">față de perioada anterioară</dt>
+            <dd><Delta cur={w.cur} base={w.prev} /></dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <dt className="text-neutral-500">față de anul trecut</dt>
+            <dd><Delta cur={w.cur} base={w.ly} /></dd>
+          </div>
+        </dl>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Ranked breakdown. Every row links into the map with the same filter and the
+ * same date window applied, so a number on this page and the map behind it
+ * always describe the identical selection.
+ */
+function RankedTable({ rows, colorFor, hrefFor, trendFor }: {
   rows: { key: string; label: string; cur: number; prev: number; ly: number }[];
   colorFor: (key: string) => string;
+  hrefFor: (key: string) => string;
   trendFor?: (key: string) => number[];
 }) {
   const max = Math.max(...rows.map((r) => r.cur), 1);
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[36rem] text-sm">
+      <table className="w-full min-w-[38rem] text-sm">
         <thead className="text-left text-xs text-neutral-500">
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
             <th className="py-1.5 font-medium">&nbsp;</th>
-            <th className="py-1.5 pr-3 text-right font-medium">Săpt.</th>
-            <th className="py-1.5 pr-3 text-right font-medium">vs săpt. trecută</th>
+            <th className="py-1.5 pr-3 text-right font-medium">7 zile</th>
+            <th className="py-1.5 pr-3 text-right font-medium">vs 7 anterioare</th>
             <th className="py-1.5 pr-3 text-right font-medium">vs anul trecut</th>
             {trendFor && <th className="py-1.5 font-medium">60 de zile</th>}
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.key} className="border-b border-neutral-100 last:border-0 dark:border-neutral-900">
+            <tr key={r.key}
+              className="group border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900/60">
               <td className="py-1.5 pr-4 align-middle">
-                <span className="block truncate">{r.label}</span>
+                <Link href={hrefFor(r.key)}
+                  title={`Vezi „${r.label}” pe hartă, aceleași 7 zile`}
+                  className="flex items-center gap-1.5">
+                  <span className="truncate">{r.label}</span>
+                  <span aria-hidden="true"
+                    className="text-neutral-400 opacity-0 transition group-hover:opacity-100">
+                    →
+                  </span>
+                  <span className="sr-only">— vezi pe hartă</span>
+                </Link>
                 <Bar value={r.cur} max={max} color={colorFor(r.key)} />
               </td>
               <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{r.cur}</td>
@@ -87,29 +131,41 @@ function RankedTable({ rows, colorFor, trendFor }: {
 }
 
 export default async function Dashboard() {
-  const [overview, week, byCat, byNb, daily, dailyCat, latest, backlog, monthly] =
+  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly] =
     await Promise.all([
-      getOverview(), getWeekTotals(), getByCategory(), getByNeighborhood(),
-      getDaily(182), getDailyByCategory(60), getLatest(6), getBacklogByYear(),
+      getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
+      getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
       getMonthlyOutcome(),
     ]);
 
-  // Pivot the per-category daily counts into dense series for the sparklines.
-  const days = [...new Set(dailyCat.map((r) => r.day))].sort();
-  const trend = new Map<string, number[]>();
-  for (const c of CATEGORIES) trend.set(String(c.id), days.map(() => 0));
+  // Pivot per-category daily counts once: the stacked chart needs every day, the
+  // sparklines need the trailing 60.
+  const days = daily.map((d) => d.day);
+  const dayIndex = new Map(days.map((d, i) => [d, i]));
+  const stacked: Day[] = daily.map((d) => ({ day: d.day, total: d.total, byCat: {} }));
+  const trend = new Map<string, number[]>(
+    CATEGORIES.map((c) => [String(c.id), days.map(() => 0)]),
+  );
   for (const r of dailyCat) {
+    const i = dayIndex.get(r.day);
+    if (i === undefined) continue;
+    stacked[i]!.byCat[r.category_id] = r.n;
     const series = trend.get(String(r.category_id));
-    if (series) series[days.indexOf(r.day)] = r.n;
+    if (series) series[i] = r.n;
   }
+  const sparkFrom = Math.max(0, days.length - 60);
 
   const dailyMean = Math.round(daily.reduce((s, d) => s + d.total, 0) / (daily.length || 1));
-  const busiest = daily.reduce((a, b) => (b.total > a.total ? b : a), daily[0]);
+  const busiest = daily.reduce((a, b) => (b.total > a.total ? b : a), daily[0]!);
   const pctFav = ((overview.favorabil / overview.total) * 100).toFixed(1);
-  const pctOpen = ((overview.open / overview.total) * 100).toFixed(1);
   // The newest day in the data may itself be partial: the sync runs mid-day, and
   // reports keep arriving after it. The day before it is the last certain one.
   const lastComplete = daily.filter((d) => d.day !== overview.last_day).at(-1);
+
+  const win = `from=${totals.d7.from}&to=${totals.d7.to}`;
+  const catHref = (id: string) => `/harta?cat=${id}&${win}`;
+  const nbHref = (name: string) =>
+    name === '(nelocalizat)' ? `/harta?${win}` : `/harta?cartier=${encodeURIComponent(name)}&${win}`;
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8">
@@ -119,70 +175,24 @@ export default async function Dashboard() {
           {nf.format(overview.total)} sesizări publice trimise Primăriei Cluj-Napoca prin
           platforma My Cluj, din {fmtLong(overview.first_day)} până
           în {fmtLong(overview.last_day)}. Preluare zilnică de pe platforma oficială;
-          ultima sesizare din oglindă este de la {overview.last_seen}.{' '}
-          <Link href="/harta" className="underline underline-offset-4">
-            Vezi sesizările pe hartă →
-          </Link>
+          ultima sesizare din oglindă este de la {overview.last_seen}.
         </p>
       </header>
 
       {/* ------------------------------------------------------------------ */}
       <Section
-        title={`Săptămâna curentă — săptămâna ISO ${week.iso_week}`}
-        note={
-          <>
-            Săptămâna curentă este incompletă, așa că toate cele trei intervale sunt
-            trunchiate la aceleași {week.days} zile ({fmtShort(week.week_start)} – {fmtShort(week.today)}),
-            pentru a nu produce o scădere artificială. Reperul este ultima zi acoperită de
-            date, nu ziua calendaristică: preluarea rulează o dată pe zi, iar o zi goală
-            adăugată la săptămâna curentă ar arăta ca o scădere reală.
-          </>
-        }
+        title="Sesizări pe zi, pe categorii"
+        note={`Ultimele ${daily.length} de zile. Fiecare bară este o zi, împărțită pe categorii
+               în aceleași culori ca pinurile de pe hartă. Treci cu mausul peste o zi pentru
+               numărul și ponderea fiecărei categorii.`}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-md border border-neutral-300 p-4 dark:border-neutral-700">
-            <div className="text-xs text-neutral-500">Sesizări depuse, {week.days} zile</div>
-            <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">{nf.format(week.cur)}</div>
-            <div className="mt-1 text-xs text-neutral-500">
-              începând cu luni, {fmtShort(week.week_start)}
-            </div>
-          </div>
-          <div className="rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
-            <div className="text-xs text-neutral-500">Față de săptămâna trecută</div>
-            <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">
-              <Delta cur={week.cur} base={week.prev} />
-            </div>
-            <div className="mt-1 text-xs text-neutral-500">
-              {nf.format(week.prev)} în aceleași {week.days} zile, de la {fmtShort(week.prev_start)}
-            </div>
-          </div>
-          <div className="rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
-            <div className="text-xs text-neutral-500">Față de aceeași săptămână, anul trecut</div>
-            <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">
-              <Delta cur={week.cur} base={week.ly} />
-            </div>
-            <div className="mt-1 text-xs text-neutral-500">
-              {nf.format(week.ly)} în aceleași {week.days} zile, de la {fmtShort(week.ly_start)}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* ------------------------------------------------------------------ */}
-      <Section
-        title="Sesizări pe zi"
-        note={`Ultimele ${daily.length} de zile. Linia este media mobilă pe 7 zile, care
-               netezește tiparul săptămânal — sâmbăta și duminica sunt constant sub medie.`}
-      >
-        <DailyBars data={daily} />
+        <DailyCategoryChart data={stacked} order={CATEGORIES.map((c) => c.id)} />
         <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-neutral-500">
           <span>Medie: <span className="font-mono tabular-nums text-neutral-700 dark:text-neutral-300">{dailyMean}</span>/zi</span>
-          {busiest && (
-            <span>
-              Vârf: <span className="font-mono tabular-nums text-neutral-700 dark:text-neutral-300">{busiest.total}</span>
-              {' '}pe {fmtLong(busiest.day)}
-            </span>
-          )}
+          <span>
+            Vârf: <span className="font-mono tabular-nums text-neutral-700 dark:text-neutral-300">{busiest.total}</span>
+            {' '}pe {fmtLong(busiest.day)}
+          </span>
           {lastComplete && (
             <span>
               Ultima zi completă ({fmtShort(lastComplete.day)}):{' '}
@@ -198,27 +208,60 @@ export default async function Dashboard() {
 
       {/* ------------------------------------------------------------------ */}
       <Section
+        title="Volum"
+        note={`Ferestrele sunt mobile, nu săptămâni calendaristice, deci sunt întotdeauna
+               complete. Reperul este ultima zi acoperită de date (${fmtShort(totals.d7.to)}),
+               nu ziua calendaristică. Comparația cu anul trecut este decalată cu 364 de zile,
+               ca să cadă pe aceleași zile ale săptămânii.`}
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          <CountCard
+            label="Total, din 2017"
+            value={overview.total}
+            sub={`din ${fmtLong(overview.first_day)}`}
+          />
+          <CountCard
+            label="Ultimele 7 zile"
+            value={totals.d7.cur}
+            sub={`${fmtShort(totals.d7.from)} – ${fmtShort(totals.d7.to)} · ${totals.d7.prev} anterior`}
+            window={totals.d7}
+          />
+          <CountCard
+            label="Ultimele 30 de zile"
+            value={totals.d30.cur}
+            sub={`${fmtShort(totals.d30.from)} – ${fmtShort(totals.d30.to)} · ${totals.d30.prev} anterior`}
+            window={totals.d30}
+          />
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------------------ */}
+      <Section
         title="Pe categorii"
-        note="Săptămâna curentă pe categorii, cu aceleași două comparații. Linia arată
-              volumul zilnic din ultimele 60 de zile, scalată independent pe fiecare rând."
+        note="Ultimele 7 zile. Apasă pe o categorie pentru a o deschide pe hartă, filtrată
+              pe aceeași categorie și aceleași 7 zile. Harta poate arăta un număr puțin mai
+              mic: acolo intră doar sesizările cu coordonate utile. Linia arată volumul
+              zilnic din ultimele 60 de zile, scalată independent pe fiecare rând."
       >
         <RankedTable
           rows={byCat.map((r) => ({
             ...r, label: CATEGORY_BY_ID.get(Number(r.key))?.short ?? r.label,
           }))}
           colorFor={(k) => CATEGORY_BY_ID.get(Number(k))?.color ?? '#888'}
-          trendFor={(k) => trend.get(k) ?? []}
+          hrefFor={catHref}
+          trendFor={(k) => (trend.get(k) ?? []).slice(sparkFrom)}
         />
       </Section>
 
       {/* ------------------------------------------------------------------ */}
       <Section
         title="Pe cartiere"
-        note="Cartierul este atribuit geometric, din coordonatele sesizării, folosind
-              limitele de cartier din OpenStreetMap. Sesizările fără coordonate utile
-              apar ca „nelocalizat”."
+        note="Ultimele 7 zile. Apasă pe un cartier pentru a-l deschide pe hartă. Cartierul
+              este atribuit geometric, din coordonatele sesizării, folosind limitele de
+              cartier din OpenStreetMap; sesizările fără coordonate utile apar ca
+              „nelocalizat” și nu pot fi filtrate spațial."
       >
-        <RankedTable rows={byNb} colorFor={() => '#6b7280'} />
+        <RankedTable rows={byNb} colorFor={() => '#6b7280'} hrefFor={nbHref} />
       </Section>
 
       {/* ------------------------------------------------------------------ */}
@@ -268,39 +311,6 @@ export default async function Dashboard() {
             </div>
           ))}
         </dl>
-      </Section>
-
-      {/* ------------------------------------------------------------------ */}
-      <Section
-        title="Sesizări încă deschise, după anul depunerii"
-        note={`${nf.format(overview.open)} sesizări (${pctOpen}% din total) figurează și acum
-               ca „Nouă” sau „În lucru”. Cele din anii vechi nu sunt un volum mare, dar sunt
-               înregistrări care nu au fost niciodată închise.`}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[28rem] text-sm">
-            <thead className="text-left text-xs text-neutral-500">
-              <tr className="border-b border-neutral-200 dark:border-neutral-800">
-                <th className="py-1.5 font-medium">An</th>
-                <th className="py-1.5 pr-3 text-right font-medium">Depuse</th>
-                <th className="py-1.5 pr-3 text-right font-medium">Încă deschise</th>
-                <th className="py-1.5 text-right font-medium">Pondere</th>
-              </tr>
-            </thead>
-            <tbody>
-              {backlog.map((r) => (
-                <tr key={r.year} className="border-b border-neutral-100 last:border-0 dark:border-neutral-900">
-                  <td className="py-1.5 font-mono tabular-nums">{r.year}</td>
-                  <td className="py-1.5 pr-3 text-right font-mono tabular-nums text-neutral-500">{nf.format(r.total)}</td>
-                  <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{nf.format(r.still_open)}</td>
-                  <td className="py-1.5 text-right font-mono text-xs tabular-nums text-neutral-500">
-                    {((r.still_open / r.total) * 100).toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </Section>
 
       {/* ------------------------------------------------------------------ */}
@@ -364,8 +374,7 @@ export default async function Dashboard() {
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">O parte din sesizări nu au coordonate utile.</strong>{' '}
             Formularul oficial pornește cu un pin implicit în Piața Unirii, iar sesizările
             lăsate acolo sunt excluse din analizele spațiale de pe hartă. Aici sunt numărate
-            normal, dar apar ca „nelocalizat” la defalcarea pe cartiere dacă nu au putut fi
-            atribuite.
+            normal, dar apar ca „nelocalizat” la defalcarea pe cartiere.
           </li>
           <li>
             Textele sesizărilor sunt trecute printr-un filtru care elimină adrese de e-mail,

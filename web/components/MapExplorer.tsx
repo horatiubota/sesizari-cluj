@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 // MapLibre 6 ships named exports only; there is no default export.
 import {
   AttributionControl, Map as MLMap, NavigationControl, setWorkerUrl,
@@ -100,15 +101,39 @@ function resolveRange(key: RangeKey, customFrom: string, customTo: string):
 }
 
 export default function MapExplorer() {
+  // The dashboard links here with a filter already chosen, so the map has to be
+  // able to open in that state rather than only reaching it by clicking.
+  const params = useSearchParams();
+  const router = useRouter();
+  const initial = useMemo(() => {
+    const cat = (params.get('cat') ?? '')
+      .split(',').map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= 16);
+    const iso = (v: string | null): string =>
+      /^\d{4}-\d{2}-\d{2}$/.test(v ?? '') ? v! : '';
+    const from = iso(params.get('from'));
+    const to = iso(params.get('to'));
+    return { cat, from, to, cartier: params.get('cartier') ?? '' };
+    // Read once: later filter changes are owned by this component's state, not
+    // by the URL, so re-reading would fight the user's own edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const arrivedFiltered = Boolean(
+    initial.cat.length || initial.cartier || initial.from || initial.to,
+  );
+  const didFit = useRef(false);
+
   const mapNode = useRef<HTMLDivElement>(null);
   const map = useRef<MLMap | null>(null);
   const [ready, setReady] = useState(false);
 
-  const [cats, setCats] = useState<number[]>([]);
+  const [cats, setCats] = useState<number[]>(initial.cat);
   const [outcome, setOutcome] = useState<string>('');
-  const [range, setRange] = useState<RangeKey>('7d');
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
+  // An explicit range in the URL wins over the default preset.
+  const [range, setRange] = useState<RangeKey>(initial.from || initial.to ? 'custom' : '7d');
+  const [customFrom, setCustomFrom] = useState(initial.from);
+  const [customTo, setCustomTo] = useState(initial.to);
+  const [cartier, setCartier] = useState(initial.cartier);
 
   // The preset resolves against the current date, which the server render cannot
   // know: this route is prerendered at build time, so a date baked into the HTML
@@ -143,8 +168,9 @@ export default function MapExplorer() {
     if (from) p.set('from', from);
     if (to) p.set('to', to);
     if (q) p.set('q', q);
+    if (cartier) p.set('cartier', cartier);
     return p;
-  }, [cats, outcome, from, to, q]);
+  }, [cats, outcome, from, to, q, cartier]);
 
   const inflight = useRef<AbortController | null>(null);
 
@@ -263,6 +289,26 @@ export default function MapExplorer() {
           }));
 
     const geojson = { type: 'FeatureCollection' as const, features };
+
+    // Arriving from a dashboard link, the default city view may not be where the
+    // selection is. Frame the results once, then leave the camera to the user.
+    if (!didFit.current && arrivedFiltered && features.length) {
+      didFit.current = true;
+      // Reduce rather than Math.min(...coords): a points response can carry 6,000
+      // features, which is enough spread arguments to overflow the stack.
+      const b = features.reduce(
+        (acc, f) => {
+          const [lon, lat] = f.geometry.coordinates;
+          return [
+            Math.min(acc[0], lon), Math.min(acc[1], lat),
+            Math.max(acc[2], lon), Math.max(acc[3], lat),
+          ] as [number, number, number, number];
+        },
+        [180, 90, -180, -90] as [number, number, number, number],
+      );
+      m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 60, animate: false, maxZoom: 15 });
+    }
+
     const src = m.getSource('tickets') as GeoJSONSource | undefined;
     if (src) {
       src.setData(geojson);
@@ -315,7 +361,7 @@ export default function MapExplorer() {
     });
     m.on('mouseenter', 'tickets-circles', () => { m.getCanvas().style.cursor = 'pointer'; });
     m.on('mouseleave', 'tickets-circles', () => { m.getCanvas().style.cursor = ''; });
-  }, [data, ready]);
+  }, [data, ready, arrivedFiltered]);
 
   const closeDetail = useCallback((): void => {
     detailReq.current?.abort();
@@ -371,6 +417,27 @@ export default function MapExplorer() {
             </p>
           )}
         </div>
+
+        {cartier && (
+          <div className="flex items-center gap-2 rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs dark:border-neutral-700">
+            <span className="text-neutral-500">Cartier</span>
+            <span className="truncate font-medium">{cartier}</span>
+            <button
+              onClick={() => {
+                setCartier('');
+                // Drop it from the address bar too, so a refresh or a shared link
+                // does not silently bring the filter back.
+                router.replace('/harta', { scroll: false });
+              }}
+              aria-label={`Elimină filtrul de cartier ${cartier}`}
+              className="ml-auto shrink-0 rounded p-0.5 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100">
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5"
+                  strokeLinecap="round" fill="none" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         <label className="block">
           <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Caută în text</span>

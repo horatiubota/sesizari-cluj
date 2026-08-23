@@ -7,46 +7,39 @@ import { query } from '@/lib/db';
  * timestamps are wall-clock Bucharest with no offset, and a UTC day boundary
  * would move ~3 hours of evening reports into the following day.
  *
- * Week-over-week comparisons are matched on *elapsed days*, not whole weeks.
- * The current week is always partial, so comparing it against a complete week
- * would manufacture a decline every time. `days` below is how far into the week
- * the data reaches, and each comparison window is truncated to the same length.
+ * Comparisons use rolling windows -- the last 7 and last 30 days -- rather than
+ * calendar weeks. A rolling window is always complete, which removes the
+ * partial-week problem that otherwise manufactures a decline every Monday.
  *
  * Note the anchor: the newest day *present in the data*, not the wall clock. The
  * sync job runs once a day, so between runs the calendar is ahead of the mirror.
  * Anchoring on now() would append an empty day to the current window and report
- * a fabricated week-over-week drop every morning.
+ * a fabricated drop every morning.
+ *
+ * The year-ago window sits 364 days back, not 365: a whole number of weeks, so
+ * the comparison keeps weekday alignment. Reporting volume has a strong weekly
+ * shape -- weekends run well below weekdays -- which a 365-day offset would
+ * smear across the comparison.
  */
 
-/** Common week anchoring, reused by every period query. */
-const WEEK_CTE = `
+/** Newest day present in the data. Every window below is measured back from it. */
+const ANCHOR = `
   anchor as (
     select max((created_at at time zone 'Europe/Bucharest')::date) as today
     from public.tickets
-  ),
-  w as (
-    select today,
-           date_trunc('week', today)::date                    as cur_start,
-           (today - date_trunc('week', today)::date + 1)::int as days,
-           date_trunc('week', today)::date - 7                as prev_start,
-           -- Monday of the same ISO week number one ISO year back, which keeps
-           -- weekday alignment. Week 53 against a 52-week year lands on week 1
-           -- of the following year; rare, and still a like-for-like Monday.
-           to_date(concat(extract(isoyear from today)::int - 1, '-',
-                          extract(week   from today)::int), 'IYYY-IW') as ly_start
-    from anchor
   )`;
 
-/** Bucket counters shared by the category and neighbourhood breakdowns. */
-const BUCKETS = `
-  count(*) filter (where dd between w.cur_start and w.today)::int                              as cur,
-  count(*) filter (where dd >= w.prev_start and dd < w.prev_start + w.days)::int               as prev,
-  count(*) filter (where dd >= w.ly_start   and dd < w.ly_start   + w.days)::int               as ly`;
+/** Keeps a windowed scan to the span the windows actually cover. */
+const SCAN = `t.created_at >= ((a.today - 400)::timestamp at time zone 'Europe/Bucharest')`;
 
-/** Restricts the scan to the three windows rather than the whole table. */
-const WINDOW_FILTER = `
-  t.created_at >= (w.ly_start::timestamp at time zone 'Europe/Bucharest')
-  and t.created_at < ((w.today + 1)::timestamp at time zone 'Europe/Bucharest')`;
+/** Local day of a ticket, as a lateral so filters can reference it by name. */
+const DAY = `lateral (select (t.created_at at time zone 'Europe/Bucharest')::date) as x(dd)`;
+
+/** cur / prev / year-ago counters over a rolling window of `n` days. */
+const buckets = (n: number): string => `
+  count(*) filter (where dd > a.today - ${n}         and dd <= a.today)::int        as cur,
+  count(*) filter (where dd > a.today - ${2 * n}     and dd <= a.today - ${n})::int as prev,
+  count(*) filter (where dd > a.today - ${364 + n}   and dd <= a.today - 364)::int  as ly`;
 
 export interface Overview {
   total: number; open: number; favorabil: number; partial: number;
@@ -54,11 +47,12 @@ export interface Overview {
   first_day: string; last_day: string; last_day_count: number; last_seen: string;
 }
 
-export interface WeekTotals {
-  today: string; week_start: string; days: number;
-  prev_start: string; ly_start: string; iso_week: number;
+export interface WindowCounts {
   cur: number; prev: number; ly: number;
+  /** Inclusive bounds of the current window, for building map links. */
+  from: string; to: string;
 }
+export interface RollingTotals { d7: WindowCounts; d30: WindowCounts }
 
 export interface Breakdown { key: string; label: string; cur: number; prev: number; ly: number }
 export interface DailyRow {
@@ -70,7 +64,6 @@ export interface LatestTicket {
   ticket_number: string; category_id: number; status_label: string;
   created_at: string; neighborhood: string | null; description: string | null;
 }
-export interface BacklogRow { year: number; still_open: number; total: number }
 export interface MonthlyOutcomeRow {
   month: string; total: number; favorabil: number; partial: number;
   transferat: number; respins: number; deschise: number;
@@ -79,70 +72,82 @@ export interface MonthlyOutcomeRow {
 export async function getOverview(): Promise<Overview> {
   const [row] = await query<Overview>(
     `select count(*)::int as total,
-            count(*) filter (where status_code = 'O')::int                              as open,
-            count(*) filter (where status_label = 'Favorabil')::int                     as favorabil,
-            count(*) filter (where status_label = 'Partial')::int                       as partial,
-            count(*) filter (where status_label = 'Transferata operatorului')::int      as transferat,
-            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int     as respins,
-            min((created_at at time zone 'Europe/Bucharest')::date)::text               as first_day,
-            max((created_at at time zone 'Europe/Bucharest')::date)::text               as last_day,
+            count(*) filter (where status_code = 'O')::int                          as open,
+            count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
+            count(*) filter (where status_label = 'Partial')::int                   as partial,
+            count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
+            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
+            min((created_at at time zone 'Europe/Bucharest')::date)::text           as first_day,
+            max((created_at at time zone 'Europe/Bucharest')::date)::text           as last_day,
             count(*) filter (where (created_at at time zone 'Europe/Bucharest')::date
                                  = (select max((created_at at time zone 'Europe/Bucharest')::date)
-                                    from public.tickets))::int                          as last_day_count,
+                                    from public.tickets))::int                      as last_day_count,
             to_char(max(created_at at time zone 'Europe/Bucharest'),
-                    'YYYY-MM-DD HH24:MI')                                               as last_seen
+                    'YYYY-MM-DD HH24:MI')                                           as last_seen
      from public.tickets`,
   );
   return row;
 }
 
-export async function getWeekTotals(): Promise<WeekTotals> {
-  const [row] = await query<WeekTotals>(
-    `with ${WEEK_CTE},
+/** Totals for the 7- and 30-day windows in one pass over the recent span. */
+export async function getRollingTotals(): Promise<RollingTotals> {
+  const [row] = await query<Record<string, number | string>>(
+    `with ${ANCHOR},
      d as (select (t.created_at at time zone 'Europe/Bucharest')::date as dd
-           from public.tickets t, w where ${WINDOW_FILTER})
-     select w.today::text as today, w.cur_start::text as week_start, w.days,
-            w.prev_start::text as prev_start, w.ly_start::text as ly_start,
-            extract(week from w.today)::int as iso_week,
-            ${BUCKETS}
-     from d, w group by w.today, w.cur_start, w.days, w.prev_start, w.ly_start`,
+           from public.tickets t, anchor a where ${SCAN})
+     select
+       (a.today - 6)::text  as d7_from,  (a.today - 29)::text as d30_from,
+        a.today::text       as d_to,
+       count(*) filter (where dd > a.today -   7 and dd <= a.today)::int        as d7_cur,
+       count(*) filter (where dd > a.today -  14 and dd <= a.today -   7)::int  as d7_prev,
+       count(*) filter (where dd > a.today - 371 and dd <= a.today - 364)::int  as d7_ly,
+       count(*) filter (where dd > a.today -  30 and dd <= a.today)::int        as d30_cur,
+       count(*) filter (where dd > a.today -  60 and dd <= a.today -  30)::int  as d30_prev,
+       count(*) filter (where dd > a.today - 394 and dd <= a.today - 364)::int  as d30_ly
+     from d, anchor a group by a.today`,
   );
-  return row;
+  const n = (k: string): number => Number(row[k]);
+  return {
+    d7:  { cur: n('d7_cur'),  prev: n('d7_prev'),  ly: n('d7_ly'),
+           from: String(row.d7_from),  to: String(row.d_to) },
+    d30: { cur: n('d30_cur'), prev: n('d30_prev'), ly: n('d30_ly'),
+           from: String(row.d30_from), to: String(row.d_to) },
+  };
 }
 
+/** Per-category counts over the rolling 7-day window. */
 export async function getByCategory(): Promise<Breakdown[]> {
   return query<Breakdown>(
-    `with ${WEEK_CTE}
-     select t.category_id::text as key, c.name as label, ${BUCKETS}
+    `with ${ANCHOR}
+     select t.category_id::text as key, c.name as label, ${buckets(7)}
      from public.tickets t
        join public.categories c on c.id = t.category_id,
-       w, lateral (select (t.created_at at time zone 'Europe/Bucharest')::date) as x(dd)
-     where ${WINDOW_FILTER}
+       anchor a, ${DAY}
+     where ${SCAN}
      group by 1, 2 order by cur desc, label`,
   );
 }
 
 export async function getByNeighborhood(): Promise<Breakdown[]> {
   return query<Breakdown>(
-    `with ${WEEK_CTE}
+    `with ${ANCHOR}
      select coalesce(t.neighborhood, '(nelocalizat)') as key,
-            coalesce(t.neighborhood, '(nelocalizat)') as label, ${BUCKETS}
-     from public.tickets t, w,
-       lateral (select (t.created_at at time zone 'Europe/Bucharest')::date) as x(dd)
-     where ${WINDOW_FILTER}
+            coalesce(t.neighborhood, '(nelocalizat)') as label, ${buckets(7)}
+     from public.tickets t, anchor a, ${DAY}
+     where ${SCAN}
      group by 1 order by cur desc, label`,
   );
 }
 
 export async function getDaily(days = 182): Promise<DailyRow[]> {
   return query<DailyRow>(
-    `select (created_at at time zone 'Europe/Bucharest')::date::text                    as day,
-            count(*)::int                                                              as total,
-            count(*) filter (where status_label = 'Favorabil')::int                    as favorabil,
-            count(*) filter (where status_label = 'Partial')::int                      as partial,
-            count(*) filter (where status_label = 'Transferata operatorului')::int     as transferat,
-            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int    as respins,
-            count(*) filter (where status_code = 'O')::int                             as deschise
+    `select (created_at at time zone 'Europe/Bucharest')::date::text                 as day,
+            count(*)::int                                                           as total,
+            count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
+            count(*) filter (where status_label = 'Partial')::int                   as partial,
+            count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
+            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
+            count(*) filter (where status_code = 'O')::int                          as deschise
      from public.tickets
      where created_at >= (((select max((created_at at time zone 'Europe/Bucharest')::date)
                             from public.tickets) - $1::int)::timestamp
@@ -152,7 +157,7 @@ export async function getDaily(days = 182): Promise<DailyRow[]> {
   );
 }
 
-export async function getDailyByCategory(days = 60): Promise<DailyCategoryRow[]> {
+export async function getDailyByCategory(days = 182): Promise<DailyCategoryRow[]> {
   return query<DailyCategoryRow>(
     `select (created_at at time zone 'Europe/Bucharest')::date::text as day,
             category_id, count(*)::int as n
@@ -175,24 +180,15 @@ export async function getLatest(n = 6): Promise<LatestTicket[]> {
   );
 }
 
-export async function getBacklogByYear(): Promise<BacklogRow[]> {
-  return query<BacklogRow>(
-    `select extract(year from created_at at time zone 'Europe/Bucharest')::int as year,
-            count(*) filter (where status_code = 'O')::int as still_open,
-            count(*)::int as total
-     from public.tickets group by 1 order by 1`,
-  );
-}
-
 export async function getMonthlyOutcome(): Promise<MonthlyOutcomeRow[]> {
   return query<MonthlyOutcomeRow>(
     `select to_char(date_trunc('month', created_at at time zone 'Europe/Bucharest'), 'YYYY-MM') as month,
-            count(*)::int                                                              as total,
-            count(*) filter (where status_label = 'Favorabil')::int                    as favorabil,
-            count(*) filter (where status_label = 'Partial')::int                      as partial,
-            count(*) filter (where status_label = 'Transferata operatorului')::int     as transferat,
-            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int    as respins,
-            count(*) filter (where status_code = 'O')::int                             as deschise
+            count(*)::int                                                           as total,
+            count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
+            count(*) filter (where status_label = 'Partial')::int                   as partial,
+            count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
+            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
+            count(*) filter (where status_code = 'O')::int                          as deschise
      from public.tickets group by 1 order by 1`,
   );
 }
