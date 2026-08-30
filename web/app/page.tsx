@@ -181,10 +181,11 @@ export default async function Dashboard() {
 
       {/* ------------------------------------------------------------------ */}
       <Section
-        title="Sesizări pe zi, pe categorii"
-        note={`Ultimele ${daily.length} de zile. Fiecare bară este o zi, împărțită pe categorii
-               în aceleași culori ca pinurile de pe hartă. Treci cu mausul peste o zi pentru
-               numărul și ponderea fiecărei categorii.`}
+        title="Sesizări pe zi"
+        note={`Ultimele ${daily.length} de zile. Sus, câte sesizări au sosit în fiecare zi.
+               Jos, cum s-au împărțit pe categorii în acea zi: fiecare coloană însumează 100%,
+               așa că ponderile rămân comparabile și în zilele liniștite. Culorile sunt aceleași
+               ca pinurile de pe hartă; treci cu mausul peste o zi pentru cifre.`}
       >
         <DailyCategoryChart data={stacked} order={CATEGORIES.map((c) => c.id)} />
         <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-neutral-500">
