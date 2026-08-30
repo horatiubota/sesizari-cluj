@@ -77,6 +77,34 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: node --no-warnings=ExperimentalWarning scripts/neighborhoods.ts
 
+      # Both dashboard pages are statically rendered with a time-based
+      # `revalidate`, which Next only honours on request: on a low-traffic site
+      # the first visitor after the window expires is served the stale copy and
+      # merely triggers the rebuild for whoever comes next. That is how the
+      # dashboard came to advertise a three-day-old date range while the database
+      # was current. Ping the site so the pages are correct as soon as the data is.
+      #
+      # Allowed to fail: everything is already durably loaded by this point, and
+      # the pages still self-heal on their own timer. Reporting a successful
+      # ingest as a failed sync would be the worse error.
+      - name: Revalidate the dashboard
+        id: revalidate
+        continue-on-error: true
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://sesizari-cluj.vercel.app' }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          if [ -z "$REVALIDATE_SECRET" ]; then
+            echo "REVALIDATE_SECRET is not set for this repository; skipping." >&2
+            exit 1
+          fi
+          code=$(curl -sS --max-time 60 -o /tmp/revalidate.json -w '%{http_code}' \
+            -X POST "$SITE_URL/api/revalidate" \
+            -H "x-revalidate-secret: $REVALIDATE_SECRET")
+          echo "HTTP $code"
+          cat /tmp/revalidate.json && echo
+          [ "$code" = "200" ]
+
       - name: Summary
         if: always()
         run: |
@@ -84,4 +112,5 @@ jobs:
             echo "### Sync complete"
             echo "- mode: \`${{ steps.mode.outputs.full == 'true' && 'full' || 'recent' }}\`"
             echo "- staged db: \`$(du -h data/mycluj.db 2>/dev/null | cut -f1)\`"
+            echo "- dashboard revalidation: \`${{ steps.revalidate.outcome }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
