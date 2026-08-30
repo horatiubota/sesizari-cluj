@@ -65,6 +65,18 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: node --no-warnings=ExperimentalWarning src/load.ts
 
+      # load.ts deliberately never writes neighborhood or is_default_pin -- both
+      # are derived from lat/lon rather than carried by the upstream API, so they
+      # are computed here instead. This ran only as a one-off during the initial
+      # backfill, which left every ticket ingested afterwards showing as
+      # "(nelocalizat)" on the dashboard. Idempotent and whole-corpus: the full
+      # Sunday sweep can move an old ticket's coordinates, and the update writes
+      # only rows whose value actually changed.
+      - name: Locate (default pins, then neighbourhoods)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node --no-warnings=ExperimentalWarning scripts/neighborhoods.ts
+
       - name: Summary
         if: always()
         run: |

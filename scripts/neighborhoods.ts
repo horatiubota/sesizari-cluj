@@ -7,6 +7,11 @@ import pg from 'pg';
  * Boundaries come from OpenStreetMap (ODbL) and are committed to the repo, so
  * this is reproducible without re-querying Overpass.
  *
+ * Runs from the sync workflow after every load, because neighborhood is derived
+ * from lat/lon rather than supplied by the upstream API and load.ts does not
+ * write it. Safe to re-run: it rescans the whole corpus and updates only rows
+ * whose assignment actually changed.
+ *
  * Strict containment only. OSM maps 15 further neighbourhoods as bare points
  * with no boundary, but they are either sub-areas of a mapped cartier (Micro 1-4
  * sit inside Mănăștur) or industrial fringes. Assigning those by nearest centroid
@@ -64,6 +69,14 @@ const c = new pg.Client({
   ssl: { rejectUnauthorized: false },
 });
 await c.connect();
+
+// Default pins first: the query below excludes them, so locating before the
+// flags are refreshed would assign the city-hall sentinel coordinate to
+// whatever cartier it happens to fall in and invent a hotspot there.
+const [{ refresh_default_pins: pinned }] = (
+  await c.query<{ refresh_default_pins: number }>('select public.refresh_default_pins()')
+).rows;
+console.log(`default pins refreshed: ${pinned} newly flagged`);
 
 const { rows } = await c.query<{ ticket_number: string; lat: number; lon: number }>(
   `select ticket_number, lat, lon from public.tickets
