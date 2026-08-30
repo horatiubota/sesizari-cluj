@@ -1,10 +1,21 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { CATEGORY_BY_ID } from '@/lib/categories';
+import { CATEGORIES, CATEGORY_BY_ID } from '@/lib/categories';
 
 /**
- * Daily report volume, stacked by category, with a hover breakdown.
+ * Daily report volume, as two panels over one shared time axis.
+ *
+ *   top     how many reports arrived that day (line)
+ *   bottom  what share each category took of that day (stacked to 1)
+ *
+ * Two panels rather than one stacked-count chart because the two questions have
+ * different scales and answering both from one set of bars means reading
+ * absolute height and relative height off the same mark, which nobody does
+ * reliably. Splitting them also makes the share panel legible on quiet days: a
+ * 20-report Sunday and a 150-report Tuesday now occupy the same height, so a
+ * category's share is comparable across the whole window instead of being
+ * squashed wherever volume was low.
  *
  * A client component because of the tooltip; everything else on the dashboard
  * stays server-rendered. Hit-testing is done once on the container from the
@@ -22,6 +33,11 @@ export interface Day {
 const DATE_FULL = new Intl.DateTimeFormat('ro-RO', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 });
+const MONTH_SHORT = new Intl.DateTimeFormat('ro-RO', { month: 'short' });
+
+/** Panel heights in user units; the viewBox is scaled to the rendered height. */
+const LINE_H = 100;
+const SHARE_H = 100;
 
 export default function DailyCategoryChart({ data, order }: { data: Day[]; order: number[] }) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -29,6 +45,34 @@ export default function DailyCategoryChart({ data, order }: { data: Day[]; order
 
   const max = useMemo(() => Math.max(...data.map((d) => d.total), 1), [data]);
   const n = data.length;
+
+  /**
+   * Polyline through the daily totals, sampled at each column's centre.
+   *
+   * The last day is split off and drawn dashed. It is the day the sync ran, so
+   * it is always partial, and as a bar that read as a short bar -- as a line it
+   * reads as a collapse in reporting that did not happen. The figures under the
+   * chart already say the day may be incomplete; the line has to say it too.
+   */
+  const { solid, tail } = useMemo(() => {
+    const pt = (d: Day, i: number): string =>
+      `${i + 0.5},${LINE_H - (d.total / max) * LINE_H}`;
+    return {
+      solid: data.slice(0, -1).map(pt).join(' '),
+      tail: data.length > 1
+        ? [pt(data[data.length - 2]!, data.length - 2), pt(data[data.length - 1]!, data.length - 1)].join(' ')
+        : '',
+    };
+  }, [data, max]);
+
+  // One tick per month rather than per day: 180-odd labels cannot be read, and
+  // the month boundary is the only x position a reader actually looks for.
+  const monthTicks = useMemo(
+    () => data.flatMap((d, i) => (d.day.slice(8) === '01'
+      ? [{ i, label: MONTH_SHORT.format(new Date(`${d.day}T12:00:00`)) }]
+      : [])),
+    [data],
+  );
 
   const onMove = (e: React.PointerEvent<HTMLDivElement>): void => {
     const el = wrap.current;
@@ -61,17 +105,53 @@ export default function DailyCategoryChart({ data, order }: { data: Day[]; order
         onPointerLeave={() => setHover(null)}
         className="relative touch-pan-y"
       >
-        <svg viewBox={`0 0 ${n} 100`} preserveAspectRatio="none" className="block h-56 w-full"
-          role="img" aria-label={`Sesizări pe zi, pe categorii, ${n} zile, maxim ${max} într-o zi`}>
+        {/* ---- panel 1: how many ---------------------------------------- */}
+        <div className="flex items-baseline justify-between text-xs text-neutral-500">
+          <span>Total pe zi</span>
+          <span className="font-mono tabular-nums">{max} max</span>
+        </div>
+        <svg viewBox={`0 0 ${n} ${LINE_H}`} preserveAspectRatio="none" className="mt-1 block h-28 w-full"
+          role="img" aria-label={`Număr de sesizări pe zi, ${n} zile, maxim ${max} într-o zi`}>
+          {/* Recessive reference lines: the peak and the floor, nothing between. */}
+          <line x1={0} x2={n} y1={0.5} y2={0.5}
+            className="stroke-neutral-200 dark:stroke-neutral-800"
+            strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          <line x1={0} x2={n} y1={LINE_H - 0.5} y2={LINE_H - 0.5}
+            className="stroke-neutral-200 dark:stroke-neutral-800"
+            strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          {/*
+            non-scaling-stroke is required, not cosmetic: preserveAspectRatio
+            "none" scales x and y by different factors, so without it the stroke
+            would render thick on the flat runs and thin on the steep ones.
+          */}
+          <polyline points={solid} fill="none"
+            className="stroke-neutral-800 dark:stroke-neutral-100"
+            strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round"
+            vectorEffect="non-scaling-stroke" />
+          {tail && (
+            <polyline points={tail} fill="none"
+              className="stroke-neutral-400 dark:stroke-neutral-500"
+              strokeWidth={1.5} strokeDasharray="3 3" strokeLinecap="round"
+              vectorEffect="non-scaling-stroke" />
+          )}
+        </svg>
+
+        {/* ---- panel 2: what kind --------------------------------------- */}
+        <div className="mt-4 text-xs text-neutral-500">Pondere pe categorii</div>
+        <svg viewBox={`0 0 ${n} ${SHARE_H}`} preserveAspectRatio="none" className="mt-1 block h-40 w-full"
+          role="img" aria-label={`Ponderea fiecărei categorii din sesizările fiecărei zile, ${n} zile`}>
           {data.map((d, i) => {
+            if (!d.total) return null;
             let acc = 0;
             return (
               <g key={d.day} opacity={hover === null || hover === i ? 1 : 0.45}>
                 {order.map((catId) => {
                   const v = d.byCat[catId] ?? 0;
                   if (!v) return null;
-                  const h = (v / max) * 100;
-                  const y = 100 - acc - h;
+                  // Share of that day, not of the window: every column fills the
+                  // panel exactly once, so height reads as percent directly.
+                  const h = (v / d.total) * SHARE_H;
+                  const y = SHARE_H - acc - h;
                   acc += h;
                   return (
                     <rect key={catId} x={i} y={y} width={1.02} height={h}
@@ -83,6 +163,17 @@ export default function DailyCategoryChart({ data, order }: { data: Day[]; order
           })}
         </svg>
 
+        {/* Month rule under the shared axis. */}
+        <div className="relative mt-1 h-4">
+          {monthTicks.map((t) => (
+            <span key={t.i}
+              className="absolute top-0 -translate-x-1/2 text-[10px] text-neutral-400 dark:text-neutral-500"
+              style={{ left: `${((t.i + 0.5) / n) * 100}%` }}>
+              {t.label}
+            </span>
+          ))}
+        </div>
+
         {active && (
           <div
             className="pointer-events-none absolute top-0 bottom-0 w-px bg-neutral-900/40 dark:bg-neutral-100/40"
@@ -90,6 +181,22 @@ export default function DailyCategoryChart({ data, order }: { data: Day[]; order
           />
         )}
       </div>
+
+      {/*
+        The share panel is unreadable without a key: on a quiet day one category
+        can own half the column, and there is no way to name it without hovering
+        every day. Ordered exactly as the stack, so the legend reads top-down the
+        way the column does.
+      */}
+      <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+        {CATEGORIES.map((c) => (
+          <li key={c.id} className="flex items-center gap-1.5">
+            <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: c.color }} />
+            {c.short}
+          </li>
+        ))}
+      </ul>
 
       {active && (
         <div
