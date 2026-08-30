@@ -1,6 +1,27 @@
 import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
+
+/*
+  Romanian needs comma-below on ș and ț, not cedilla, and that lives in the
+  latin-ext subset -- requesting only `latin` would drop the diacritics that
+  appear in nearly every street and cartier name on the site. Inter ships the
+  correct forms; the previous stack ended at `Arial, Helvetica, sans-serif` and
+  left the shape of those two letters to whatever the visitor's OS resolved.
+*/
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+/* Mono carries only digits, dates and ticket ids, so `latin` covers it. */
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Sesizări Cluj',
@@ -16,7 +37,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ro">
+    <html lang="ro" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       {/*
         min-h-dvh + flex column lets one shell serve both shapes: the dashboard
         grows past the viewport and scrolls, while the map page's root claims the
