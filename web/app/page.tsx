@@ -357,7 +357,7 @@ export default async function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       {resolution && (
         <Section
-          title="Cât de repede se închid"
+          title="Cât de repede se „soluționează”"
           note={
             <>
               Se poate măsura doar pentru cele {nf.format(resolution.cohort)} de sesizări
@@ -475,7 +475,7 @@ export default async function Dashboard() {
             Platforma publică doar starea curentă a unei sesizări, nu și data la care a fost
             închisă. {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
             înregistrăm tranzițiile pe măsură ce le observăm, iar din ele iese secțiunea
-            „Cât de repede se închid” — dar ea nu poate acoperi cele
+            „Cât de repede se «soluționează»” — dar ea nu poate acoperi cele
             {' '}{nf.format(overview.total - overview.open)} de sesizări deja închise la prima
             preluare, pentru care data închiderii nu există nicăieri public.
           </li>
