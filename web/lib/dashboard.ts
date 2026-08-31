@@ -32,6 +32,21 @@ const ANCHOR = `
 /** Keeps a windowed scan to the span the windows actually cover. */
 const SCAN = `t.created_at >= ((a.today - 400)::timestamp at time zone 'Europe/Bucharest')`;
 
+/**
+ * Outcome composition, in the same five buckets the dashboard legends. Shared so
+ * that every panel showing outcomes counts them identically -- the split is not
+ * obvious from the raw data ('Respinsa' and 'Nefavorabil' are one bucket, and an
+ * open ticket has no label at all), and two panels disagreeing about it would be
+ * read as a finding rather than as a typo.
+ */
+const OUTCOME_COUNTS = `
+  count(*)::int                                                           as total,
+  count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
+  count(*) filter (where status_label = 'Partial')::int                   as partial,
+  count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
+  count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
+  count(*) filter (where status_code = 'O')::int                          as deschise`;
+
 /** Local day of a ticket, as a lateral so filters can reference it by name. */
 const DAY = `lateral (select (t.created_at at time zone 'Europe/Bucharest')::date) as x(dd)`;
 
@@ -139,15 +154,43 @@ export async function getByNeighborhood(): Promise<Breakdown[]> {
   );
 }
 
+/**
+ * Outcome composition per category and per cartier, over the whole corpus.
+ *
+ * Deliberately not windowed to the 7 days the rest of those tables report. A
+ * report takes longer to settle than that -- the resolution curve is still under
+ * half at day 7 -- so a 7-day outcome split would be almost entirely "still
+ * open" and would say nothing about how the category is actually handled. Across
+ * the full corpus the open share is under 3% everywhere, so these read as
+ * settled composition.
+ *
+ * Two categories, CTP and CAS, are 100% "transferred to the operator": the city
+ * routes them out and never records an outcome. Their 0% favourable is a fact
+ * about who answers, not about whether anything got fixed, and the page says so.
+ */
+export interface OutcomeShare {
+  key: string; total: number;
+  favorabil: number; partial: number; transferat: number; respins: number; deschise: number;
+}
+
+export async function getOutcomeByCategory(): Promise<OutcomeShare[]> {
+  return query<OutcomeShare>(
+    `select category_id::text as key, ${OUTCOME_COUNTS}
+     from public.tickets group by 1`,
+  );
+}
+
+export async function getOutcomeByNeighborhood(): Promise<OutcomeShare[]> {
+  return query<OutcomeShare>(
+    `select coalesce(neighborhood, '(nelocalizat)') as key, ${OUTCOME_COUNTS}
+     from public.tickets group by 1`,
+  );
+}
+
 export async function getDaily(days = 182): Promise<DailyRow[]> {
   return query<DailyRow>(
     `select (created_at at time zone 'Europe/Bucharest')::date::text                 as day,
-            count(*)::int                                                           as total,
-            count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
-            count(*) filter (where status_label = 'Partial')::int                   as partial,
-            count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
-            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
-            count(*) filter (where status_code = 'O')::int                          as deschise
+            ${OUTCOME_COUNTS}
      from public.tickets
      where created_at >= (((select max((created_at at time zone 'Europe/Bucharest')::date)
                             from public.tickets) - $1::int)::timestamp
@@ -183,12 +226,7 @@ export async function getLatest(n = 6): Promise<LatestTicket[]> {
 export async function getMonthlyOutcome(): Promise<MonthlyOutcomeRow[]> {
   return query<MonthlyOutcomeRow>(
     `select to_char(date_trunc('month', created_at at time zone 'Europe/Bucharest'), 'YYYY-MM') as month,
-            count(*)::int                                                           as total,
-            count(*) filter (where status_label = 'Favorabil')::int                 as favorabil,
-            count(*) filter (where status_label = 'Partial')::int                   as partial,
-            count(*) filter (where status_label = 'Transferata operatorului')::int  as transferat,
-            count(*) filter (where status_label in ('Respinsa','Nefavorabil'))::int as respins,
-            count(*) filter (where status_code = 'O')::int                          as deschise
+            ${OUTCOME_COUNTS}
      from public.tickets group by 1 order by 1`,
   );
 }
