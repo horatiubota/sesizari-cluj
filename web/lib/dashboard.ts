@@ -208,3 +208,114 @@ export async function getWeeklySummary(): Promise<WeeklySummary | null> {
   );
   return rows[0] ?? null;
 }
+
+/**
+ * Time-to-close.
+ *
+ * The upstream API publishes current status but never a close date, so nothing
+ * before this project started watching is measurable -- see 004_fix_false_closed_at.
+ * The cohort is therefore only tickets *created after* the first crawl: those we
+ * necessarily saw arrive, so their clock starts where it should. Tickets that
+ * already existed at the first crawl are excluded, and must be: every fast
+ * resolution among them had already happened unobserved, so including them
+ * reports a resolution time several times too slow.
+ *
+ * Two things then have to be handled or the answer is wrong:
+ *
+ *  1. Right-censoring. Most of the cohort is still open, and dropping it -- taking
+ *     the mean of what has closed -- conditions on the event and produces an
+ *     absurdly fast number. This uses the Kaplan-Meier product-limit estimator
+ *     instead, which counts each ticket for exactly as long as it was watched.
+ *     The result answers "what share was closed by day N", which is a claim the
+ *     data supports; a mean or median is not, until the curve crosses 50%.
+ *
+ *  2. The sampling floor. The crawl runs daily, so a ticket opened and closed
+ *     between two runs is first seen already closed and has no observed
+ *     transition. It closed no later than `first_seen_at`, which is the bound
+ *     used here. That understates speed slightly and never overstates it --
+ *     ignoring these instead would drop ~a third of the cohort's closures and
+ *     report near-zero same-day resolution, which is simply false.
+ */
+export interface ResolutionPoint {
+  day: number;
+  /** Open and still under observation at the start of this day. */
+  at_risk: number;
+  closed: number;
+  /** Left the risk set this day by running out of observation, not by closing. */
+  censored: number;
+  /** Kaplan-Meier estimate of the share closed by the end of this day, 0-100. */
+  pct: number;
+}
+export interface ResolutionCurve {
+  points: ResolutionPoint[];
+  /** First day the estimate reaches 50%, or null while the median is outside the window. */
+  median_day: number | null;
+  cohort: number;
+  measured: number;
+  obs_from: string;
+  obs_to: string;
+}
+
+/**
+ * Days whose risk set has thinned past this are dropped rather than drawn. The
+ * tail of a survival curve is always its least certain part, and here the window
+ * is short enough that the last day or two would otherwise swing on single digits.
+ */
+const MIN_AT_RISK = 50;
+
+export async function getResolutionCurve(): Promise<ResolutionCurve | null> {
+  const rows = await query<ResolutionPoint & { cohort: number; measured: number; obs_from: string; obs_to: string }>(
+    `with obs as (
+       select min(first_seen_at) as t0, max(first_seen_at) as t1 from public.tickets
+     ),
+     cohort as (
+       select case when t.status_code = 'C'
+                   then extract(epoch from (coalesce(t.closed_at, t.first_seen_at) - t.created_at)) / 86400.0
+              end                                                        as dur,
+              extract(epoch from (o.t1 - t.created_at)) / 86400.0        as watched
+       from public.tickets t, obs o
+       where t.created_at >= o.t0
+     ),
+     n as (
+       select generate_series(1, greatest(1, floor(extract(epoch from (o.t1 - o.t0)) / 86400)::int)) as d
+       from obs o
+     ),
+     life as (
+       select n.d as day,
+              count(*) filter (where coalesce(c.dur, c.watched) > n.d - 1)::int     as at_risk,
+              count(*) filter (where c.dur > n.d - 1 and c.dur <= n.d)::int         as closed,
+              count(*) filter (where c.dur is null
+                                 and c.watched > n.d - 1 and c.watched <= n.d)::int as censored
+       from n, cohort c
+       group by n.d
+     )
+     select l.day, l.at_risk, l.closed, l.censored,
+            round((100 * (1 - exp(sum(ln(greatest(
+              1 - l.closed::numeric / coalesce(nullif(l.at_risk - l.censored / 2.0, 0), 1), 1e-9)))
+              over (order by l.day))))::numeric, 1)::float8              as pct,
+            (select count(*) from cohort)::int                           as cohort,
+            (select count(*) from cohort where dur is not null)::int     as measured,
+            (o.t0 at time zone 'Europe/Bucharest')::date::text           as obs_from,
+            (o.t1 at time zone 'Europe/Bucharest')::date::text           as obs_to
+     from life l, obs o
+     order by l.day`,
+  );
+  if (!rows.length) return null;
+
+  // Trim from the tail, not by filtering: the estimate at day N is a running
+  // product of every earlier day, so the series has to stay a contiguous prefix.
+  let last = rows.length;
+  while (last > 0 && rows[last - 1]!.at_risk < MIN_AT_RISK) last -= 1;
+  const points = rows.slice(0, last).map(({ day, at_risk, closed, censored, pct }) =>
+    ({ day, at_risk, closed, censored, pct }));
+  if (!points.length) return null;
+
+  return {
+    points,
+    median_day: points.find((p) => p.pct >= 50)?.day ?? null,
+    cohort: rows[0]!.cohort,
+    measured: rows[0]!.measured,
+    obs_from: rows[0]!.obs_from,
+    obs_to: rows[0]!.obs_to,
+  };
+}

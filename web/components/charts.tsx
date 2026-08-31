@@ -118,3 +118,48 @@ export function Delta({ cur, base, suffix }: { cur: number; base: number; suffix
     </span>
   );
 }
+
+/**
+ * Cumulative step curve, drawn on a fixed 0-100% scale.
+ *
+ * The scale is deliberately not fitted to the data: this plots a share of a
+ * whole, and letting the top of the curve touch the top of the frame would make
+ * "under half" look like "all of them". The 50% rule is drawn heavier than the
+ * others because it is the one that carries a claim -- once the curve crosses it,
+ * the median is inside the observed window and can be named.
+ */
+export function StepCurve({
+  points, color, height = 'h-40',
+}: {
+  points: { day: number; pct: number }[];
+  color: string;
+  height?: string;
+}) {
+  if (!points.length) return null;
+  const n = points.at(-1)!.day;
+
+  // A step, not a join: nothing is known about what happens *inside* a day, so
+  // sloping between the points would draw an interpolation the data cannot support.
+  let line = 'M0,100';
+  let prev = 100;
+  for (const p of points) {
+    const y = 100 - p.pct;
+    line += ` L${p.day},${prev} L${p.day},${y}`;
+    prev = y;
+  }
+
+  return (
+    <svg viewBox={`0 0 ${n} 100`} preserveAspectRatio="none"
+      className={`w-full ${height}`} role="img"
+      aria-label={`Procent închis, cumulat pe ${n} zile, ${points.at(-1)!.pct}% la final`}>
+      {[25, 75].map((v) => (
+        <line key={v} x1={0} x2={n} y1={100 - v} y2={100 - v} strokeWidth={1}
+          vectorEffect="non-scaling-stroke" className="stroke-neutral-200 dark:stroke-neutral-800" />
+      ))}
+      <line x1={0} x2={n} y1={50} y2={50} strokeWidth={1} strokeDasharray="4 3"
+        vectorEffect="non-scaling-stroke" className="stroke-neutral-300 dark:stroke-neutral-700" />
+      <path d={`${line} L${n},100 Z`} fill={color} opacity={0.12} stroke="none" />
+      <path d={line} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
