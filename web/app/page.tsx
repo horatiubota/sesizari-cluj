@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import DailyCategoryChart, { type Day } from '@/components/DailyCategoryChart';
-import { Bar, Delta, Sparkline, StackedBars, StepCurve } from '@/components/charts';
+import { Bar, Delta, OutcomeBar, Sparkline, StackedBars, StepCurve } from '@/components/charts';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
   getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
-  getLatest, getMonthlyOutcome, getOverview, getResolutionCurve, getRollingTotals,
-  getWeeklySummary, type WindowCounts,
+  getLatest, getMonthlyOutcome, getOutcomeByCategory, getOutcomeByNeighborhood,
+  getOverview, getResolutionCurve, getRollingTotals, getWeeklySummary,
+  type OutcomeShare, type WindowCounts,
 } from '@/lib/dashboard';
 
 /**
@@ -41,6 +42,28 @@ const DATE_LONG = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'lon
 const DATE_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
 const fmtLong = (iso: string) => DATE_LONG.format(new Date(`${iso}T12:00:00`));
 const fmtShort = (iso: string) => DATE_SHORT.format(new Date(`${iso}T12:00:00`));
+
+/**
+ * Zero is nothing to report, not 0.0% -- an outcome a category never produces.
+ * A share that is real but rounds to 0.0 gets a threshold instead, so the two
+ * cases stay distinguishable: several categories transfer a handful of reports
+ * out of tens of thousands, and printing that as 0.0% next to a true — reads as
+ * a rounding bug rather than as the difference it is.
+ */
+const pctOf = (n: number, total: number): string => {
+  if (n === 0 || total === 0) return '—';
+  const pct = (n / total) * 100;
+  return pct < 0.05 ? '<0.1%' : `${pct.toFixed(1)}%`;
+};
+
+/** The five OUTCOME_BANDS keys, so the strip and the legend above it agree. */
+const bandsOf = (o: OutcomeShare): Record<string, number> => ({
+  favorabil: o.favorabil, partial: o.partial, transferat: o.transferat,
+  respins: o.respins, deschise: o.deschise,
+});
+
+const outcomeTitle = (o: OutcomeShare): string =>
+  OUTCOME_BANDS.map((b) => `${b.label}: ${pctOf(bandsOf(o)[b.key] ?? 0, o.total)}`).join(' · ');
 
 function Section({ title, note, children }: {
   title: string; note?: React.ReactNode; children: React.ReactNode;
@@ -83,57 +106,100 @@ function CountCard({ label, value, sub, window: w }: {
  * Ranked breakdown. Every row links into the map with the same filter and the
  * same date window applied, so a number on this page and the map behind it
  * always describe the identical selection.
+ *
+ * The header is two tiers because the columns answer questions over different
+ * spans: volume is the rolling 7 days, outcome composition is the whole corpus.
+ * Putting them in one flat header would invite reading the favourable share as
+ * "of the last 7 days", which it is not and cannot be -- barely half of a week's
+ * reports have been answered yet.
  */
-function RankedTable({ rows, colorFor, hrefFor, trendFor }: {
+function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
   rows: { key: string; label: string; cur: number; prev: number; ly: number }[];
   colorFor: (key: string) => string;
   hrefFor: (key: string) => string;
   trendFor?: (key: string) => number[];
+  outcomeFor?: (key: string) => OutcomeShare | undefined;
 }) {
   const max = Math.max(...rows.map((r) => r.cur), 1);
+  const group = 'py-1 text-[10px] font-medium tracking-wide text-neutral-400 uppercase';
+  // The two header tiers only pay for themselves if the boundary is visible.
+  const divider = 'border-l border-neutral-200 dark:border-neutral-800';
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[38rem] text-sm">
+      <table className={`w-full ${outcomeFor ? 'min-w-[52rem]' : 'min-w-[38rem]'} text-sm`}>
         <thead className="text-left text-xs text-neutral-500">
+          {outcomeFor && (
+            <tr>
+              <th />
+              <th colSpan={3} className={`${group} pr-3 text-center`}>ultimele 7 zile</th>
+              <th colSpan={3} className={`${group} ${divider} pl-3 text-center`}>
+                rezultate, toate din 2017
+              </th>
+              {trendFor && <th />}
+            </tr>
+          )}
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
             <th className="py-1.5 font-medium">&nbsp;</th>
-            <th className="py-1.5 pr-3 text-right font-medium">7 zile</th>
+            <th className="py-1.5 pr-3 text-right font-medium">{outcomeFor ? 'număr' : '7 zile'}</th>
             <th className="py-1.5 pr-3 text-right font-medium">vs 7 anterioare</th>
             <th className="py-1.5 pr-3 text-right font-medium">vs anul trecut</th>
-            {trendFor && <th className="py-1.5 font-medium">60 de zile</th>}
+            {outcomeFor && (
+              <>
+                <th className={`${divider} py-1.5 pr-3 pl-3 text-right font-medium`}>favorabil</th>
+                <th className="py-1.5 pr-3 text-right font-medium">transferat</th>
+                <th className="w-32 py-1.5 font-medium">compoziție</th>
+              </>
+            )}
+            {trendFor && <th className="py-1.5 pl-3 font-medium">60 de zile</th>}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.key}
-              className="group border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900/60">
-              <td className="py-1.5 pr-4 align-middle">
-                <Link href={hrefFor(r.key)}
-                  title={`Vezi „${r.label}” pe hartă, aceleași 7 zile`}
-                  className="flex items-center gap-1.5">
-                  <span className="truncate">{r.label}</span>
-                  <span aria-hidden="true"
-                    className="text-neutral-400 opacity-0 transition group-hover:opacity-100">
-                    →
-                  </span>
-                  <span className="sr-only">— vezi pe hartă</span>
-                </Link>
-                <Bar value={r.cur} max={max} color={colorFor(r.key)} />
-              </td>
-              <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{r.cur}</td>
-              <td className="py-1.5 pr-3 text-right text-xs">
-                <span className="text-neutral-400">{r.prev} </span><Delta cur={r.cur} base={r.prev} />
-              </td>
-              <td className="py-1.5 pr-3 text-right text-xs">
-                <span className="text-neutral-400">{r.ly} </span><Delta cur={r.cur} base={r.ly} />
-              </td>
-              {trendFor && (
-                <td className="py-1.5">
-                  <Sparkline values={trendFor(r.key)} color={colorFor(r.key)} />
+          {rows.map((r) => {
+            const o = outcomeFor?.(r.key);
+            return (
+              <tr key={r.key}
+                className="group border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900/60">
+                <td className="py-1.5 pr-4 align-middle">
+                  <Link href={hrefFor(r.key)}
+                    title={`Vezi „${r.label}” pe hartă, aceleași 7 zile`}
+                    className="flex items-center gap-1.5">
+                    <span className="truncate">{r.label}</span>
+                    <span aria-hidden="true"
+                      className="text-neutral-400 opacity-0 transition group-hover:opacity-100">
+                      →
+                    </span>
+                    <span className="sr-only">— vezi pe hartă</span>
+                  </Link>
+                  <Bar value={r.cur} max={max} color={colorFor(r.key)} />
                 </td>
-              )}
-            </tr>
-          ))}
+                <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{r.cur}</td>
+                <td className="py-1.5 pr-3 text-right text-xs">
+                  <span className="text-neutral-400">{r.prev} </span><Delta cur={r.cur} base={r.prev} />
+                </td>
+                <td className="py-1.5 pr-3 text-right text-xs">
+                  <span className="text-neutral-400">{r.ly} </span><Delta cur={r.cur} base={r.ly} />
+                </td>
+                {outcomeFor && (
+                  <>
+                    <td className={`${divider} py-1.5 pr-3 pl-3 text-right font-mono text-xs tabular-nums`}>
+                      {o ? pctOf(o.favorabil, o.total) : '—'}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-xs tabular-nums text-neutral-500">
+                      {o ? pctOf(o.transferat, o.total) : '—'}
+                    </td>
+                    <td className="py-1.5 align-middle">
+                      {o && <OutcomeBar values={bandsOf(o)} bands={OUTCOME_BANDS} title={outcomeTitle(o)} />}
+                    </td>
+                  </>
+                )}
+                {trendFor && (
+                  <td className="py-1.5 pl-3">
+                    <Sparkline values={trendFor(r.key)} color={colorFor(r.key)} />
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -141,12 +207,17 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor }: {
 }
 
 export default async function Dashboard() {
-  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly, resolution] =
+  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly, resolution,
+         outCat, outNb] =
     await Promise.all([
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
       getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
       getMonthlyOutcome(), getWeeklySummary(), getResolutionCurve(),
+      getOutcomeByCategory(), getOutcomeByNeighborhood(),
     ]);
+
+  const outcomeByCat = new Map(outCat.map((o) => [o.key, o]));
+  const outcomeByNb = new Map(outNb.map((o) => [o.key, o]));
 
   // Pivot per-category daily counts once: the stacked chart needs every day, the
   // sparklines need the trailing 60.
@@ -279,10 +350,23 @@ export default async function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       <Section
         title="Pe categorii"
-        note="Ultimele 7 zile. Apasă pe o categorie pentru a o deschide pe hartă, filtrată
-              pe aceeași categorie și aceleași 7 zile. Harta poate arăta un număr puțin mai
-              mic: acolo intră doar sesizările cu coordonate utile. Linia arată volumul
-              zilnic din ultimele 60 de zile, scalată independent pe fiecare rând."
+        note={
+          <>
+            Volumul este pe ultimele 7 zile; apasă pe o categorie ca să o deschizi pe hartă,
+            filtrată la fel. Harta poate arăta un număr puțin mai mic: acolo intră doar
+            sesizările cu coordonate utile. Linia arată volumul zilnic din ultimele 60 de
+            zile, scalată independent pe fiecare rând. Coloanele de rezultate sunt calculate
+            altfel: pe toate sesizările din 2017 încoace, nu pe ultimele 7 zile, pentru că
+            o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns. Culorile
+            din „compoziție” sunt cele din legenda de mai jos.{' '}
+            <strong className="font-medium text-neutral-700 dark:text-neutral-300">
+              Transport public (CTP) și Rețele de apă/canalizare (CAS) apar cu 0% favorabil
+              pentru că sunt transferate integral operatorului
+            </strong>{' '}
+            — primăria le trimite mai departe și nu mai consemnează un rezultat, deci despre
+            ele tabelul spune cine răspunde, nu dacă s-a rezolvat ceva.
+          </>
+        }
       >
         <RankedTable
           rows={byCat.map((r) => ({
@@ -291,18 +375,28 @@ export default async function Dashboard() {
           colorFor={(k) => CATEGORY_BY_ID.get(Number(k))?.color ?? '#888'}
           hrefFor={catHref}
           trendFor={(k) => (trend.get(k) ?? []).slice(sparkFrom)}
+          outcomeFor={(k) => outcomeByCat.get(k)}
         />
       </Section>
 
       {/* ------------------------------------------------------------------ */}
       <Section
         title="Pe cartiere"
-        note="Ultimele 7 zile. Apasă pe un cartier pentru a-l deschide pe hartă. Cartierul
-              este atribuit geometric, din coordonatele sesizării, folosind limitele de
-              cartier din OpenStreetMap; sesizările fără coordonate utile apar ca
-              „nelocalizat” și nu pot fi filtrate spațial."
+        note={
+          <>
+            Volumul este pe ultimele 7 zile; apasă pe un cartier pentru a-l deschide pe hartă.
+            Cartierul este atribuit geometric, din coordonatele sesizării, folosind limitele de
+            cartier din OpenStreetMap; sesizările fără coordonate utile apar ca „nelocalizat”
+            și nu pot fi filtrate spațial. Coloanele de rezultate acoperă toate sesizările din
+            2017 încoace, nu ultimele 7 zile. Diferențele dintre cartiere țin în bună măsură de
+            ce se reclamă acolo, nu de cum este tratat cartierul: unde se depun multe sesizări
+            de transport sau de apă-canal, ponderea „transferat” crește mecanic, pentru că
+            acele categorii pleacă integral la operator.
+          </>
+        }
       >
-        <RankedTable rows={byNb} colorFor={() => '#6b7280'} hrefFor={nbHref} />
+        <RankedTable rows={byNb} colorFor={() => '#6b7280'} hrefFor={nbHref}
+          outcomeFor={(k) => outcomeByNb.get(k)} />
       </Section>
 
       {/* ------------------------------------------------------------------ */}
