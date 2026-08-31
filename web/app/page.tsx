@@ -23,6 +23,14 @@ const DAILY_DAYS = 182;
 const CLOSED_COLOR = '#3f9142';
 
 /**
+ * Window for the outcome columns. Matches the trend sparkline beside them, and
+ * is long enough that most reports in it have been answered -- at 7 days about
+ * 69% are still open, at 60 days about 23%. The remainder stays visible as the
+ * grey band of the composition strip rather than being divided out.
+ */
+const OUTCOME_DAYS = 60;
+
+/**
  * Rows to lift out of the resolution curve into a table. Only those the window
  * actually reaches are shown, so the table stays short as the window lengthens
  * instead of growing a row a day.
@@ -63,7 +71,8 @@ const bandsOf = (o: OutcomeShare): Record<string, number> => ({
 });
 
 const outcomeTitle = (o: OutcomeShare): string =>
-  OUTCOME_BANDS.map((b) => `${b.label}: ${pctOf(bandsOf(o)[b.key] ?? 0, o.total)}`).join(' · ');
+  `${nf.format(o.total)} de sesizări în ultimele ${OUTCOME_DAYS} de zile — `
+  + OUTCOME_BANDS.map((b) => `${b.label}: ${pctOf(bandsOf(o)[b.key] ?? 0, o.total)}`).join(' · ');
 
 function Section({ title, note, children }: {
   title: string; note?: React.ReactNode; children: React.ReactNode;
@@ -133,7 +142,7 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
               <th />
               <th colSpan={3} className={`${group} pr-3 text-center`}>ultimele 7 zile</th>
               <th colSpan={3} className={`${group} ${divider} pl-3 text-center`}>
-                rezultate, toate din 2017
+                rezultate, ultimele {OUTCOME_DAYS} de zile
               </th>
               {trendFor && <th />}
             </tr>
@@ -213,7 +222,7 @@ export default async function Dashboard() {
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
       getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
       getMonthlyOutcome(), getWeeklySummary(), getResolutionCurve(),
-      getOutcomeByCategory(), getOutcomeByNeighborhood(),
+      getOutcomeByCategory(OUTCOME_DAYS), getOutcomeByNeighborhood(OUTCOME_DAYS),
     ]);
 
   const outcomeByCat = new Map(outCat.map((o) => [o.key, o]));
@@ -355,10 +364,14 @@ export default async function Dashboard() {
             Volumul este pe ultimele 7 zile; apasă pe o categorie ca să o deschizi pe hartă,
             filtrată la fel. Harta poate arăta un număr puțin mai mic: acolo intră doar
             sesizările cu coordonate utile. Linia arată volumul zilnic din ultimele 60 de
-            zile, scalată independent pe fiecare rând. Coloanele de rezultate sunt calculate
-            altfel: pe toate sesizările din 2017 încoace, nu pe ultimele 7 zile, pentru că
-            o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns. Culorile
-            din „compoziție” sunt cele din legenda de mai jos.{' '}
+            zile, scalată independent pe fiecare rând. Coloanele de rezultate acoperă
+            ultimele {OUTCOME_DAYS} de zile — aceeași fereastră ca linia — nu ultimele 7,
+            pentru că o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns.
+            Culorile din „compoziție” sunt cele din legenda de mai jos, iar banda gri de la
+            capăt este partea încă nesoluționată: la {OUTCOME_DAYS} de zile înseamnă cam un
+            sfert din total, dar între 11% și 38% în funcție de categorie. Merită citită
+            înainte de a compara două rânduri — o categorie poate părea mai puțin favorabilă
+            doar pentru că are mai multe sesizări încă în lucru.{' '}
             <strong className="font-medium text-neutral-700 dark:text-neutral-300">
               Transport public (CTP) și Rețele de apă/canalizare (CAS) apar cu 0% favorabil
               pentru că sunt transferate integral operatorului
@@ -387,11 +400,12 @@ export default async function Dashboard() {
             Volumul este pe ultimele 7 zile; apasă pe un cartier pentru a-l deschide pe hartă.
             Cartierul este atribuit geometric, din coordonatele sesizării, folosind limitele de
             cartier din OpenStreetMap; sesizările fără coordonate utile apar ca „nelocalizat”
-            și nu pot fi filtrate spațial. Coloanele de rezultate acoperă toate sesizările din
-            2017 încoace, nu ultimele 7 zile. Diferențele dintre cartiere țin în bună măsură de
-            ce se reclamă acolo, nu de cum este tratat cartierul: unde se depun multe sesizări
-            de transport sau de apă-canal, ponderea „transferat” crește mecanic, pentru că
-            acele categorii pleacă integral la operator.
+            și nu pot fi filtrate spațial. Coloanele de rezultate acoperă ultimele
+            {OUTCOME_DAYS} de zile, nu ultimele 7; banda gri de la capătul compoziției este
+            partea încă nesoluționată, cam un sfert din total. Diferențele dintre cartiere țin
+            în bună măsură de ce se reclamă acolo, nu de cum este tratat cartierul: unde se
+            depun multe sesizări de transport sau de apă-canal, ponderea „transferat” crește
+            mecanic, pentru că acele categorii pleacă integral la operator.
           </>
         }
       >

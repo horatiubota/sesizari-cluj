@@ -155,35 +155,54 @@ export async function getByNeighborhood(): Promise<Breakdown[]> {
 }
 
 /**
- * Outcome composition per category and per cartier, over the whole corpus.
+ * Outcome composition per category and per cartier, over a rolling window.
  *
- * Deliberately not windowed to the 7 days the rest of those tables report. A
- * report takes longer to settle than that -- the resolution curve is still under
- * half at day 7 -- so a 7-day outcome split would be almost entirely "still
- * open" and would say nothing about how the category is actually handled. Across
- * the full corpus the open share is under 3% everywhere, so these read as
- * settled composition.
+ * The window is a real tension, not a free parameter. Recent is what a reader
+ * wants -- a favourable rate averaged since 2017 hides anything that changed
+ * this year -- but a report does not settle instantly, so a short window reports
+ * our own impatience as if it were the city's. Measured across this corpus, the
+ * share still open at the end of the window runs 69% at 7 days, 42% at 30, 23%
+ * at 60, 9% at 180.
  *
- * Two categories, CTP and CAS, are 100% "transferred to the operator": the city
- * routes them out and never records an outcome. Their 0% favourable is a fact
- * about who answers, not about whether anything got fixed, and the page says so.
+ * 60 days is what the dashboard uses, and it is the same span the trend
+ * sparkline beside these columns already covers. Every share is taken over all
+ * reports in the window, still-open ones included, so the columns and the
+ * composition strip share one denominator and the strip's grey band shows
+ * directly how much of each row has not been answered yet -- around a quarter
+ * overall, and from 11% to 38% depending on the category. That band is the
+ * thing to read before comparing two rows: a category can look less favourable
+ * simply because more of its recent reports are still in progress.
+ *
+ * Two categories, CTP and CAS, are 100% "transferred to the operator" in every
+ * window: the city routes them out and never records an outcome. Their 0%
+ * favourable is a fact about who answers, not about whether anything got fixed,
+ * and the page says so.
  */
 export interface OutcomeShare {
   key: string; total: number;
   favorabil: number; partial: number; transferat: number; respins: number; deschise: number;
 }
 
-export async function getOutcomeByCategory(): Promise<OutcomeShare[]> {
+/** Anchored on the newest day in the data, like every other window here. */
+const OUTCOME_WINDOW = `
+  from public.tickets t, anchor a, ${DAY}
+  where dd > a.today - $1::int`;
+
+export async function getOutcomeByCategory(days: number): Promise<OutcomeShare[]> {
   return query<OutcomeShare>(
-    `select category_id::text as key, ${OUTCOME_COUNTS}
-     from public.tickets group by 1`,
+    `with ${ANCHOR}
+     select t.category_id::text as key, ${OUTCOME_COUNTS}
+     ${OUTCOME_WINDOW} group by 1`,
+    [days],
   );
 }
 
-export async function getOutcomeByNeighborhood(): Promise<OutcomeShare[]> {
+export async function getOutcomeByNeighborhood(days: number): Promise<OutcomeShare[]> {
   return query<OutcomeShare>(
-    `select coalesce(neighborhood, '(nelocalizat)') as key, ${OUTCOME_COUNTS}
-     from public.tickets group by 1`,
+    `with ${ANCHOR}
+     select coalesce(t.neighborhood, '(nelocalizat)') as key, ${OUTCOME_COUNTS}
+     ${OUTCOME_WINDOW} group by 1`,
+    [days],
   );
 }
 
