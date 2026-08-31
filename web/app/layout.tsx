@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 
@@ -46,6 +47,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-dvh flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
         <SiteHeader />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        {/*
+          Vercel Web Analytics. Cookieless and with no visitor identifier, so it
+          needs no consent banner -- which matters here, since the whole point of
+          the site is that it handles other people's reports carefully. The
+          component injects a script pointing at /_vercel/insights/script.js, a
+          path only Vercel's edge serves, so outside a deployment the request
+          404s and nothing is collected.
+        */}
+        <Analytics />
       </body>
     </html>
   );
