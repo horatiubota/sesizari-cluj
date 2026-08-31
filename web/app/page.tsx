@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import DailyCategoryChart, { type Day } from '@/components/DailyCategoryChart';
-import { Bar, Delta, Sparkline, StackedBars } from '@/components/charts';
+import { Bar, Delta, Sparkline, StackedBars, StepCurve } from '@/components/charts';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
   getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
-  getLatest, getMonthlyOutcome, getOverview, getRollingTotals, getWeeklySummary,
-  type WindowCounts,
+  getLatest, getMonthlyOutcome, getOverview, getResolutionCurve, getRollingTotals,
+  getWeeklySummary, type WindowCounts,
 } from '@/lib/dashboard';
 
 /**
@@ -18,8 +18,18 @@ export const revalidate = 1800;
 
 const DAILY_DAYS = 182;
 
+/** Shared by the outcome bands and the resolution curve: both mean "closed". */
+const CLOSED_COLOR = '#3f9142';
+
+/**
+ * Rows to lift out of the resolution curve into a table. Only those the window
+ * actually reaches are shown, so the table stays short as the window lengthens
+ * instead of growing a row a day.
+ */
+const CHECKPOINTS = [1, 2, 3, 5, 7, 14, 21, 30, 60, 90];
+
 const OUTCOME_BANDS = [
-  { key: 'favorabil',  color: '#3f9142', label: OUTCOME_LABEL.Favorabil },
+  { key: 'favorabil',  color: CLOSED_COLOR, label: OUTCOME_LABEL.Favorabil },
   { key: 'partial',    color: '#d9a441', label: OUTCOME_LABEL.Partial },
   { key: 'transferat', color: '#2f8f9d', label: OUTCOME_LABEL['Transferata operatorului'] },
   { key: 'respins',    color: '#d94f4f', label: 'Respinsă / nefavorabil' },
@@ -131,11 +141,11 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor }: {
 }
 
 export default async function Dashboard() {
-  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly] =
+  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly, resolution] =
     await Promise.all([
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
       getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
-      getMonthlyOutcome(), getWeeklySummary(),
+      getMonthlyOutcome(), getWeeklySummary(), getResolutionCurve(),
     ]);
 
   // Pivot per-category daily counts once: the stacked chart needs every day, the
@@ -161,6 +171,11 @@ export default async function Dashboard() {
   // The newest day in the data may itself be partial: the sync runs mid-day, and
   // reports keep arriving after it. The day before it is the last certain one.
   const lastComplete = daily.filter((d) => d.day !== overview.last_day).at(-1);
+
+  const lastDay = resolution?.points.at(-1)?.day ?? 0;
+  const checkpoints = resolution
+    ? resolution.points.filter((p) => p.day === lastDay || CHECKPOINTS.includes(p.day))
+    : [];
 
   const win = `from=${totals.d7.from}&to=${totals.d7.to}`;
   const catHref = (id: string) => `/harta?cat=${id}&${win}`;
@@ -340,6 +355,82 @@ export default async function Dashboard() {
       </Section>
 
       {/* ------------------------------------------------------------------ */}
+      {resolution && (
+        <Section
+          title="Cât de repede se închid"
+          note={
+            <>
+              Se poate măsura doar pentru cele {nf.format(resolution.cohort)} de sesizări
+              depuse după {fmtLong(resolution.obs_from)}, ziua în care am început să urmărim
+              tranzițiile; {nf.format(resolution.measured)} dintre ele s-au închis până acum.
+              Curba arată ce procent era închis după N zile, socotind fiecare sesizare atât
+              timp cât am urmărit-o efectiv. Nu este media celor deja închise: aceea ar ieși
+              mult prea optimistă, pentru că sesizările lente nu au apucat încă să se închidă.{' '}
+              {resolution.median_day !== null
+                ? `Jumătate ajung să fie închise în cel mult ${resolution.median_day} zile.`
+                : `Curba nu a atins încă 50%, deci mediana este dincolo de cele ${lastDay} zile
+                   observate și nu poate fi încă numită.`}
+            </>
+          }
+        >
+          <div className="relative">
+            <StepCurve points={resolution.points} color={CLOSED_COLOR} />
+            {[75, 50, 25].map((v) => (
+              <span key={v} aria-hidden="true"
+                className="pointer-events-none absolute left-0 -translate-y-1/2 pr-1 text-[10px] tabular-nums text-neutral-400"
+                style={{ top: `${100 - v}%` }}>
+                {v}%
+              </span>
+            ))}
+          </div>
+          {/* Each day owns an equal slice and its step lands on the slice's right
+              edge, so right-aligning the labels puts them under their own step. */}
+          <div className="mt-1 flex text-[10px] text-neutral-500">
+            {resolution.points.map((p) => (
+              <span key={p.day} className="flex-1 text-right tabular-nums">{p.day}</span>
+            ))}
+          </div>
+          <div className="mt-0.5 text-[10px] text-neutral-400">zile de la depunere</div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[26rem] text-sm">
+              <thead className="text-left text-xs text-neutral-500">
+                <tr className="border-b border-neutral-200 dark:border-neutral-800">
+                  <th className="py-1.5 font-medium">Închise în</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">estimat închise</th>
+                  <th className="py-1.5 font-medium">&nbsp;</th>
+                  <th className="py-1.5 pl-3 text-right font-medium">încă în observație</th>
+                </tr>
+              </thead>
+              <tbody>
+                {checkpoints.map((p) => (
+                  <tr key={p.day} className="border-b border-neutral-100 last:border-0 dark:border-neutral-900">
+                    <td className="py-1.5 pr-4 whitespace-nowrap">{p.day} {p.day === 1 ? 'zi' : 'zile'}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono tabular-nums">{p.pct}%</td>
+                    <td className="w-1/2 py-1.5">
+                      <Bar value={p.pct} max={100} color={CLOSED_COLOR} />
+                    </td>
+                    <td className="py-1.5 pl-3 text-right font-mono text-xs tabular-nums text-neutral-500">
+                      {p.at_risk}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* The risk set is not the denominator of the estimate -- the estimate is
+              a running product over every earlier day -- so it is labelled as what
+              it is: how much evidence still stands behind that row. */}
+          <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+            Ultima coloană arată câte sesizări mai erau deschise și încă urmărite la
+            începutul acelei zile, nu numărul din care s-a calculat procentul. Cu cât
+            scade, cu atât rândul se sprijină pe mai puține observații; zilele rămase
+            fără destule sesizări nici nu sunt desenate.
+          </p>
+        </Section>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
       <Section title="Ultimele sesizări" note="Cele mai recente înregistrări preluate de pe platformă.">
         <ul className="space-y-3">
           {latest.map((t) => {
@@ -382,9 +473,21 @@ export default async function Dashboard() {
               Timpul până la soluționare nu poate fi calculat retroactiv.
             </strong>{' '}
             Platforma publică doar starea curentă a unei sesizări, nu și data la care a fost
-            închisă. Din 22 august 2026 înregistrăm tranzițiile pe măsură ce le observăm, deci
-            durata până la răspuns devine măsurabilă de acum înainte — dar nu pentru cele
-            {' '}{nf.format(overview.total - overview.open)} de sesizări deja închise la prima preluare.
+            închisă. {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
+            înregistrăm tranzițiile pe măsură ce le observăm, iar din ele iese secțiunea
+            „Cât de repede se închid” — dar ea nu poate acoperi cele
+            {' '}{nf.format(overview.total - overview.open)} de sesizări deja închise la prima
+            preluare, pentru care data închiderii nu există nicăieri public.
+          </li>
+          <li>
+            <strong className="font-medium text-neutral-800 dark:text-neutral-200">
+              Sub o zi nu putem distinge.
+            </strong>{' '}
+            Preluarea rulează o dată pe zi, deci o sesizare deschisă și închisă între două
+            rulări este văzută direct închisă, fără tranziție observată. Pentru acestea folosim
+            momentul primei observări ca limită superioară: știm sigur că s-au închis mai
+            devreme de atât, deci curba le numără puțin mai încet decât au fost în realitate,
+            niciodată mai repede.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">Zilele nu sunt calendaristice UTC.</strong>{' '}
