@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import DailyCategoryChart, { type Day } from '@/components/DailyCategoryChart';
-import { Bar, Delta, OutcomeBar, Sparkline, StackedBars, StepCurve } from '@/components/charts';
+import { Bar, Delta, Sparkline, StackedBars, StepCurve } from '@/components/charts';
+import OutcomeStrip from '@/components/OutcomeStrip';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
   getByCategory, getByNeighborhood, getDaily, getDailyBreakdown,
@@ -28,7 +29,7 @@ const CLOSED_COLOR = '#3f9142';
  * 69% are still open, at 60 days about 23%. The remainder stays visible as the
  * grey band of the composition strip rather than being divided out.
  */
-const OUTCOME_DAYS = 60;
+const OUTCOME_DAYS = 90;
 
 /**
  * Rows to lift out of the resolution curve into a table. Only those the window
@@ -51,28 +52,11 @@ const DATE_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'sh
 const fmtLong = (iso: string) => DATE_LONG.format(new Date(`${iso}T12:00:00`));
 const fmtShort = (iso: string) => DATE_SHORT.format(new Date(`${iso}T12:00:00`));
 
-/**
- * Zero is nothing to report, not 0.0% -- an outcome a category never produces.
- * A share that is real but rounds to 0.0 gets a threshold instead, so the two
- * cases stay distinguishable: several categories transfer a handful of reports
- * out of tens of thousands, and printing that as 0.0% next to a true — reads as
- * a rounding bug rather than as the difference it is.
- */
-const pctOf = (n: number, total: number): string => {
-  if (n === 0 || total === 0) return '—';
-  const pct = (n / total) * 100;
-  return pct < 0.05 ? '<0.1%' : `${pct.toFixed(1)}%`;
-};
-
 /** The five OUTCOME_BANDS keys, so the strip and the legend above it agree. */
 const bandsOf = (o: OutcomeShare): Record<string, number> => ({
   favorabil: o.favorabil, partial: o.partial, transferat: o.transferat,
   respins: o.respins, deschise: o.deschise,
 });
-
-const outcomeTitle = (o: OutcomeShare): string =>
-  `${nf.format(o.total)} de sesizări în ultimele ${OUTCOME_DAYS} de zile — `
-  + OUTCOME_BANDS.map((b) => `${b.label}: ${pctOf(bandsOf(o)[b.key] ?? 0, o.total)}`).join(' · ');
 
 function Section({ title, note, children }: {
   title: string; note?: React.ReactNode; children: React.ReactNode;
@@ -140,16 +124,15 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
   const divider = 'border-l border-neutral-200 dark:border-neutral-800';
   return (
     <div className="overflow-x-auto">
-      <table className={`w-full ${outcomeFor ? 'min-w-[44rem]' : 'min-w-[38rem]'} text-sm`}>
+      <table className={`w-full ${outcomeFor ? 'min-w-[50rem]' : 'min-w-[38rem]'} text-sm`}>
         <thead className="text-left text-xs text-neutral-500">
           {outcomeFor && (
             <tr>
               <th />
               <th colSpan={3} className={`${group} pr-3 text-center`}>ultimele 7 zile</th>
-              <th className={`${group} ${divider} pl-3 text-center`}>
-                rezultate, ultimele {OUTCOME_DAYS} de zile
+              <th colSpan={trendFor ? 3 : 2} className={`${group} ${divider} pl-3 text-center`}>
+                ultimele {OUTCOME_DAYS} de zile
               </th>
-              {trendFor && <th />}
             </tr>
           )}
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
@@ -158,9 +141,12 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
             <th className="py-1.5 pr-3 text-right font-medium">vs 7 anterioare</th>
             <th className="py-1.5 pr-3 text-right font-medium">vs anul trecut</th>
             {outcomeFor && (
-              <th className={`${divider} w-44 py-1.5 pl-3 font-medium`}>compoziție</th>
+              <>
+                <th className={`${divider} py-1.5 pr-3 pl-3 text-right font-medium`}>număr</th>
+                <th className="w-44 py-1.5 font-medium">cum s-au închis</th>
+              </>
             )}
-            {trendFor && <th className="py-1.5 pl-3 font-medium">60 de zile</th>}
+            {trendFor && <th className="py-1.5 pl-3 font-medium">nr. de sesizări</th>}
           </tr>
         </thead>
         <tbody>
@@ -190,9 +176,17 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
                   <span className="text-neutral-400">{r.ly} </span><Delta cur={r.cur} base={r.ly} />
                 </td>
                 {outcomeFor && (
-                  <td className={`${divider} py-1.5 pl-3 align-middle`}>
-                    {o && <OutcomeBar values={bandsOf(o)} bands={OUTCOME_BANDS} title={outcomeTitle(o)} />}
-                  </td>
+                  <>
+                    <td className={`${divider} py-1.5 pr-3 pl-3 text-right font-mono tabular-nums`}>
+                      {o ? nf.format(o.total) : '—'}
+                    </td>
+                    <td className="py-1.5 align-middle">
+                      {o && (
+                        <OutcomeStrip values={bandsOf(o)} bands={OUTCOME_BANDS}
+                          label={r.label} windowDays={OUTCOME_DAYS} />
+                      )}
+                    </td>
+                  </>
                 )}
                 {trendFor && (
                   <td className="py-1.5 pl-3">
@@ -250,7 +244,7 @@ export default async function Dashboard() {
     if (series) series[i] = r.n;
   }
 
-  const sparkFrom = Math.max(0, days.length - 60);
+  const sparkFrom = Math.max(0, days.length - OUTCOME_DAYS);
 
   const dailyMean = Math.round(daily.reduce((s, d) => s + d.total, 0) / (daily.length || 1));
   const busiest = daily.reduce((a, b) => (b.total > a.total ? b : a), daily[0]!);
@@ -370,13 +364,13 @@ export default async function Dashboard() {
           <>
             Volumul este pe ultimele 7 zile; apasă pe o categorie ca să o deschizi pe hartă,
             filtrată la fel. Harta poate arăta un număr puțin mai mic: acolo intră doar
-            sesizările cu coordonate utile. Linia arată volumul zilnic din ultimele 60 de
-            zile, scalată independent pe fiecare rând. Banda „compoziție” acoperă ultimele
+            sesizările cu coordonate utile. Linia arată volumul zilnic din aceeași fereastră,
+            scalată independent pe fiecare rând. Coloanele din dreapta acoperă ultimele
             {' '}{OUTCOME_DAYS} de zile — aceeași fereastră ca linia — nu ultimele 7, pentru
             că o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns. Culorile
-            sunt cele din legenda de mai jos; treci cu mouse-ul peste bandă pentru procentele
-            exacte. Banda gri de la capăt este partea încă nesoluționată: la {OUTCOME_DAYS} de
-            zile înseamnă cam un sfert din total, dar între 11% și 38% în funcție de categorie.
+            sunt cele din legenda de mai jos; treci cu mouse-ul peste bandă — sau apasă pe ea —
+            pentru numărul exact pe fiecare rezultat. Banda gri de la capăt este partea încă nesoluționată: la {OUTCOME_DAYS} de
+            zile înseamnă cam o șesime din total, dar între 1% și 28% în funcție de categorie.
             Merită citită înainte de a compara două rânduri — o categorie poate părea mai puțin
             favorabilă doar pentru că are mai multe sesizări încă în lucru.{' '}
             <strong className="font-medium text-neutral-700 dark:text-neutral-300">
@@ -407,11 +401,11 @@ export default async function Dashboard() {
             Volumul este pe ultimele 7 zile; apasă pe un cartier pentru a-l deschide pe hartă.
             Cartierul este atribuit geometric, din coordonatele sesizării, folosind limitele de
             cartier din OpenStreetMap; sesizările fără coordonate utile apar ca „nelocalizat”
-            și nu pot fi filtrate spațial. Linia arată volumul zilnic din ultimele 60 de zile,
-            scalată independent pe fiecare rând. Banda „compoziție” acoperă aceeași fereastră
-            de {OUTCOME_DAYS} de zile, nu ultimele 7; treci cu mouse-ul peste ea pentru
-            procentele exacte, iar banda gri de la capăt este partea încă nesoluționată, cam un
-            sfert din total. Diferențele dintre cartiere țin
+            și nu pot fi filtrate spațial. Coloanele din dreapta acoperă ultimele {OUTCOME_DAYS} de
+            zile, nu ultimele 7, iar linia arată volumul zilnic din aceeași fereastră, scalată
+            independent pe fiecare rând; treci cu mouse-ul peste ea — sau apasă pe ea —
+            pentru numărul exact pe fiecare rezultat, iar banda gri de la capăt este partea încă nesoluționată, cam o
+            șesime din total. Diferențele dintre cartiere țin
             în bună măsură de ce se reclamă acolo, nu de cum este tratat cartierul: unde se
             depun multe sesizări de transport sau de apă-canal, ponderea „transferat” crește
             mecanic, pentru că acele categorii pleacă integral la operator.
