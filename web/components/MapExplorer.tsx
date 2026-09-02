@@ -91,6 +91,21 @@ function shiftDays(iso: string, delta: number): string {
 /** Never notifies: the client/server answer flips once, at hydration. */
 const subscribeNever = (): (() => void) => () => {};
 
+/**
+ * Turn whatever someone typed or pasted into a ticket number.
+ *
+ * People arrive with the id in every shape the platform shows it in: pasted as
+ * `CAS-0213702`, read off a letter as `213702`, or with the leading zero kept.
+ * Upstream numbers are seven digits, zero-padded, so digits are extracted and
+ * re-padded rather than matched strictly -- refusing `213702` would be refusing
+ * the most likely thing to be typed by hand.
+ */
+export function normalizeTicket(raw: string): string | null {
+  const digits = raw.trim().toUpperCase().replace(/^CAS[-\s]?/, '').replace(/\D/g, '');
+  if (!digits || digits.length > 10) return null;
+  return `CAS-${digits.padStart(7, '0')}`;
+}
+
 /** Presets are inclusive of today, so "7 zile" spans today and the six before it. */
 function resolveRange(key: RangeKey, customFrom: string, customTo: string):
 { from: string; to: string } {
@@ -149,6 +164,14 @@ export default function MapExplorer() {
     : { from: '', to: '' };
   const [q, setQ] = useState('');
   const [qLive, setQLive] = useState('');
+
+  // Direct lookup by ticket number, kept apart from the filters: it answers
+  // "show me this one" rather than "narrow the set", so it neither reads nor
+  // writes any of the filter state.
+  const [idQuery, setIdQuery] = useState('');
+  const [idBusy, setIdBusy] = useState(false);
+  const [idMiss, setIdMiss] = useState<string | null>(null);
+  const [idOutside, setIdOutside] = useState<string | null>(null);
 
   const [data, setData] = useState<MapResponse | null>(null);
   const [terms, setTerms] = useState<Term[]>([]);
@@ -264,6 +287,78 @@ export default function MapExplorer() {
     };
   }, [ready, refresh]);
 
+  /**
+   * Open one ticket's panel, optionally moving the camera to it.
+   *
+   * Shared by the three things that want exactly this -- a click on a pin, the
+   * ?t= deep link, and the id lookup box -- so they cannot drift apart. Sets
+   * `selectedId` before the fetch lands so the panel appears immediately, and
+   * takes it back down if the id turns out not to exist, which is the lookup
+   * box's failure path rather than the map's.
+   *
+   * Depends only on refs and setters, so the identity is stable and the map's
+   * click handler (registered once) can close over it safely.
+   */
+  const openTicket = useCallback(
+    (tn: string, opts: { fly?: boolean; animate?: boolean } = {}): Promise<Detail | null> => {
+      detailReq.current?.abort();
+      const ac = new AbortController();
+      detailReq.current = ac;
+      setSelectedId(tn);
+      setSelected(null);
+      return fetch(`/api/ticket/${tn}`, { signal: ac.signal })
+        .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
+        .then((d) => {
+          if (ac.signal.aborted) return null;
+          if (!d) {
+            setSelectedId(null);
+            return null;
+          }
+          setSelected(d);
+          if (opts.fly && d.lat != null && d.lon != null) {
+            // Claim the camera before the draw effect's fit-to-results can take it.
+            didFit.current = true;
+            map.current?.flyTo({
+              center: [d.lon, d.lat], zoom: 16, animate: opts.animate ?? false,
+            });
+          }
+          return d;
+        })
+        .catch(() => null);
+    },
+    [],
+  );
+
+  /**
+   * Look up a ticket by number and open it.
+   *
+   * A found ticket is shown in the panel regardless of the active filters --
+   * someone pasting an id wants that ticket, not a reason why it does not match
+   * their current date range. The pin, though, is drawn from the filtered query,
+   * so when the ticket falls outside the range the panel is all there is; that
+   * case is called out rather than left looking broken.
+   */
+  const lookupById = useCallback(async (raw: string): Promise<void> => {
+    const tn = normalizeTicket(raw);
+    setIdOutside(null);
+    if (!tn) {
+      setIdMiss(raw.trim() ? 'Număr invalid.' : null);
+      return;
+    }
+    setIdMiss(null);
+    setIdBusy(true);
+    const found = await openTicket(tn, { fly: true, animate: true });
+    setIdBusy(false);
+    if (!found) {
+      setIdMiss(`${tn} nu există în arhivă.`);
+      return;
+    }
+    const day = found.created_at.slice(0, 10);
+    if ((from && day < from) || (to && day > to)) {
+      setIdOutside(day);
+    }
+  }, [openTicket, from, to]);
+
   // Draw whatever the server returned.
   useEffect(() => {
     const m = map.current;
@@ -351,21 +446,14 @@ export default function MapExplorer() {
         const coords = (f.geometry as { coordinates: [number, number] }).coordinates;
         m.easeTo({ center: coords, zoom: m.getZoom() + 2 });
       } else {
-        const tn = f.properties?.ticket as string;
-        detailReq.current?.abort();
-        const ac = new AbortController();
-        detailReq.current = ac;
-        setSelectedId(tn);
-        setSelected(null);
-        void fetch(`/api/ticket/${tn}`, { signal: ac.signal })
-          .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
-          .then((d) => { if (!ac.signal.aborted) setSelected(d); })
-          .catch(() => { /* superseded by a newer click, or offline */ });
+        // No fly: the pin is already under the cursor, and moving the camera
+        // out from under a click is disorienting.
+        void openTicket(f.properties?.ticket as string);
       }
     });
     m.on('mouseenter', 'tickets-circles', () => { m.getCanvas().style.cursor = 'pointer'; });
     m.on('mouseleave', 'tickets-circles', () => { m.getCanvas().style.cursor = ''; });
-  }, [data, ready, arrivedFiltered]);
+  }, [data, ready, arrivedFiltered, openTicket]);
 
   // Arriving from the watchlist as /harta?t=CAS-…: open that ticket and centre on
   // it. The panel is driven by the detail fetch rather than by the map layer, so
@@ -377,24 +465,8 @@ export default function MapExplorer() {
     const tn = initial.ticket;
     if (!tn || !ready || deepLinked.current) return;
     deepLinked.current = true;
-    detailReq.current?.abort();
-    const ac = new AbortController();
-    detailReq.current = ac;
-    setSelectedId(tn);
-    setSelected(null);
-    void fetch(`/api/ticket/${tn}`, { signal: ac.signal })
-      .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
-      .then((d) => {
-        if (ac.signal.aborted || !d) return;
-        setSelected(d);
-        if (d.lat != null && d.lon != null) {
-          // Claim the camera before the draw effect's fit-to-results can take it.
-          didFit.current = true;
-          map.current?.flyTo({ center: [d.lon, d.lat], zoom: 16, animate: false });
-        }
-      })
-      .catch(() => { /* offline, or a ticket number that no longer resolves */ });
-  }, [ready, initial.ticket]);
+    void openTicket(tn, { fly: true });
+  }, [ready, initial.ticket, openTicket]);
 
   const closeDetail = useCallback((): void => {
     detailReq.current?.abort();
@@ -471,6 +543,38 @@ export default function MapExplorer() {
             </button>
           </div>
         )}
+
+        <form
+          onSubmit={(e) => { e.preventDefault(); void lookupById(idQuery); }}
+          className="block"
+        >
+          <label className="block">
+            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              Caută după număr
+            </span>
+            <div className="mt-1 flex gap-1.5">
+              <input
+                value={idQuery}
+                onChange={(e) => { setIdQuery(e.target.value); setIdMiss(null); setIdOutside(null); }}
+                placeholder="ex. CAS-0213702"
+                inputMode="numeric"
+                aria-invalid={idMiss ? true : undefined}
+                aria-describedby={idMiss || idOutside ? 'id-lookup-msg' : undefined}
+                className="w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 font-mono text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
+              />
+              <button type="submit" disabled={idBusy || !idQuery.trim()}
+                className="shrink-0 rounded border border-neutral-300 px-2.5 text-sm transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-900 dark:disabled:text-neutral-600">
+                {idBusy ? '…' : 'Caută'}
+              </button>
+            </div>
+          </label>
+          {(idMiss || idOutside) && (
+            <p id="id-lookup-msg" role="status"
+              className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+              {idMiss ?? `Găsită, dar din ${new Date(idOutside!).toLocaleDateString('ro-RO')} — în afara perioadei filtrate, așa că nu apare ca punct pe hartă.`}
+            </p>
+          )}
+        </form>
 
         <label className="block">
           <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Caută în text</span>
