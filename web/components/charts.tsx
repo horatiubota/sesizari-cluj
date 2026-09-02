@@ -163,33 +163,3 @@ export function StepCurve({
     </svg>
   );
 }
-
-/**
- * Outcome composition for one row of a ranked table, as a 100% stacked strip.
- *
- * Sized like the volume Bar above it so the two read as one column of the same
- * table rather than as a chart dropped into a cell. Plain elements rather than
- * SVG: at this size the whole thing is a handful of flat rectangles, and a flex
- * row snaps to device pixels where a stretched viewBox would blur the seams.
- */
-export function OutcomeBar({ values, bands, title }: {
-  values: Record<string, number>;
-  bands: Band[];
-  title?: string;
-}) {
-  const total = bands.reduce((s, b) => s + (values[b.key] ?? 0), 0);
-  if (!total) return null;
-  return (
-    <span title={title}
-      className="flex h-1.5 w-full overflow-hidden rounded-sm bg-neutral-200 dark:bg-neutral-800">
-      {bands.map((b) => {
-        const pct = ((values[b.key] ?? 0) / total) * 100;
-        // Skipped rather than drawn at hairline width: a sliver too thin to read
-        // still eats a pixel of the band beside it and shifts every later seam.
-        return pct > 0.4
-          ? <span key={b.key} style={{ width: `${pct}%`, backgroundColor: b.color }} />
-          : null;
-      })}
-    </span>
-  );
-}

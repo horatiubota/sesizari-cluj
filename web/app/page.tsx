@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import DailyCategoryChart, { type Day } from '@/components/DailyCategoryChart';
-import { Bar, Delta, OutcomeBar, Sparkline, StackedBars, StepCurve } from '@/components/charts';
+import { Bar, Delta, Sparkline, StackedBars, StepCurve } from '@/components/charts';
+import OutcomeStrip from '@/components/OutcomeStrip';
 import { CATEGORIES, CATEGORY_BY_ID, OUTCOME_LABEL } from '@/lib/categories';
 import {
-  getByCategory, getByNeighborhood, getDaily, getDailyByCategory,
+  getByCategory, getByNeighborhood, getDaily, getDailyBreakdown,
   getLatest, getMonthlyOutcome, getOutcomeByCategory, getOutcomeByNeighborhood,
   getOverview, getResolutionCurve, getRollingTotals, getWeeklySummary,
   type OutcomeShare, type WindowCounts,
@@ -28,7 +29,7 @@ const CLOSED_COLOR = '#3f9142';
  * 69% are still open, at 60 days about 23%. The remainder stays visible as the
  * grey band of the composition strip rather than being divided out.
  */
-const OUTCOME_DAYS = 60;
+const OUTCOME_DAYS = 90;
 
 /**
  * Rows to lift out of the resolution curve into a table. Only those the window
@@ -51,28 +52,11 @@ const DATE_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'sh
 const fmtLong = (iso: string) => DATE_LONG.format(new Date(`${iso}T12:00:00`));
 const fmtShort = (iso: string) => DATE_SHORT.format(new Date(`${iso}T12:00:00`));
 
-/**
- * Zero is nothing to report, not 0.0% -- an outcome a category never produces.
- * A share that is real but rounds to 0.0 gets a threshold instead, so the two
- * cases stay distinguishable: several categories transfer a handful of reports
- * out of tens of thousands, and printing that as 0.0% next to a true — reads as
- * a rounding bug rather than as the difference it is.
- */
-const pctOf = (n: number, total: number): string => {
-  if (n === 0 || total === 0) return '—';
-  const pct = (n / total) * 100;
-  return pct < 0.05 ? '<0.1%' : `${pct.toFixed(1)}%`;
-};
-
 /** The five OUTCOME_BANDS keys, so the strip and the legend above it agree. */
 const bandsOf = (o: OutcomeShare): Record<string, number> => ({
   favorabil: o.favorabil, partial: o.partial, transferat: o.transferat,
   respins: o.respins, deschise: o.deschise,
 });
-
-const outcomeTitle = (o: OutcomeShare): string =>
-  `${nf.format(o.total)} de sesizări în ultimele ${OUTCOME_DAYS} de zile — `
-  + OUTCOME_BANDS.map((b) => `${b.label}: ${pctOf(bandsOf(o)[b.key] ?? 0, o.total)}`).join(' · ');
 
 function Section({ title, note, children }: {
   title: string; note?: React.ReactNode; children: React.ReactNode;
@@ -117,10 +101,15 @@ function CountCard({ label, value, sub, window: w }: {
  * always describe the identical selection.
  *
  * The header is two tiers because the columns answer questions over different
- * spans: volume is the rolling 7 days, outcome composition is the whole corpus.
- * Putting them in one flat header would invite reading the favourable share as
- * "of the last 7 days", which it is not and cannot be -- barely half of a week's
+ * spans: volume is the rolling 7 days, outcome composition the trailing 60.
+ * Putting them in one flat header would invite reading the composition as "of
+ * the last 7 days", which it is not and cannot be -- barely half of a week's
  * reports have been answered yet.
+ *
+ * The composition is a strip and a hover breakdown rather than a strip plus
+ * columns of percentages: two of the five bands had been promoted into numbers,
+ * which read as the summary while the other three -- including the grey unclosed
+ * remainder that decides how to read the rest -- stayed in the graphic.
  */
 function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
   rows: { key: string; label: string; cur: number; prev: number; ly: number }[];
@@ -135,16 +124,15 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
   const divider = 'border-l border-neutral-200 dark:border-neutral-800';
   return (
     <div className="overflow-x-auto">
-      <table className={`w-full ${outcomeFor ? 'min-w-[52rem]' : 'min-w-[38rem]'} text-sm`}>
+      <table className={`w-full ${outcomeFor ? 'min-w-[50rem]' : 'min-w-[38rem]'} text-sm`}>
         <thead className="text-left text-xs text-neutral-500">
           {outcomeFor && (
             <tr>
               <th />
               <th colSpan={3} className={`${group} pr-3 text-center`}>ultimele 7 zile</th>
-              <th colSpan={3} className={`${group} ${divider} pl-3 text-center`}>
-                rezultate, ultimele {OUTCOME_DAYS} de zile
+              <th colSpan={trendFor ? 3 : 2} className={`${group} ${divider} pl-3 text-center`}>
+                ultimele {OUTCOME_DAYS} de zile
               </th>
-              {trendFor && <th />}
             </tr>
           )}
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
@@ -154,12 +142,11 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
             <th className="py-1.5 pr-3 text-right font-medium">vs anul trecut</th>
             {outcomeFor && (
               <>
-                <th className={`${divider} py-1.5 pr-3 pl-3 text-right font-medium`}>favorabil</th>
-                <th className="py-1.5 pr-3 text-right font-medium">transferat</th>
-                <th className="w-32 py-1.5 font-medium">compoziție</th>
+                <th className={`${divider} py-1.5 pr-3 pl-3 text-right font-medium`}>număr</th>
+                <th className="w-44 py-1.5 font-medium">cum s-au închis</th>
               </>
             )}
-            {trendFor && <th className="py-1.5 pl-3 font-medium">60 de zile</th>}
+            {trendFor && <th className="py-1.5 pl-3 font-medium">nr. de sesizări</th>}
           </tr>
         </thead>
         <tbody>
@@ -190,14 +177,14 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
                 </td>
                 {outcomeFor && (
                   <>
-                    <td className={`${divider} py-1.5 pr-3 pl-3 text-right font-mono text-xs tabular-nums`}>
-                      {o ? pctOf(o.favorabil, o.total) : '—'}
-                    </td>
-                    <td className="py-1.5 pr-3 text-right font-mono text-xs tabular-nums text-neutral-500">
-                      {o ? pctOf(o.transferat, o.total) : '—'}
+                    <td className={`${divider} py-1.5 pr-3 pl-3 text-right font-mono tabular-nums`}>
+                      {o ? nf.format(o.total) : '—'}
                     </td>
                     <td className="py-1.5 align-middle">
-                      {o && <OutcomeBar values={bandsOf(o)} bands={OUTCOME_BANDS} title={outcomeTitle(o)} />}
+                      {o && (
+                        <OutcomeStrip values={bandsOf(o)} bands={OUTCOME_BANDS}
+                          label={r.label} windowDays={OUTCOME_DAYS} />
+                      )}
                     </td>
                   </>
                 )}
@@ -216,14 +203,15 @@ function RankedTable({ rows, colorFor, hrefFor, trendFor, outcomeFor }: {
 }
 
 export default async function Dashboard() {
-  const [overview, totals, byCat, byNb, daily, dailyCat, latest, monthly, weekly, resolution,
+  const [overview, totals, byCat, byNb, daily, breakdown, latest, monthly, weekly, resolution,
          outCat, outNb] =
     await Promise.all([
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
-      getDaily(DAILY_DAYS), getDailyByCategory(DAILY_DAYS), getLatest(6),
+      getDaily(DAILY_DAYS), getDailyBreakdown(DAILY_DAYS), getLatest(6),
       getMonthlyOutcome(), getWeeklySummary(), getResolutionCurve(),
       getOutcomeByCategory(OUTCOME_DAYS), getOutcomeByNeighborhood(OUTCOME_DAYS),
     ]);
+  const { byCategory: dailyCat, byNeighborhood: dailyNb } = breakdown;
 
   const outcomeByCat = new Map(outCat.map((o) => [o.key, o]));
   const outcomeByNb = new Map(outNb.map((o) => [o.key, o]));
@@ -243,7 +231,20 @@ export default async function Dashboard() {
     const series = trend.get(String(r.category_id));
     if (series) series[i] = r.n;
   }
-  const sparkFrom = Math.max(0, days.length - 60);
+  // Same pivot for neighbourhoods. Seeded from the ranked rows rather than from a
+  // fixed list -- unlike the 16 categories, the set of neighbourhoods is whatever
+  // the geometry produced, so the table's own keys are the authority.
+  const trendNb = new Map<string, number[]>(
+    byNb.map((r) => [r.key, days.map(() => 0)]),
+  );
+  for (const r of dailyNb) {
+    const i = dayIndex.get(r.day);
+    if (i === undefined) continue;
+    const series = trendNb.get(r.neighborhood);
+    if (series) series[i] = r.n;
+  }
+
+  const sparkFrom = Math.max(0, days.length - OUTCOME_DAYS);
 
   const dailyMean = Math.round(daily.reduce((s, d) => s + d.total, 0) / (daily.length || 1));
   const busiest = daily.reduce((a, b) => (b.total > a.total ? b : a), daily[0]!);
@@ -361,23 +362,20 @@ export default async function Dashboard() {
         title="Pe categorii"
         note={
           <>
-            Volumul este pe ultimele 7 zile; apasă pe o categorie ca să o deschizi pe hartă,
-            filtrată la fel. Harta poate arăta un număr puțin mai mic: acolo intră doar
-            sesizările cu coordonate utile. Linia arată volumul zilnic din ultimele 60 de
-            zile, scalată independent pe fiecare rând. Coloanele de rezultate acoperă
-            ultimele {OUTCOME_DAYS} de zile — aceeași fereastră ca linia — nu ultimele 7,
-            pentru că o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns.
-            Culorile din „compoziție” sunt cele din legenda de mai jos, iar banda gri de la
-            capăt este partea încă nesoluționată: la {OUTCOME_DAYS} de zile înseamnă cam un
-            sfert din total, dar între 11% și 38% în funcție de categorie. Merită citită
-            înainte de a compara două rânduri — o categorie poate părea mai puțin favorabilă
-            doar pentru că are mai multe sesizări încă în lucru.{' '}
+            Apasă pe o categorie ca să o deschizi pe hartă; acolo intră doar sesizările cu
+            coordonate utile, deci numărul e puțin mai mic. Linia e scalată
+            independent pe fiecare rând, deci arată forma, nu mărimea. Rezultatele acoperă
+            {' '}{OUTCOME_DAYS} de zile, nu 7, pentru că o sesizare depusă săptămâna asta
+            rareori a primit deja răspuns; treci cu mouse-ul peste bandă — sau apasă pe ea —
+            pentru cifre. Banda gri este partea încă în lucru și diferă mult de la o categorie
+            la alta, așa că una poate părea mai puțin favorabilă doar pentru că are mai multe
+            sesizări nesoluționate.{' '}
             <strong className="font-medium text-neutral-700 dark:text-neutral-300">
-              Transport public (CTP) și Rețele de apă/canalizare (CAS) apar cu 0% favorabil
-              pentru că sunt transferate integral operatorului
+              Transport public (CTP) și Rețele de apă/canalizare (CAS) apar aproape integral
+              ca „transferat”
             </strong>{' '}
-            — primăria le trimite mai departe și nu mai consemnează un rezultat, deci despre
-            ele tabelul spune cine răspunde, nu dacă s-a rezolvat ceva.
+            — primăria le trimite mai departe, deci pentru ele tabelul spune cine răspunde,
+            nu dacă s-a rezolvat ceva.
           </>
         }
       >
@@ -397,19 +395,14 @@ export default async function Dashboard() {
         title="Pe cartiere"
         note={
           <>
-            Volumul este pe ultimele 7 zile; apasă pe un cartier pentru a-l deschide pe hartă.
-            Cartierul este atribuit geometric, din coordonatele sesizării, folosind limitele de
-            cartier din OpenStreetMap; sesizările fără coordonate utile apar ca „nelocalizat”
-            și nu pot fi filtrate spațial. Coloanele de rezultate acoperă ultimele
-            {OUTCOME_DAYS} de zile, nu ultimele 7; banda gri de la capătul compoziției este
-            partea încă nesoluționată, cam un sfert din total. Diferențele dintre cartiere țin
-            în bună măsură de ce se reclamă acolo, nu de cum este tratat cartierul: unde se
-            depun multe sesizări de transport sau de apă-canal, ponderea „transferat” crește
-            mecanic, pentru că acele categorii pleacă integral la operator.
+            Apasă pe un cartier pentru a-l deschide pe hartă. Cartierul e atribuit geometric,
+            din coordonate, după limitele din OpenStreetMap; sesizările fără coordonate utile
+            apar ca „nelocalizat” și nu pot fi filtrate spațial.
           </>
         }
       >
         <RankedTable rows={byNb} colorFor={() => '#6b7280'} hrefFor={nbHref}
+          trendFor={(k) => (trendNb.get(k) ?? []).slice(sparkFrom)}
           outcomeFor={(k) => outcomeByNb.get(k)} />
       </Section>
 
@@ -465,7 +458,7 @@ export default async function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       {resolution && (
         <Section
-          title="Cât de repede se „soluționează”"
+          title="Cât de repede se închid"
           note={
             <>
               Se poate măsura doar pentru cele {nf.format(resolution.cohort)} de sesizări
@@ -578,44 +571,39 @@ export default async function Dashboard() {
         <ul className="max-w-3xl space-y-2 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">
-              Timpul până la soluționare nu poate fi calculat retroactiv.
+              Timpul până la închidere nu poate fi calculat retroactiv.
             </strong>{' '}
-            Platforma publică doar starea curentă a unei sesizări, nu și data la care a fost
-            închisă. {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
-            înregistrăm tranzițiile pe măsură ce le observăm, iar din ele iese secțiunea
-            „Cât de repede se «soluționează»” — dar ea nu poate acoperi cele
-            {' '}{nf.format(overview.total - overview.open)} de sesizări deja închise la prima
-            preluare, pentru care data închiderii nu există nicăieri public.
+            Platforma publică doar starea curentă, nu și data închiderii.{' '}
+            {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
+            înregistrăm tranzițiile pe măsură ce le observăm; cele{' '}
+            {nf.format(overview.total - overview.open)} de sesizări deja închise atunci rămân
+            în afara curbei, pentru că data lor de închidere nu există nicăieri public.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">
               Sub o zi nu putem distinge.
             </strong>{' '}
-            Preluarea rulează o dată pe zi, deci o sesizare deschisă și închisă între două
-            rulări este văzută direct închisă, fără tranziție observată. Pentru acestea folosim
-            momentul primei observări ca limită superioară: știm sigur că s-au închis mai
-            devreme de atât, deci curba le numără puțin mai încet decât au fost în realitate,
-            niciodată mai repede.
+            Preluarea rulează zilnic, deci o sesizare deschisă și închisă între două rulări
+            apare direct închisă. Pentru ele folosim prima observare ca limită superioară:
+            curba le numără mai încet decât au fost în realitate, niciodată mai repede.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">Zilele nu sunt calendaristice UTC.</strong>{' '}
-            Marcajele de timp de pe platformă sunt ora locală fără fus, deci toate agregările
-            folosesc ziua calendaristică Europe/Bucharest.
+            Marcajele platformei sunt ora locală fără fus, deci toate agregările folosesc ziua
+            Europe/Bucharest.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">Rezultatul aparține sesizării, nu lunii în care a fost dat.</strong>{' '}
-            Graficul de compoziție grupează sesizările după luna depunerii, nu după luna
-            soluționării, pentru că a doua nu este publicată.
+            Compoziția grupează după luna depunerii, nu a soluționării: a doua nu e publicată.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">O parte din sesizări nu au coordonate utile.</strong>{' '}
-            Formularul oficial pornește cu un pin implicit în Piața Unirii, iar sesizările
-            lăsate acolo sunt excluse din analizele spațiale de pe hartă. Aici sunt numărate
-            normal, dar apar ca „nelocalizat” la defalcarea pe cartiere.
+            Formularul pornește cu un pin implicit în Piața Unirii; sesizările lăsate acolo
+            sunt excluse din analizele spațiale, dar numărate normal — apar ca „nelocalizat”.
           </li>
           <li>
-            Textele sesizărilor sunt trecute printr-un filtru care elimină adrese de e-mail,
-            numere de telefon, CNP-uri, IBAN-uri și semnături. Restul textului este cel public.
+            Textele trec printr-un filtru care elimină adrese de e-mail, numere de telefon,
+            CNP-uri, IBAN-uri și semnături. Restul este textul public.
           </li>
         </ul>
       </Section>
