@@ -142,6 +142,11 @@ export default function MapExplorer() {
 
   const watch = useWatchlist();
 
+  // Whether the open panel was put there by the id box. Only that case is undone
+  // when the text search takes over -- closing a panel the user opened by
+  // clicking a pin would be unrelated collateral.
+  const fromIdSearch = useRef(false);
+
   const mapNode = useRef<HTMLDivElement>(null);
   const map = useRef<MLMap | null>(null);
   const [ready, setReady] = useState(false);
@@ -304,6 +309,9 @@ export default function MapExplorer() {
       detailReq.current?.abort();
       const ac = new AbortController();
       detailReq.current = ac;
+      // Any new selection is a pin click or a deep link until the id box says
+      // otherwise, so the provenance resets here rather than lingering.
+      fromIdSearch.current = false;
       setSelectedId(tn);
       setSelected(null);
       return fetch(`/api/ticket/${tn}`, { signal: ac.signal })
@@ -328,36 +336,6 @@ export default function MapExplorer() {
     },
     [],
   );
-
-  /**
-   * Look up a ticket by number and open it.
-   *
-   * A found ticket is shown in the panel regardless of the active filters --
-   * someone pasting an id wants that ticket, not a reason why it does not match
-   * their current date range. The pin, though, is drawn from the filtered query,
-   * so when the ticket falls outside the range the panel is all there is; that
-   * case is called out rather than left looking broken.
-   */
-  const lookupById = useCallback(async (raw: string): Promise<void> => {
-    const tn = normalizeTicket(raw);
-    setIdOutside(null);
-    if (!tn) {
-      setIdMiss(raw.trim() ? 'Număr invalid.' : null);
-      return;
-    }
-    setIdMiss(null);
-    setIdBusy(true);
-    const found = await openTicket(tn, { fly: true, animate: true });
-    setIdBusy(false);
-    if (!found) {
-      setIdMiss(`${tn} nu există în arhivă.`);
-      return;
-    }
-    const day = found.created_at.slice(0, 10);
-    if ((from && day < from) || (to && day > to)) {
-      setIdOutside(day);
-    }
-  }, [openTicket, from, to]);
 
   // Draw whatever the server returned.
   useEffect(() => {
@@ -470,9 +448,64 @@ export default function MapExplorer() {
 
   const closeDetail = useCallback((): void => {
     detailReq.current?.abort();
+    fromIdSearch.current = false;
     setSelectedId(null);
     setSelected(null);
   }, []);
+
+  /**
+   * Hand control to the free-text search.
+   *
+   * The two searches are alternatives, not filters that stack, so starting one
+   * retires the other. Only a panel opened *by the id box* is closed: a ticket
+   * the user opened by clicking a pin has nothing to do with what they now type
+   * into the text box.
+   */
+  const clearIdSearch = useCallback((): void => {
+    setIdQuery('');
+    setIdMiss(null);
+    setIdOutside(null);
+    if (fromIdSearch.current) closeDetail();
+  }, [closeDetail]);
+
+  /**
+   * Look up a ticket by number and open it.
+   *
+   * A found ticket is shown in the panel regardless of the active filters --
+   * someone pasting an id wants that ticket, not a reason why it does not match
+   * their current date range. The pin, though, is drawn from the filtered query,
+   * so when the ticket falls outside the range the panel is all there is; that
+   * case is called out rather than left looking broken.
+   */
+  const lookupById = useCallback(async (raw: string): Promise<void> => {
+    const tn = normalizeTicket(raw);
+    setIdOutside(null);
+    if (!tn) {
+      setIdMiss(raw.trim() ? 'Număr invalid.' : null);
+      return;
+    }
+    setIdMiss(null);
+    // Retire the text query first. It is a filter on the map query, so leaving
+    // it set excludes the very ticket being looked up: the panel would open over
+    // a map with no matching pin to highlight. Both halves are cleared because
+    // `q` is the debounced copy that the query actually reads.
+    setQLive('');
+    setQ('');
+    setIdBusy(true);
+    const found = await openTicket(tn, { fly: true, animate: true });
+    setIdBusy(false);
+    if (!found) {
+      setIdMiss(`${tn} nu există în arhivă.`);
+      return;
+    }
+    fromIdSearch.current = true;
+    const day = found.created_at.slice(0, 10);
+    if ((from && day < from) || (to && day > to)) {
+      setIdOutside(day);
+    }
+  }, [openTicket, from, to]);
+
+
 
   // Escape closes the panel, the convention for anything overlaying content.
   useEffect(() => {
@@ -580,7 +613,7 @@ export default function MapExplorer() {
           <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Caută în text</span>
           <input
             value={qLive}
-            onChange={(e) => setQLive(e.target.value)}
+            onChange={(e) => { setQLive(e.target.value); clearIdSearch(); }}
             placeholder="ex. groapă, iluminat, ambrozie"
             className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
           />
