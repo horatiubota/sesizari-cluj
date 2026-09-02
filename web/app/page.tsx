@@ -271,7 +271,7 @@ export default async function Dashboard() {
           {nf.format(overview.total)} sesizări publice trimise Primăriei Cluj-Napoca prin
           platforma My Cluj, din {fmtLong(overview.first_day)} până
           în {fmtLong(overview.last_day)}. Preluare zilnică de pe platforma oficială;
-          ultima sesizare din oglindă este de la {overview.last_seen}.
+          ultima sesizare preluată este de la {overview.last_seen}.
         </p>
       </header>
 
