@@ -96,10 +96,11 @@ function classify(r: Row): Bucket {
 /**
  * How to phrase a new report at the same spot.
  *
- * Reuses the editorial distinction from sql/010_recurrence_meaning.sql rather
- * than inventing a second one: for infrastructure a repeat report is evidence
- * about the repair, but for behaviour it is simply a new event and saying
- * otherwise would be the misleading claim /recurente is careful not to make.
+ * Uses the editorial distinction recorded in sql/010_recurrence_meaning.sql: for
+ * infrastructure a repeat report is evidence about the repair, but for behaviour
+ * it is simply a new event -- the council removing one illegally parked car says
+ * nothing about a different car years later. Claiming otherwise would turn the
+ * largest-looking numbers into the weakest evidence.
  */
 function followupPhrase(meaning: string, n: number): string {
   const count = n === 1 ? 'O sesizare nouă' : `${n} sesizări noi`;

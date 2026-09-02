@@ -23,10 +23,10 @@ const TICKET_RE = /^CAS-\d{4,10}$/;
 /**
  * Half-width of the "same place" box, in degrees.
  *
- * public.recurrence_clusters grids at 4 decimal places (~11 m). A centred box of
- * the same size is used here instead of the grid because a grid has edges: two
- * reports two metres apart can round into different cells and would never see
- * each other. 0.00005 lat is ~5.5 m; at Cluj's latitude 0.00007 lon is ~5.3 m.
+ * "Same place" is a box of roughly 11 m a side, centred on the watched ticket.
+ * A centred box rather than a rounded grid because a grid has edges: two reports
+ * two metres apart can round into different cells and would never see each
+ * other. 0.00005 lat is ~5.5 m; at Cluj's latitude 0.00007 lon is ~5.3 m.
  * Expressed as a range on the raw columns so idx_tickets_latlon still applies --
  * `round(lat,4) = round(lat,4)` would not use it.
  */

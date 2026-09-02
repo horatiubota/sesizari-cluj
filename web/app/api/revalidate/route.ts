@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
 /**
  * On-demand ISR revalidation, called by the sync workflow after each load.
  *
- * Both dashboard pages are statically rendered with a time-based `revalidate`,
- * and Next only regenerates those on request: on a low-traffic site the first
+ * The dashboard is statically rendered with a time-based `revalidate`, and Next
+ * only regenerates it on request: on a low-traffic site the first
  * visitor after the window expires is served the stale copy and merely triggers
  * the rebuild for whoever comes next. That is how the dashboard came to advertise
  * a three-day-old date range while the database was current. Pinging this route
@@ -20,7 +20,7 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const PATHS = ['/', '/recurente'];
+const PATHS = ['/'];
 
 /**
  * Compares digests rather than the raw strings: timingSafeEqual throws on a
