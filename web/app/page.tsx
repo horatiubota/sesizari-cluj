@@ -362,23 +362,20 @@ export default async function Dashboard() {
         title="Pe categorii"
         note={
           <>
-            Volumul este pe ultimele 7 zile; apasă pe o categorie ca să o deschizi pe hartă,
-            filtrată la fel. Harta poate arăta un număr puțin mai mic: acolo intră doar
-            sesizările cu coordonate utile. Linia arată volumul zilnic din aceeași fereastră,
-            scalată independent pe fiecare rând. Coloanele din dreapta acoperă ultimele
-            {' '}{OUTCOME_DAYS} de zile — aceeași fereastră ca linia — nu ultimele 7, pentru
-            că o sesizare depusă săptămâna asta de obicei nu a primit încă răspuns. Culorile
-            sunt cele din legenda de mai jos; treci cu mouse-ul peste bandă — sau apasă pe ea —
-            pentru numărul exact pe fiecare rezultat. Banda gri de la capăt este partea încă nesoluționată: la {OUTCOME_DAYS} de
-            zile înseamnă cam o șesime din total, dar între 1% și 28% în funcție de categorie.
-            Merită citită înainte de a compara două rânduri — o categorie poate părea mai puțin
-            favorabilă doar pentru că are mai multe sesizări încă în lucru.{' '}
+            Apasă pe o categorie ca să o deschizi pe hartă; acolo intră doar sesizările cu
+            coordonate utile, deci numărul e puțin mai mic. Linia e scalată
+            independent pe fiecare rând, deci arată forma, nu mărimea. Rezultatele acoperă
+            {' '}{OUTCOME_DAYS} de zile, nu 7, pentru că o sesizare depusă săptămâna asta
+            rareori a primit deja răspuns; treci cu mouse-ul peste bandă — sau apasă pe ea —
+            pentru cifre. Banda gri este partea încă în lucru și diferă mult de la o categorie
+            la alta, așa că una poate părea mai puțin favorabilă doar pentru că are mai multe
+            sesizări nesoluționate.{' '}
             <strong className="font-medium text-neutral-700 dark:text-neutral-300">
               Transport public (CTP) și Rețele de apă/canalizare (CAS) apar aproape integral
-              în banda „transferat”
+              ca „transferat”
             </strong>{' '}
-            — primăria le trimite mai departe și nu mai consemnează un rezultat, deci despre
-            ele tabelul spune cine răspunde, nu dacă s-a rezolvat ceva.
+            — primăria le trimite mai departe, deci pentru ele tabelul spune cine răspunde,
+            nu dacă s-a rezolvat ceva.
           </>
         }
       >
@@ -398,17 +395,13 @@ export default async function Dashboard() {
         title="Pe cartiere"
         note={
           <>
-            Volumul este pe ultimele 7 zile; apasă pe un cartier pentru a-l deschide pe hartă.
-            Cartierul este atribuit geometric, din coordonatele sesizării, folosind limitele de
-            cartier din OpenStreetMap; sesizările fără coordonate utile apar ca „nelocalizat”
-            și nu pot fi filtrate spațial. Coloanele din dreapta acoperă ultimele {OUTCOME_DAYS} de
-            zile, nu ultimele 7, iar linia arată volumul zilnic din aceeași fereastră, scalată
-            independent pe fiecare rând; treci cu mouse-ul peste ea — sau apasă pe ea —
-            pentru numărul exact pe fiecare rezultat, iar banda gri de la capăt este partea încă nesoluționată, cam o
-            șesime din total. Diferențele dintre cartiere țin
-            în bună măsură de ce se reclamă acolo, nu de cum este tratat cartierul: unde se
-            depun multe sesizări de transport sau de apă-canal, ponderea „transferat” crește
-            mecanic, pentru că acele categorii pleacă integral la operator.
+            Apasă pe un cartier pentru a-l deschide pe hartă. Cartierul e atribuit geometric,
+            din coordonate, după limitele din OpenStreetMap; sesizările fără coordonate utile
+            apar ca „nelocalizat” și nu pot fi filtrate spațial. Coloanele de rezultate acoperă
+            {' '}{OUTCOME_DAYS} de zile, nu 7. Diferențele dintre cartiere țin în bună măsură
+            de ce se reclamă acolo, nu de cum e tratat cartierul: unde se depun multe sesizări
+            de transport sau de apă-canal, ponderea „transferat” crește mecanic, pentru că
+            acele categorii pleacă integral la operator.
           </>
         }
       >
@@ -582,44 +575,39 @@ export default async function Dashboard() {
         <ul className="max-w-3xl space-y-2 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">
-              Timpul până la soluționare nu poate fi calculat retroactiv.
+              Timpul până la închidere nu poate fi calculat retroactiv.
             </strong>{' '}
-            Platforma publică doar starea curentă a unei sesizări, nu și data la care a fost
-            închisă. {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
-            înregistrăm tranzițiile pe măsură ce le observăm, iar din ele iese secțiunea
-            „Cât de repede se închid” — dar ea nu poate acoperi cele
-            {' '}{nf.format(overview.total - overview.open)} de sesizări deja închise la prima
-            preluare, pentru care data închiderii nu există nicăieri public.
+            Platforma publică doar starea curentă, nu și data închiderii.{' '}
+            {resolution ? `Din ${fmtLong(resolution.obs_from)}` : 'De la prima preluare'}{' '}
+            înregistrăm tranzițiile pe măsură ce le observăm; cele{' '}
+            {nf.format(overview.total - overview.open)} de sesizări deja închise atunci rămân
+            în afara curbei, pentru că data lor de închidere nu există nicăieri public.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">
               Sub o zi nu putem distinge.
             </strong>{' '}
-            Preluarea rulează o dată pe zi, deci o sesizare deschisă și închisă între două
-            rulări este văzută direct închisă, fără tranziție observată. Pentru acestea folosim
-            momentul primei observări ca limită superioară: știm sigur că s-au închis mai
-            devreme de atât, deci curba le numără puțin mai încet decât au fost în realitate,
-            niciodată mai repede.
+            Preluarea rulează zilnic, deci o sesizare deschisă și închisă între două rulări
+            apare direct închisă. Pentru ele folosim prima observare ca limită superioară:
+            curba le numără mai încet decât au fost în realitate, niciodată mai repede.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">Zilele nu sunt calendaristice UTC.</strong>{' '}
-            Marcajele de timp de pe platformă sunt ora locală fără fus, deci toate agregările
-            folosesc ziua calendaristică Europe/Bucharest.
+            Marcajele platformei sunt ora locală fără fus, deci toate agregările folosesc ziua
+            Europe/Bucharest.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">Rezultatul aparține sesizării, nu lunii în care a fost dat.</strong>{' '}
-            Graficul de compoziție grupează sesizările după luna depunerii, nu după luna
-            soluționării, pentru că a doua nu este publicată.
+            Compoziția grupează după luna depunerii, nu a soluționării: a doua nu e publicată.
           </li>
           <li>
             <strong className="font-medium text-neutral-800 dark:text-neutral-200">O parte din sesizări nu au coordonate utile.</strong>{' '}
-            Formularul oficial pornește cu un pin implicit în Piața Unirii, iar sesizările
-            lăsate acolo sunt excluse din analizele spațiale de pe hartă. Aici sunt numărate
-            normal, dar apar ca „nelocalizat” la defalcarea pe cartiere.
+            Formularul pornește cu un pin implicit în Piața Unirii; sesizările lăsate acolo
+            sunt excluse din analizele spațiale, dar numărate normal — apar ca „nelocalizat”.
           </li>
           <li>
-            Textele sesizărilor sunt trecute printr-un filtru care elimină adrese de e-mail,
-            numere de telefon, CNP-uri, IBAN-uri și semnături. Restul textului este cel public.
+            Textele trec printr-un filtru care elimină adrese de e-mail, numere de telefon,
+            CNP-uri, IBAN-uri și semnături. Restul este textul public.
           </li>
         </ul>
       </Section>
