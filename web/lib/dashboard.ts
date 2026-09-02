@@ -75,6 +75,7 @@ export interface DailyRow {
   transferat: number; respins: number; deschise: number;
 }
 export interface DailyCategoryRow { day: string; category_id: number; n: number }
+export interface DailyNeighborhoodRow { day: string; neighborhood: string; n: number }
 export interface LatestTicket {
   ticket_number: string; category_id: number; status_label: string;
   created_at: string; neighborhood: string | null; description: string | null;
@@ -219,17 +220,49 @@ export async function getDaily(days = 182): Promise<DailyRow[]> {
   );
 }
 
-export async function getDailyByCategory(days = 182): Promise<DailyCategoryRow[]> {
-  return query<DailyCategoryRow>(
+/**
+ * Both per-day breakdowns the dashboard needs, in one pass.
+ *
+ * They read the same rows over the same window and differ only in what they
+ * group by, so GROUPING SETS answers both from a single scan and a single round
+ * trip. That matters more than the scan: the dashboard fans out its queries with
+ * Promise.all against a pool of four connections, and every extra query is
+ * another waiter that can exhaust `connectionTimeoutMillis` and fail a
+ * prerender. Adding a thirteenth query for neighbourhoods did exactly that,
+ * intermittently.
+ *
+ * Which set a row came from is read off the null: `neighborhood` is coalesced,
+ * so it is never null in its own set, and `category_id` is NOT NULL in the
+ * table. A row therefore carries exactly one of the two dimensions.
+ */
+export async function getDailyBreakdown(days = 182): Promise<{
+  byCategory: DailyCategoryRow[];
+  byNeighborhood: DailyNeighborhoodRow[];
+}> {
+  const rows = await query<{
+    day: string; category_id: number | null; neighborhood: string | null; n: number;
+  }>(
     `select (created_at at time zone 'Europe/Bucharest')::date::text as day,
-            category_id, count(*)::int as n
+            category_id,
+            coalesce(neighborhood, '(nelocalizat)') as neighborhood,
+            count(*)::int as n
      from public.tickets
      where created_at >= (((select max((created_at at time zone 'Europe/Bucharest')::date)
                             from public.tickets) - $1::int)::timestamp
                           at time zone 'Europe/Bucharest')
-     group by 1, 2 order by 1`,
+     group by grouping sets ((1, 2), (1, 3))
+     order by 1`,
     [days],
   );
+
+  return {
+    byCategory: rows
+      .filter((r): r is typeof r & { category_id: number } => r.neighborhood === null)
+      .map(({ day, category_id, n }) => ({ day, category_id, n })),
+    byNeighborhood: rows
+      .filter((r): r is typeof r & { neighborhood: string } => r.category_id === null)
+      .map(({ day, neighborhood, n }) => ({ day, neighborhood, n })),
+  };
 }
 
 export async function getLatest(n = 6): Promise<LatestTicket[]> {
