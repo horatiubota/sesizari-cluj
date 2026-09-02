@@ -5,10 +5,14 @@
 
     Deliberately one flat shape with no tile behind it, no stroke and no
     gradient. A browser tab renders this at 16px, and at that size a pin sitting
-    inside a rounded square shrinks to a speck on a blob -- filling the frame is
+    inside a rounded square shrinks to a speck on a blob; filling the frame is
     what keeps the silhouette readable. The centre is punched out with
     fill-rule="evenodd" rather than filled with a background colour, so it takes
     on whatever the tab strip is and stays correct in both light and dark.
+
+    Keep this comment free of a double hyphen: XML forbids it inside a comment,
+    and an SVG that does not parse is not rendered at all: the tab silently
+    falls back to whatever the browser last cached.
   -->
   <path fill="#4ea852" fill-rule="evenodd"
         d="M16 2.5A11 11 0 0 0 5 13.5c0 7.6 9.7 15.3 10.4 15.9a.9.9 0 0 0 1.2 0C17.3 28.8 27 21.1 27 13.5A11 11 0 0 0 16 2.5Z
