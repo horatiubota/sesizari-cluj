@@ -119,17 +119,22 @@ export default function OutcomeStrip({
         // pointerenter first, which has already opened the card, so toggling here
         // would close it again on the same tap. Tapping elsewhere dismisses it.
         onClick={open}
-        className="flex h-1.5 w-full overflow-hidden rounded-sm bg-neutral-200 outline-offset-4 dark:bg-neutral-800"
+        className="block w-full cursor-default py-1 outline-offset-2"
       >
-        {bands.map((b) => {
-          const p = ((values[b.key] ?? 0) / total) * 100;
-          // Skipped rather than drawn at hairline width: a sliver too thin to
-          // read still eats a pixel of the band beside it and shifts every seam.
-          return p > 0.4 ? (
-            <span key={b.key} onPointerEnter={() => setHot(b.key)}
-              style={{ width: `${p}%`, backgroundColor: b.color }} />
-          ) : null;
-        })}
+        {/* The padding above is part of the target, not the picture: a 10px bar
+            is a small thing to land a pointer on, and the card is now the only
+            way to read the numbers. */}
+        <span className="flex h-2.5 w-full overflow-hidden rounded-sm bg-neutral-200 dark:bg-neutral-800">
+          {bands.map((b) => {
+            const p = ((values[b.key] ?? 0) / total) * 100;
+            // Skipped rather than drawn at hairline width: a sliver too thin to
+            // read still eats a pixel of the band beside it and shifts every seam.
+            return p > 0.4 ? (
+              <span key={b.key} onPointerEnter={() => setHot(b.key)}
+                style={{ width: `${p}%`, backgroundColor: b.color }} />
+            ) : null;
+          })}
+        </span>
       </span>
 
       {at && (
