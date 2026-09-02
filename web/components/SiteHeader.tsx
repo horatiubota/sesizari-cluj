@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const LINKS = [
@@ -31,23 +30,37 @@ export default function SiteHeader() {
           {/*
             Support link.
 
-            Self-hosted rather than the <img src="https://storage.ko-fi.com/…"> Ko-fi
-            hands out. The site issues no third-party requests today -- next/font
-            self-hosts the faces and the analytics beacon comes from this origin -- so an
-            external image would be the first, and would send every visitor's IP and
-            referring URL to a CDN for a decorative button, on every page. Copying the
-            file keeps the request list first-party, which is the same reason layout.tsx
-            picks cookieless analytics.
+            Drawn in markup rather than using Ko-fi's button image, which has
+            "Buy me a coffee" baked into the pixels and cannot be said in
+            Romanian. Doing it here also means no image request at all: the site
+            makes no third-party requests today -- next/font self-hosts the faces
+            and the analytics beacon comes from this origin -- and hotlinking
+            Ko-fi's CDN would have sent every visitor's IP and referring URL out
+            for a decorative button, on every page.
 
-            Rendered at 24px, not the 36px Ko-fi suggests: this sits in a sticky bar
-            whose contents are ~20px tall, and the taller button would grow the header on
-            every page, including the map, where vertical space is the scarce thing.
+            The two colours are lifted from the button this replaces (#e3d6c6
+            ground, #202020 ink) and are set for both themes rather than being
+            swapped: a cream pill reads on white and on near-black alike, and it
+            is the one element here that should not recede.
+
+            The cup is a plain drawing, not Ko-fi's mark -- their logo is theirs,
+            and a generic cup carries the meaning without borrowing it.
+
+            24px tall, not the 36px Ko-fi's snippet asks for: this sits in a
+            sticky bar whose contents are about 20px tall, and the taller button
+            would grow the header on every page, the map included.
           */}
           <a href="https://ko-fi.com/I3S52695KJ" target="_blank" rel="noreferrer"
-            className="shrink-0 rounded transition hover:opacity-75"
-            aria-label="Susține proiectul pe Ko-fi (se deschide într-o filă nouă)">
-            <Image src="/kofi.png" alt="Susține proiectul pe Ko-fi"
-              width={95} height={24} className="h-6 w-auto" unoptimized />
+            className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full bg-[#e3d6c6] px-2.5 text-xs font-medium text-[#202020] transition hover:opacity-80"
+            aria-label="Ia-mi o cafea — susține proiectul pe Ko-fi (se deschide într-o filă nouă)">
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+              <path fill="currentColor" d="M2.5 6.5h8V10a4 4 0 0 1-8 0V6.5Z" />
+              <path fill="none" stroke="currentColor" strokeWidth="1.3"
+                d="M10.6 7.6h1.1a1.8 1.8 0 0 1 0 3.5h-1.1" />
+              <path fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"
+                d="M5 4.5c.7-.8-.7-1.5 0-2.3M8 4.5c.7-.8-.7-1.5 0-2.3" />
+            </svg>
+            Ia-mi o cafea
           </a>
         </div>
         <nav aria-label="Navigare principală" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
