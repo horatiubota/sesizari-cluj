@@ -11,6 +11,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   CATEGORIES, CATEGORY_BY_ID, CLUJ_BOUNDS, CLUJ_CENTER, OUTCOMES, OUTCOME_LABEL, readableOn,
 } from '@/lib/categories';
+import { useWatchlist } from '@/lib/watchlist';
 
 /**
  * Map-first explorer.
@@ -54,7 +55,7 @@ interface Point {
 interface Detail {
   ticket_number: string; description: string | null; resolve_reason: string | null;
   status_label: string; created_at: string; neighborhood: string | null;
-  category: string; category_id: number;
+  category: string; category_id: number; lat: number | null; lon: number | null;
 }
 interface MapResponse {
   mode: 'cells' | 'points'; total: number;
@@ -112,7 +113,8 @@ export default function MapExplorer() {
       /^\d{4}-\d{2}-\d{2}$/.test(v ?? '') ? v! : '';
     const from = iso(params.get('from'));
     const to = iso(params.get('to'));
-    return { cat, from, to, cartier: params.get('cartier') ?? '' };
+    const ticket = /^CAS-\d{4,10}$/.test(params.get('t') ?? '') ? params.get('t')! : '';
+    return { cat, from, to, cartier: params.get('cartier') ?? '', ticket };
     // Read once: later filter changes are owned by this component's state, not
     // by the URL, so re-reading would fight the user's own edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,6 +124,8 @@ export default function MapExplorer() {
     initial.cat.length || initial.cartier || initial.from || initial.to,
   );
   const didFit = useRef(false);
+
+  const watch = useWatchlist();
 
   const mapNode = useRef<HTMLDivElement>(null);
   const map = useRef<MLMap | null>(null);
@@ -362,6 +366,35 @@ export default function MapExplorer() {
     m.on('mouseenter', 'tickets-circles', () => { m.getCanvas().style.cursor = 'pointer'; });
     m.on('mouseleave', 'tickets-circles', () => { m.getCanvas().style.cursor = ''; });
   }, [data, ready, arrivedFiltered]);
+
+  // Arriving from the watchlist as /harta?t=CAS-…: open that ticket and centre on
+  // it. The panel is driven by the detail fetch rather than by the map layer, so
+  // it works even when the ticket falls outside the active filters -- which it
+  // usually does, the default range being the last seven days. The pin itself
+  // only draws if the filters happen to include it.
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    const tn = initial.ticket;
+    if (!tn || !ready || deepLinked.current) return;
+    deepLinked.current = true;
+    detailReq.current?.abort();
+    const ac = new AbortController();
+    detailReq.current = ac;
+    setSelectedId(tn);
+    setSelected(null);
+    void fetch(`/api/ticket/${tn}`, { signal: ac.signal })
+      .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
+      .then((d) => {
+        if (ac.signal.aborted || !d) return;
+        setSelected(d);
+        if (d.lat != null && d.lon != null) {
+          // Claim the camera before the draw effect's fit-to-results can take it.
+          didFit.current = true;
+          map.current?.flyTo({ center: [d.lon, d.lat], zoom: 16, animate: false });
+        }
+      })
+      .catch(() => { /* offline, or a ticket number that no longer resolves */ });
+  }, [ready, initial.ticket]);
 
   const closeDetail = useCallback((): void => {
     detailReq.current?.abort();
@@ -622,11 +655,29 @@ export default function MapExplorer() {
               )}
             </div>
 
-            <footer className="border-t border-neutral-200 px-3 py-2 dark:border-neutral-800">
+            <footer className="flex items-center justify-between gap-2 border-t border-neutral-200 px-3 py-2 dark:border-neutral-800">
+              {/* The status at this moment is stored alongside the ticket so
+                  /urmarite can say what it changed *from*. */}
+              <button
+                onClick={() => watch.toggle(selectedId, selected?.status_label)}
+                aria-pressed={watch.has(selectedId)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${
+                  watch.has(selectedId)
+                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
+                    : 'border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900'
+                }`}>
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true"
+                  fill={watch.has(selectedId) ? 'currentColor' : 'none'}
+                  stroke="currentColor" strokeWidth="1.3">
+                  <path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"
+                    strokeLinejoin="round" />
+                </svg>
+                {watch.has(selectedId) ? 'Urmărită' : 'Urmărește'}
+              </button>
               <a href={`https://mycluj.e-primariaclujnapoca.ro/?c=${selectedId}`}
                 target="_blank" rel="noreferrer"
                 className="text-xs underline underline-offset-2">
-                Vezi pe platforma oficială →
+                Platforma oficială →
               </a>
             </footer>
           </aside>
