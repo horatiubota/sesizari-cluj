@@ -397,11 +397,7 @@ export default async function Dashboard() {
           <>
             Apasă pe un cartier pentru a-l deschide pe hartă. Cartierul e atribuit geometric,
             din coordonate, după limitele din OpenStreetMap; sesizările fără coordonate utile
-            apar ca „nelocalizat” și nu pot fi filtrate spațial. Coloanele de rezultate acoperă
-            {' '}{OUTCOME_DAYS} de zile, nu 7. Diferențele dintre cartiere țin în bună măsură
-            de ce se reclamă acolo, nu de cum e tratat cartierul: unde se depun multe sesizări
-            de transport sau de apă-canal, ponderea „transferat” crește mecanic, pentru că
-            acele categorii pleacă integral la operator.
+            apar ca „nelocalizat” și nu pot fi filtrate spațial.
           </>
         }
       >
