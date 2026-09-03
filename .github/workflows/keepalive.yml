@@ -1,9 +1,10 @@
 name: keepalive
 
-# GitHub disables scheduled workflows in public repositories after 60 days with
-# "no repository activity", and does not document what counts as activity. The
-# sync workflow never commits anything, so without this the whole schedule --
-# including sync itself -- would silently stop after two idle months.
+# GitHub disables scheduled workflows after 60 days with "no repository
+# activity", in private repositories as well as public ones, and does not
+# document what counts as activity. The sync workflow never commits anything, so
+# without this the whole schedule -- including sync itself -- would silently stop
+# after two idle months.
 #
 # Runs monthly rather than at the 60-day boundary: scheduled runs are best-effort
 # and can be skipped under load, so firing at the limit would mean one missed run
@@ -20,8 +21,12 @@ concurrency:
   group: keepalive
   cancel-in-progress: false
 
+# `pull-requests: write` because the branch ruleset on main forbids direct
+# pushes: this job now lands its commit the same way a person does, by opening
+# a pull request and merging it.
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   keepalive:
@@ -57,10 +62,21 @@ jobs:
             echo "snapshot refresh: ${{ steps.snap.outcome }}"
           } > snapshot/heartbeat.txt
 
-      - name: Commit and push
+      # main is protected by a ruleset that requires a pull request and grants
+      # nobody a bypass -- a personal repository cannot exempt the Actions app,
+      # since Integration bypass actors have to belong to an owning organisation.
+      # So this pushes a branch, opens a PR and merges it, which is the same path
+      # a person takes and produces the same commit on main. The approval count on
+      # that ruleset is zero, so no review is required and none can be given: a
+      # solo owner cannot approve their own pull request.
+      - name: Commit via a pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          branch="keepalive/$(date -u +%Y-%m-%d)"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
           git add snapshot/
           if git diff --staged --quiet; then
             echo "no change to commit — this should not happen, heartbeat always moves"
@@ -70,7 +86,13 @@ jobs:
 
           Automated. Keeps the repository active so GitHub does not disable the
           scheduled sync workflow after 60 days of inactivity."
-          git push
+          git push -u origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Refresh stats snapshot" \
+            --body "Automated keepalive. Keeps the repository active so GitHub does not disable the scheduled sync workflow after 60 days of inactivity."
+          # --merge, not --squash: the commit above is already the one we want on
+          # main, and --delete-branch keeps the branch list from growing monthly.
+          gh pr merge "$branch" --merge --delete-branch
 
       - name: Summary
         run: |
