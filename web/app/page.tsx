@@ -360,24 +360,7 @@ export default async function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       <Section
         title="Pe categorii"
-        note={
-          <>
-            Apasă pe o categorie ca să o deschizi pe hartă; acolo intră doar sesizările cu
-            coordonate utile, deci numărul e puțin mai mic. Linia e scalată
-            independent pe fiecare rând, deci arată forma, nu mărimea. Rezultatele acoperă
-            {' '}{OUTCOME_DAYS} de zile, nu 7, pentru că o sesizare depusă săptămâna asta
-            rareori a primit deja răspuns; treci cu mouse-ul peste bandă — sau apasă pe ea —
-            pentru cifre. Banda gri este partea încă în lucru și diferă mult de la o categorie
-            la alta, așa că una poate părea mai puțin favorabilă doar pentru că are mai multe
-            sesizări nesoluționate.{' '}
-            <strong className="font-medium text-neutral-700 dark:text-neutral-300">
-              Transport public (CTP) și Rețele de apă/canalizare (CAS) apar aproape integral
-              ca „transferat”
-            </strong>{' '}
-            — primăria le trimite mai departe, deci pentru ele tabelul spune cine răspunde,
-            nu dacă s-a rezolvat ceva.
-          </>
-        }
+        note="Apasă pe o categorie ca să o deschizi pe hartă."
       >
         <RankedTable
           rows={byCat.map((r) => ({
