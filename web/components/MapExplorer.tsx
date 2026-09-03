@@ -63,6 +63,15 @@ interface MapResponse {
 }
 interface Term { word: string; n: number; ratio: number }
 
+/** Where the free-text query looks. Mirrors QScope in lib/filters.ts. */
+type QScopeKey = 'sesizari' | 'raspunsuri' | 'ambele';
+
+const Q_SCOPES: { key: QScopeKey; label: string; hint: string }[] = [
+  { key: 'sesizari',   label: 'în sesizări',  hint: 'Caută în textul scris de cetățean' },
+  { key: 'raspunsuri', label: 'în răspunsuri', hint: 'Caută în răspunsul oficial al primăriei' },
+  { key: 'ambele',     label: 'în ambele',    hint: 'Caută în ambele texte' },
+];
+
 type RangeKey = '7d' | '30d' | '90d' | 'ytd' | 'custom';
 
 const RANGES: { key: RangeKey; label: string }[] = [
@@ -169,6 +178,7 @@ export default function MapExplorer() {
     : { from: '', to: '' };
   const [q, setQ] = useState('');
   const [qLive, setQLive] = useState('');
+  const [qScope, setQScope] = useState<QScopeKey>('sesizari');
 
   // Direct lookup by ticket number, kept apart from the filters: it answers
   // "show me this one" rather than "narrow the set", so it neither reads nor
@@ -199,10 +209,15 @@ export default function MapExplorer() {
     if (outcome) p.set('outcome', outcome);
     if (from) p.set('from', from);
     if (to) p.set('to', to);
-    if (q) p.set('q', q);
+    if (q) {
+      p.set('q', q);
+      // Only meaningful with a query, so it is left out otherwise rather than
+      // making every cached map URL differ by a parameter that changes nothing.
+      if (qScope !== 'sesizari') p.set('qin', qScope);
+    }
     if (cartier) p.set('cartier', cartier);
     return p;
-  }, [cats, outcome, from, to, q, cartier]);
+  }, [cats, outcome, from, to, q, qScope, cartier]);
 
   const inflight = useRef<AbortController | null>(null);
 
@@ -617,6 +632,23 @@ export default function MapExplorer() {
             placeholder="ex. groapă, iluminat, ambrozie"
             className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
           />
+          {/* The scope only does anything once there is a query, so it appears
+              with one rather than sitting there inert. */}
+          {qLive.trim() && (
+            <div className="mt-1.5 flex flex-wrap gap-1" role="group" aria-label="Unde se caută">
+              {Q_SCOPES.map((o) => (
+                <button key={o.key} type="button" onClick={() => setQScope(o.key)}
+                  aria-pressed={qScope === o.key} title={o.hint}
+                  className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+                    qScope === o.key
+                      ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
+                      : 'border-neutral-300 text-neutral-600 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-400'
+                  }`}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          )}
         </label>
 
         <div>

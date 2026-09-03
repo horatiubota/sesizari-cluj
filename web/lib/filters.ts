@@ -7,6 +7,18 @@
  * upstream form's pre-placed marker and would fabricate hotspots.
  */
 
+/**
+ * Which text the free-text query runs against.
+ *
+ * Kept explicit rather than always searching both: the two answer different
+ * questions. "groapă" over reports finds people asking about a pothole; over
+ * responses it finds the council saying one was patched. Widening the default
+ * silently would change what every existing result count means.
+ */
+export type QScope = 'sesizari' | 'raspunsuri' | 'ambele';
+
+const Q_SCOPES: QScope[] = ['sesizari', 'raspunsuri', 'ambele'];
+
 export interface Filters {
   categories: number[];
   status: string | null;      // 'O' | 'C' | null
@@ -15,6 +27,7 @@ export interface Filters {
   to: string | null;
   neighborhood: string | null;
   q: string | null;           // full-text query
+  qScope: QScope;             // and which column it runs against
   bbox: [number, number, number, number] | null; // [minLon, minLat, maxLon, maxLat]
 }
 
@@ -38,6 +51,9 @@ export function parseFilters(sp: URLSearchParams): Filters {
     to: iso(sp.get('to')),
     neighborhood: sp.get('cartier')?.slice(0, 60) || null,
     q: sp.get('q')?.trim().slice(0, 120) || null,
+    // Anything unrecognised falls back to the report text, which is what the
+    // box meant before this parameter existed.
+    qScope: Q_SCOPES.includes(sp.get('qin') as QScope) ? (sp.get('qin') as QScope) : 'sesizari',
     bbox,
   };
 }
@@ -69,11 +85,21 @@ export function buildWhere(f: Filters, opts: { spatial?: boolean } = {}): SqlWhe
   if (f.to)
     add(`t.created_at < (($${params.length + 1}::date + 1)::timestamp at time zone 'Europe/Bucharest')`, f.to);
   if (f.neighborhood) add(`t.neighborhood = $${params.length + 1}`, f.neighborhood);
-  if (f.q)
-    add(
-      `to_tsvector('romanian', coalesce(t.description,'')) @@ plainto_tsquery('romanian', $${params.length + 1})`,
-      f.q,
+  if (f.q) {
+    // One parameter referenced twice, so `add` (which appends a placeholder per
+    // value) does not fit. The expressions must stay byte-identical to the two
+    // indexes in sql/001_schema.sql and sql/016_reply_fts.sql, or neither is
+    // used and the query becomes a 16-52 second sequential scan.
+    params.push(f.q);
+    const n = params.length;
+    const inReport = `to_tsvector('romanian', coalesce(t.description,'')) @@ plainto_tsquery('romanian', $${n})`;
+    const inReply = `to_tsvector('romanian', coalesce(t.resolve_reason,'')) @@ plainto_tsquery('romanian', $${n})`;
+    parts.push(
+      f.qScope === 'raspunsuri' ? inReply
+        : f.qScope === 'ambele' ? `(${inReport} or ${inReply})`
+          : inReport,
     );
+  }
   if (f.bbox) {
     const [minLon, minLat, maxLon, maxLat] = f.bbox;
     add(
