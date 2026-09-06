@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 
@@ -56,6 +57,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           404s and nothing is collected.
         */}
         <Analytics />
+        {/*
+          Real-user Core Web Vitals, from the same edge-only path: the script
+          lives at /_vercel/speed-insights/script.js, so it too is inert outside
+          a deployment. It reports timings, not visitors -- no cookie, no id.
+        */}
+        <SpeedInsights />
       </body>
     </html>
   );
