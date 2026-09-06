@@ -18,7 +18,7 @@ tracked over time.
 | Postgres schema | done — `sql/001_schema.sql` |
 | Historical backfill (2017→now) | done — 210,718 records |
 | Loader into Supabase | done |
-| Web frontend | not started |
+| Web frontend | live — [sesizari-cluj.vercel.app](https://sesizari-cluj.vercel.app) |
 
 ### The corpus
 
@@ -220,7 +220,22 @@ src/store/local.ts    SQLite landing zone + change detection
 sql/001_schema.sql    Postgres schema
 scripts/stats.ts      QA report and size projection
 scripts/snapshot.ts   aggregate snapshot -> snapshot/stats.json
+web/                  Next.js frontend (see below)
 ```
+
+## Web frontend
+
+Next.js on Vercel, reading the same Supabase Postgres. Four pages: dashboard
+(`/`), map (`/harta`), repeat reports (`/recurente`), and a local watch list
+(`/urmarite`).
+
+```bash
+cd web && pnpm dev
+```
+
+Vercel Web Analytics and Speed Insights are enabled. Both are cookieless with no
+visitor identifier, so the site needs no consent banner — which matters, given
+it handles other people's reports.
 
 ## Scheduled jobs
 
