@@ -9,9 +9,14 @@ import { NextResponse } from 'next/server';
  * and Next only regenerates those on request: on a low-traffic site the first
  * visitor after the window expires is served the stale copy and merely triggers
  * the rebuild for whoever comes next. That is how the dashboard came to advertise
- * a three-day-old date range while the database was current. Pinging this route
- * at the end of the sync makes the pages correct as soon as the data is, instead
- * of whenever someone unlucky happens to visit.
+ * a three-day-old date range while the database was current.
+ *
+ * Note what this route does and does not do: `revalidatePath` marks the pages
+ * invalid, it does not render them. Calling it on a site with no traffic leaves
+ * the old copy in place for the next visitor, which is exactly the failure above
+ * and it recurred on 2026-09-20 with this route answering 200 every day. The
+ * sync workflow therefore fetches both pages after calling this, so that the
+ * rebuild happens in CI rather than in front of whoever arrives first.
  *
  * /harta is not listed: it is a client component whose data comes from
  * /api/map, which is cached by Cache-Control rather than by ISR.
