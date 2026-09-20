@@ -105,6 +105,40 @@ jobs:
           cat /tmp/revalidate.json && echo
           [ "$code" = "200" ]
 
+          # `revalidatePath` only marks those two pages invalid; Next re-renders
+          # them on the next request for them. Nothing on this site generates
+          # that request, so the stored copy stayed as old as the last human
+          # visit -- on 2026-09-20 the dashboard served a render frozen at the
+          # 2026-09-17 crawl, three days after the POST above first reported 200.
+          # Fetch the pages here so CI absorbs that first stale response.
+          #
+          # Retried until the edge reports a HIT, because the request that
+          # follows an invalidation can still be answered from the stale copy
+          # while the rebuild runs behind it. A HIT is the proof that the
+          # rebuild finished and that what sits in the cache now is the new page.
+          for path in "" "recurente"; do
+            url="$SITE_URL/$path"
+            status=000
+            cache=""
+            for attempt in 1 2 3; do
+              status=$(curl -sS --max-time 60 -o /dev/null \
+                -D /tmp/warm-headers.txt -w '%{http_code}' "$url" || echo 000)
+              cache=$(grep -i '^x-vercel-cache:' /tmp/warm-headers.txt \
+                | tr -d '\r' | awk '{print $2}')
+              # A page Next renders per request is never cached, so there is
+              # nothing to warm and another attempt only repeats the queries.
+              # /recurente is in this state today: it declares `revalidate`,
+              # but something in it opts the route out of static rendering.
+              if grep -qi '^cache-control:.*no-store' /tmp/warm-headers.txt; then
+                cache="uncached (rendered per request)"
+                break
+              fi
+              if [ "$cache" = "HIT" ]; then break; fi
+              sleep 10
+            done
+            echo "warmed $url -> HTTP $status (x-vercel-cache: ${cache:-unknown}, attempts: $attempt)"
+          done
+
       - name: Summary
         if: always()
         run: |
