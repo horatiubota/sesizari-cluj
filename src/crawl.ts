@@ -62,6 +62,18 @@ export interface CrawlOptions {
   /** Re-fetch windows already recorded in the fetch log. */
   force?: boolean;
   label?: string;
+  /**
+   * Walk the newest window first instead of the oldest. Only meaningful
+   * together with `budget`, which is defined in terms of the most recent
+   * records rather than the earliest ones.
+   */
+  newestFirst?: boolean;
+  /**
+   * Stop once this many records have been fetched. The window that crosses the
+   * budget is finished rather than cut short, so the real total overshoots by
+   * up to one window -- a few hundred records at the sizes this corpus runs to.
+   */
+  budget?: number;
 }
 
 export interface CrawlResult {
@@ -70,6 +82,12 @@ export interface CrawlResult {
   inserted: number;
   changed: number;
   failures: Array<{ from: string; to: string; error: string }>;
+  /**
+   * Earliest window start actually fetched. With a `budget` the caller cannot
+   * work this out from the requested range, and how far back a sweep reached is
+   * exactly what says whether the budget is set sensibly.
+   */
+  oldest?: string;
 }
 
 let aborted = false;
@@ -86,17 +104,23 @@ export async function crawlRange(store: LocalStore, opts: CrawlOptions): Promise
   const state = opts.state ?? 'A';
   const all = weeklyWindows(opts.from, opts.to);
   const pending = opts.force ? all : all.filter((w) => !store.isWindowDone(w.from, w.to, state));
+  const ordered = opts.newestFirst ? [...pending].reverse() : pending;
 
   console.log(`${opts.label ?? 'crawl'} ${opts.from} -> ${opts.to} (state=${state})`);
   console.log(
-    `  ${all.length} weekly windows, ${pending.length} pending, ${all.length - pending.length} already done\n`,
+    `  ${all.length} weekly windows, ${pending.length} pending, ${all.length - pending.length} already done`,
   );
+  if (opts.budget !== undefined) {
+    console.log(`  bounded: newest window first, stopping once ${opts.budget} records are seen`);
+  }
+  console.log('');
 
   const result: CrawlResult = { windows: 0, records: 0, inserted: 0, changed: 0, failures: [] };
   const started = Date.now();
 
-  for (const w of pending) {
+  for (const w of ordered) {
     if (aborted) break;
+    if (opts.budget !== undefined && result.records >= opts.budget) break;
     try {
       const tickets = await fetchAdaptive(w.from, w.to, state);
       const stats = store.upsertMany(tickets);
@@ -104,17 +128,29 @@ export async function crawlRange(store: LocalStore, opts: CrawlOptions): Promise
 
       result.windows++;
       result.records += tickets.length;
+      if (result.oldest === undefined || w.from < result.oldest) result.oldest = w.from;
       result.inserted += stats.inserted;
       result.changed += stats.changed;
 
-      const pct = ((result.windows / pending.length) * 100).toFixed(1);
-      const elapsed = (Date.now() - started) / 1000;
-      const eta = ((elapsed / result.windows) * (pending.length - result.windows)) / 60;
-      process.stdout.write(
-        `\r  [${pct.padStart(5)}%] ${String(result.windows).padStart(4)}/${pending.length}  ` +
-          `${w.from}  +${String(tickets.length).padStart(4)}  ` +
-          `new ${result.inserted} chg ${result.changed}  eta ${eta.toFixed(1)}m   `,
-      );
+      // A bounded sweep has no meaningful window total to count towards, so it
+      // reports progress against the record budget instead.
+      if (opts.budget === undefined) {
+        const pct = ((result.windows / ordered.length) * 100).toFixed(1);
+        const elapsed = (Date.now() - started) / 1000;
+        const eta = ((elapsed / result.windows) * (ordered.length - result.windows)) / 60;
+        process.stdout.write(
+          `\r  [${pct.padStart(5)}%] ${String(result.windows).padStart(4)}/${ordered.length}  ` +
+            `${w.from}  +${String(tickets.length).padStart(4)}  ` +
+            `new ${result.inserted} chg ${result.changed}  eta ${eta.toFixed(1)}m   `,
+        );
+      } else {
+        const pct = Math.min(100, (result.records / opts.budget) * 100).toFixed(1);
+        process.stdout.write(
+          `\r  [${pct.padStart(5)}%] ${String(result.records).padStart(6)}/${opts.budget} records  ` +
+            `${w.from}  +${String(tickets.length).padStart(4)}  ` +
+            `new ${result.inserted} chg ${result.changed}   `,
+        );
+      }
     } catch (err) {
       const msg = (err as Error).message;
       console.error(`\n  FAILED ${w.from}..${w.to}: ${msg}`);
