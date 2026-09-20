@@ -1,16 +1,22 @@
 name: sync
 
 # Daily pass catches new tickets cheaply (~5 requests).
-# Weekly pass re-reads all history, which is the only way to notice that an old
+# Weekly pass re-reads recent windows, which is the only way to notice that a
 # ticket changed status: the upstream API has no "modified since" filter.
+#
+# That re-read is bounded to the newest 10k tickets (~20 requests) rather than
+# all ~213k (~500 requests). It walks backwards from today and stops when the
+# budget runs out, so a ticket that changes status after ageing out of that
+# window keeps whatever status it last had. See src/sync.ts for the trade-off
+# and for `--sweep all`, which restores the unbounded re-read.
 on:
   schedule:
     - cron: '17 4 * * 1-6'   # Mon-Sat 04:17 UTC — recent only
-    - cron: '17 4 * * 0'     # Sunday  04:17 UTC — full re-sweep
+    - cron: '17 4 * * 0'     # Sunday  04:17 UTC — bounded weekly sweep
   workflow_dispatch:
     inputs:
       mode:
-        description: 'recent (last 30 days) or full (entire history)'
+        description: 'recent (last 30 days) or full (weekly sweep, newest 10k)'
         type: choice
         options: [recent, full]
         default: recent
