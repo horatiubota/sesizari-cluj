@@ -33,6 +33,9 @@ const BASEMAP = 'https://tiles.openfreemap.org/styles/positron';
  */
 const isSelected = (id: string | null) => ['==', ['get', 'ticket'], id ?? ''] as const;
 const STROKE_WIDTH = (id: string | null) => ['case', isSelected(id), 3, 1] as unknown as never;
+// Literal colours, not theme tokens: the basemap is positron, which stays light
+// in dark mode too, so a near-black ring is what reads against it either way. A
+// token would flip to near-white in dark mode and vanish into the map.
 const STROKE_COLOR = (id: string | null) =>
   ['case', isSelected(id), '#111111', 'rgba(255,255,255,0.85)'] as unknown as never;
 
@@ -546,34 +549,34 @@ export default function MapExplorer() {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col-reverse md:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-neutral-200 bg-white p-4 md:min-h-0 md:w-96 md:border-r md:border-t-0 dark:border-neutral-800 dark:bg-neutral-950">
+      <aside className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-line bg-surface p-4 md:min-h-0 md:w-96 md:border-r md:border-t-0">
         <header>
           {/* The visible title lives in the site header; this keeps the page a
               labelled document without repeating the brand inside the filters. */}
           <h1 className="sr-only">Hartă</h1>
-          <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p className="text-xs leading-relaxed text-ink-2">
             Sesizările publice din martie 2017 până azi, preluate din platforma
             My Cluj a Primăriei Cluj-Napoca.
           </p>
         </header>
 
-        <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
+        <div className="rounded-md border border-line p-3 text-sm">
           <div className="flex items-baseline justify-between">
-            <span className="text-neutral-600 dark:text-neutral-400">În zona afișată</span>
-            <span className="font-mono text-base font-semibold tabular-nums">
+            <span className="text-ink-2">În zona afișată</span>
+            <span className="text-base font-semibold tabular-nums">
               {loading ? '…' : (data?.total ?? 0).toLocaleString('ro-RO')}
             </span>
           </div>
           {data?.mode === 'cells' && (
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-ink-3">
               Grupate pe zone. Apasă pe un cerc pentru detalii.
             </p>
           )}
         </div>
 
         {cartier && (
-          <div className="flex items-center gap-2 rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs dark:border-neutral-700">
-            <span className="text-neutral-500">Cartier</span>
+          <div className="flex items-center gap-2 rounded-md border border-line-strong px-2.5 py-1.5 text-xs">
+            <span className="text-ink-3">Cartier</span>
             <span className="truncate font-medium">{cartier}</span>
             <button
               onClick={() => {
@@ -583,7 +586,7 @@ export default function MapExplorer() {
                 router.replace('/harta', { scroll: false });
               }}
               aria-label={`Elimină filtrul de cartier ${cartier}`}
-              className="ml-auto shrink-0 rounded p-0.5 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100">
+              className="ml-auto shrink-0 rounded p-0.5 text-ink-3 transition hover:bg-sunken hover:text-ink">
               <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true">
                 <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5"
                   strokeLinecap="round" fill="none" />
@@ -597,7 +600,7 @@ export default function MapExplorer() {
           className="block"
         >
           <label className="block">
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            <span className="text-xs font-medium text-ink-2">
               Caută după număr
             </span>
             <div className="mt-1 flex gap-1.5">
@@ -608,29 +611,29 @@ export default function MapExplorer() {
                 inputMode="numeric"
                 aria-invalid={idMiss ? true : undefined}
                 aria-describedby={idMiss || idOutside ? 'id-lookup-msg' : undefined}
-                className="w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 font-mono text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
+                className="w-full rounded border border-line-strong bg-transparent px-2 py-1.5 tabular-nums text-sm focus:border-ink-3"
               />
               <button type="submit" disabled={idBusy || !idQuery.trim()}
-                className="shrink-0 rounded border border-neutral-300 px-2.5 text-sm transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-900 dark:disabled:text-neutral-600">
+                className="shrink-0 rounded border border-line-strong px-2.5 text-sm transition hover:bg-sunken disabled:cursor-not-allowed disabled:text-line-strong">
                 {idBusy ? '…' : 'Caută'}
               </button>
             </div>
           </label>
           {(idMiss || idOutside) && (
             <p id="id-lookup-msg" role="status"
-              className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+              className="mt-1 text-xs text-ink-2">
               {idMiss ?? `Găsită, dar din ${new Date(idOutside!).toLocaleDateString('ro-RO')} — în afara perioadei filtrate, așa că nu apare ca punct pe hartă.`}
             </p>
           )}
         </form>
 
         <label className="block">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Caută în text</span>
+          <span className="text-xs font-medium text-ink-2">Caută în text</span>
           <input
             value={qLive}
             onChange={(e) => { setQLive(e.target.value); clearIdSearch(); }}
             placeholder="ex. groapă, iluminat, ambrozie"
-            className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
+            className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm focus:border-ink-3"
           />
           {/* The scope only does anything once there is a query, so it appears
               with one rather than sitting there inert. */}
@@ -639,11 +642,11 @@ export default function MapExplorer() {
               {Q_SCOPES.map((o) => (
                 <button key={o.key} type="button" onClick={() => setQScope(o.key)}
                   aria-pressed={qScope === o.key} title={o.hint}
-                  className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                    qScope === o.key
-                      ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
-                      : 'border-neutral-300 text-neutral-600 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-400'
-                  }`}>
+                  className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
+ qScope === o.key
+ ? 'border-ink bg-ink text-surface '
+ : 'border-line-strong text-ink-2 hover:border-ink-3 '
+ }`}>
                   {o.label}
                 </button>
               ))}
@@ -652,16 +655,16 @@ export default function MapExplorer() {
         </label>
 
         <div>
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Perioadă</span>
+          <span className="text-xs font-medium text-ink-2">Perioadă</span>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {RANGES.map((r) => (
               <button key={r.key} type="button" onClick={() => setRange(r.key)}
                 aria-pressed={range === r.key}
-                className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                  range === r.key
-                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
-                    : 'border-neutral-300 text-neutral-600 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-400'
-                }`}>
+                className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
+ range === r.key
+ ? 'border-ink bg-ink text-surface '
+ : 'border-line-strong text-ink-2 hover:border-ink-3 '
+ }`}>
                 {r.label}
               </button>
             ))}
@@ -670,36 +673,36 @@ export default function MapExplorer() {
           <div className="mt-2 grid grid-cols-2 gap-2">
             <label className="block">
               <span className={`text-xs font-medium ${range === 'custom'
-                ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}`}>
+ ? 'text-ink-2 ' : 'text-ink-3 '}`}>
                 De la
               </span>
               <input type="date" value={range === 'custom' ? customFrom : from}
                 disabled={range !== 'custom'}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 dark:border-neutral-700 dark:disabled:border-neutral-800 dark:disabled:text-neutral-600" />
+                className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-line-strong" />
             </label>
             <label className="block">
               <span className={`text-xs font-medium ${range === 'custom'
-                ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}`}>
+ ? 'text-ink-2 ' : 'text-ink-3 '}`}>
                 Până la
               </span>
               <input type="date" value={range === 'custom' ? customTo : to}
                 disabled={range !== 'custom'}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 dark:border-neutral-700 dark:disabled:border-neutral-800 dark:disabled:text-neutral-600" />
+                className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-line-strong" />
             </label>
           </div>
           {range === 'custom' && !customFrom && !customTo && (
-            <p className="mt-1 text-[11px] text-neutral-500">
+            <p className="mt-1 text-xs text-ink-3">
               Fără date completate: toate sesizările, din martie 2017.
             </p>
           )}
         </div>
 
         <label className="block">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Rezoluție</span>
+          <span className="text-xs font-medium text-ink-2">Rezoluție</span>
           <select value={outcome} onChange={(e) => setOutcome(e.target.value)}
-            className="mt-1 w-full rounded border border-neutral-300 bg-transparent px-2 py-1.5 text-sm dark:border-neutral-700">
+            className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm">
             <option value="">Toate</option>
             {OUTCOMES.map((o) => (
               <option key={o} value={o}>{OUTCOME_LABEL[o] ?? o}</option>
@@ -708,17 +711,17 @@ export default function MapExplorer() {
         </label>
 
         <div>
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Categorii</span>
+          <span className="text-xs font-medium text-ink-2">Categorii</span>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {CATEGORIES.map((c) => {
               const on = cats.includes(c.id);
               return (
                 <button key={c.id} onClick={() => toggleCat(c.id)} aria-pressed={on}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] transition ${
-                    on
-                      ? 'border-transparent'
-                      : 'border-neutral-300 text-neutral-700 hover:border-neutral-500 dark:border-neutral-700 dark:text-neutral-300'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
+ on
+ ? 'border-transparent'
+ : 'border-line-strong text-ink-2 hover:border-ink-3 '
+ }`}
                   style={on ? { backgroundColor: c.color, color: readableOn(c.color) } : undefined}>
                   {/* Same colour as this category's pins, so the list doubles as
                       the map legend. Kept in both states so toggling a chip does
@@ -738,18 +741,18 @@ export default function MapExplorer() {
 
         {terms.length > 0 && (
           <div>
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+            <span className="text-xs font-medium text-ink-2">
               Specific acestei zone
             </span>
-            <p className="mt-0.5 text-[11px] leading-snug text-neutral-500">
+            <p className="mt-0.5 text-xs leading-snug text-ink-3">
               Cuvinte mai frecvente aici decât în restul orașului.
             </p>
             <div className="mt-1.5 flex flex-wrap gap-1">
               {terms.slice(0, 14).map((t) => (
                 <span key={t.word} title={`${t.ratio.toFixed(1)}× față de media orașului`}
-                  className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] dark:bg-neutral-900">
+                  className="rounded bg-sunken px-1.5 py-0.5 text-xs">
                   {t.word}
-                  <span className="ml-1 text-neutral-500 tabular-nums">{t.ratio.toFixed(1)}×</span>
+                  <span className="ml-1 text-ink-3 tabular-nums">{t.ratio.toFixed(1)}×</span>
                 </span>
               ))}
             </div>
@@ -771,11 +774,11 @@ export default function MapExplorer() {
         {selectedId && (
           <aside
             role="dialog" aria-modal="false" aria-label={`Detalii sesizarea ${selectedId}`}
-            className="absolute inset-x-2 top-2 z-10 flex max-h-[calc(100%-1rem)] flex-col overflow-hidden rounded-md border border-neutral-300 bg-white shadow-lg md:inset-x-auto md:top-3 md:right-3 md:max-h-[calc(100%-1.5rem)] md:w-[22rem] dark:border-neutral-700 dark:bg-neutral-950"
+            className="absolute inset-x-2 top-2 z-10 flex max-h-[calc(100%-1rem)] flex-col overflow-hidden rounded-md border border-line-strong bg-surface shadow-lg md:inset-x-auto md:top-3 md:right-3 md:max-h-[calc(100%-1.5rem)] md:w-[22rem]"
           >
-            <header className="flex items-start justify-between gap-2 border-b border-neutral-200 px-3 py-2 dark:border-neutral-800">
+            <header className="flex items-start justify-between gap-2 border-b border-line px-3 py-2">
               <div className="min-w-0">
-                <span className="block font-mono text-xs text-neutral-500">{selectedId}</span>
+                <span className="block tabular-nums text-xs text-ink-3">{selectedId}</span>
                 {cat && (
                   <span className="mt-0.5 inline-flex items-center gap-1.5 text-sm font-medium">
                     <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -785,7 +788,7 @@ export default function MapExplorer() {
                 )}
               </div>
               <button onClick={closeDetail} aria-label="Închide detaliile"
-                className="-mr-1 shrink-0 rounded p-1 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100">
+                className="-mr-1 shrink-0 rounded p-1 text-ink-3 transition hover:bg-sunken hover:text-ink">
                 <svg viewBox="0 0 16 16" className="h-4 w-4" aria-hidden="true">
                   <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5"
                     strokeLinecap="round" fill="none" />
@@ -797,13 +800,13 @@ export default function MapExplorer() {
               {!selected ? (
                 <div className="space-y-2" aria-live="polite">
                   <span className="sr-only">Se încarcă</span>
-                  <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="h-3 w-full animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="h-3 w-5/6 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-line" />
+                  <div className="h-3 w-full animate-pulse rounded bg-line" />
+                  <div className="h-3 w-5/6 animate-pulse rounded bg-line" />
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-ink-3">
                     {OUTCOME_LABEL[selected.status_label] ?? selected.status_label}
                     {selected.neighborhood ? ` · ${selected.neighborhood}` : ''}
                     {' · '}
@@ -813,8 +816,8 @@ export default function MapExplorer() {
                     {selected.description ?? '(fără descriere)'}
                   </p>
                   {selected.resolve_reason && (
-                    <div className="mt-3 border-l-2 border-neutral-300 pl-2 dark:border-neutral-700">
-                      <span className="text-[11px] font-medium text-neutral-500">Răspuns oficial</span>
+                    <div className="mt-3 border-l-2 border-line-strong pl-2">
+                      <span className="text-xs font-medium text-ink-3">Răspuns oficial</span>
                       <p className="text-sm leading-relaxed whitespace-pre-line">
                         {selected.resolve_reason}
                       </p>
@@ -824,17 +827,17 @@ export default function MapExplorer() {
               )}
             </div>
 
-            <footer className="flex items-center justify-between gap-2 border-t border-neutral-200 px-3 py-2 dark:border-neutral-800">
+            <footer className="flex items-center justify-between gap-2 border-t border-line px-3 py-2">
               {/* The status at this moment is stored alongside the ticket so
                   /urmarite can say what it changed *from*. */}
               <button
                 onClick={() => watch.toggle(selectedId, selected?.status_label)}
                 aria-pressed={watch.has(selectedId)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${
-                  watch.has(selectedId)
-                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
-                    : 'border-neutral-300 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900'
-                }`}>
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition pointer-coarse:min-h-11 ${
+ watch.has(selectedId)
+ ? 'border-ink bg-ink text-surface '
+ : 'border-line-strong hover:bg-sunken '
+ }`}>
                 <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden="true"
                   fill={watch.has(selectedId) ? 'currentColor' : 'none'}
                   stroke="currentColor" strokeWidth="1.3">

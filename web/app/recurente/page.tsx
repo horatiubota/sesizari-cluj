@@ -52,20 +52,20 @@ export default async function Recurente({
   const yr = (s: string): string => new Date(s).getFullYear().toString();
 
   return (
-    <main className="mx-auto max-w-5xl px-5 py-10">
+    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Probleme recurente</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
         Locuri unde aceeași categorie de problemă a fost raportată de cel puțin cinci
         ori, pe o rază de aproximativ 11 metri, în cel puțin trei ani calendaristici
         diferiți.
       </p>
 
-      <section className="mt-5 max-w-2xl rounded-md border border-neutral-300 p-4 text-sm leading-relaxed dark:border-neutral-700">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Cum se citesc datele</h2>
-        <p className="mt-2 text-neutral-700 dark:text-neutral-300">
+      <section className="mt-5 max-w-2xl rounded-md border border-line-strong p-4 text-sm leading-relaxed">
+        <h2 className="text-sm font-semibold">Cum se citesc datele</h2>
+        <p className="mt-2 text-ink-2">
           Repetarea nu înseamnă același lucru pentru toate categoriile.
         </p>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-2">
           <li>
             <strong>Infrastructură</strong> — un stâlp de iluminat, o groapă sau un
             indicator reparat și raportat din nou nu a rămas reparat. Aici repetarea
@@ -78,7 +78,7 @@ export default async function Recurente({
             dar sunt cea mai slabă dovadă.
           </li>
         </ul>
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+        <p className="mt-2 text-ink-2">
           Coloana <em>„favorabil”</em> arată ce procent din sesizările din acel loc au
           fost închise ca rezolvate favorabil.
         </p>
@@ -87,24 +87,24 @@ export default async function Recurente({
       <div className="mt-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <Link key={t.key} href={`/recurente?tip=${t.key}`}
-            className={`rounded-full border px-3 py-1 text-sm transition ${
-              meaning === t.key
-                ? 'border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
-                : 'border-neutral-300 dark:border-neutral-700'
-            }`}>
+            className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-sm transition pointer-coarse:min-h-11 ${
+ meaning === t.key
+ ? 'border-ink bg-ink text-surface '
+ : 'border-line-strong '
+ }`}>
             {t.label}
           </Link>
         ))}
       </div>
 
-      <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
+      <p className="mt-4 text-sm text-ink-2">
         {agg?.clusters.toLocaleString('ro-RO')} locuri, {agg?.tickets.toLocaleString('ro-RO')} sesizări.
       </p>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[46rem] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-neutral-300 text-left text-xs uppercase tracking-wide text-neutral-500 dark:border-neutral-700">
+            <tr className="border-b border-line-strong text-left text-xs text-ink-3">
               <th className="py-2 pr-3 font-medium">Sesizări</th>
               <th className="py-2 pr-3 font-medium">Ani</th>
               <th className="py-2 pr-3 font-medium">Favorabil</th>
@@ -116,13 +116,13 @@ export default async function Recurente({
           </thead>
           <tbody>
             {clusters.map((c) => (
-              <tr key={c.cluster_id} className="border-b border-neutral-200 align-top dark:border-neutral-800">
-                <td className="py-2 pr-3 font-mono tabular-nums">{c.n}</td>
+              <tr key={c.cluster_id} className="border-b border-line align-top">
+                <td className="py-2 pr-3 tabular-nums">{c.n}</td>
                 <td className="py-2 pr-3 tabular-nums">{c.years_spanned}</td>
                 <td className="py-2 pr-3 tabular-nums">{c.pct_favorabil}%</td>
                 <td className="py-2 pr-3">{c.category}</td>
-                <td className="py-2 pr-3 text-neutral-600 dark:text-neutral-400">{c.neighborhood ?? '—'}</td>
-                <td className="py-2 pr-3 whitespace-nowrap tabular-nums text-neutral-600 dark:text-neutral-400">
+                <td className="py-2 pr-3 text-ink-2">{c.neighborhood ?? 'Fără locație'}</td>
+                <td className="py-2 pr-3 whitespace-nowrap tabular-nums text-ink-2">
                   {yr(c.first_at)}–{yr(c.last_at)}
                 </td>
                 <td className="py-2">
@@ -130,7 +130,7 @@ export default async function Recurente({
                     {c.recent_tickets.slice(0, 3).map((t) => (
                       <a key={t} href={`https://mycluj.e-primariaclujnapoca.ro/?c=${t}`}
                         target="_blank" rel="noreferrer"
-                        className="font-mono text-xs underline underline-offset-2">
+                        className="tabular-nums text-xs underline underline-offset-2">
                         {t.replace('CAS-0', '')}
                       </a>
                     ))}
@@ -142,7 +142,7 @@ export default async function Recurente({
         </table>
       </div>
 
-      <footer className="mt-10 max-w-2xl border-t border-neutral-200 pt-4 text-xs leading-relaxed text-neutral-500 dark:border-neutral-800">
+      <footer className="mt-10 max-w-2xl border-t border-line pt-4 text-xs leading-relaxed text-ink-3">
         Sursa datelor: platforma My Cluj a Primăriei Cluj-Napoca. Gruparea se face pe
         coordonate rotunjite la 4 zecimale (~11 m) și pe categorie. Sesizările fără
         localizare aleasă de utilizator sunt excluse.

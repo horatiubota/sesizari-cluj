@@ -1,27 +1,37 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Roboto_Condensed, Roboto_Serif, Source_Sans_3 } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 
 /*
+  Three faces, chosen as the closest free relatives of a financial weekly's
+  type: a serif narrowed on its width axis for headlines and quoted replies, a
+  plain sans for reading, a condensed sans for figures and chart labels.
+
   Romanian needs comma-below on ș and ț, not cedilla, and that lives in the
   latin-ext subset -- requesting only `latin` would drop the diacritics that
-  appear in nearly every street and cartier name on the site. Inter ships the
-  correct forms; the previous stack ended at `Arial, Helvetica, sans-serif` and
-  left the shape of those two letters to whatever the visitor's OS resolved.
+  appear in nearly every street and cartier name on the site. All three ship
+  the correct forms. next/font self-hosts them, so the site still makes no
+  third-party request for fonts.
 */
-const inter = Inter({
+const serif = Roboto_Serif({
   subsets: ['latin', 'latin-ext'],
-  variable: '--font-inter',
+  axes: ['wdth', 'opsz'],
+  variable: '--font-serif-face',
   display: 'swap',
 });
 
-/* Mono carries only digits, dates and ticket ids, so `latin` covers it. */
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
+const sans = Source_Sans_3({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-sans-face',
+  display: 'swap',
+});
+
+const condensed = Roboto_Condensed({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-cond-face',
   display: 'swap',
 });
 
@@ -39,13 +49,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ro" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="ro" className={`${serif.variable} ${sans.variable} ${condensed.variable}`}>
       {/*
         min-h-dvh + flex column lets one shell serve both shapes: the dashboard
         grows past the viewport and scrolls, while the map page's root claims the
         leftover height with flex-1 instead of measuring the header.
+
+        The catch: a page's `<main className="mx-auto max-w-…">` is a flex item
+        here, and auto side margins make it shrink-to-fit its content instead of
+        stretching. A wide table then widens main itself rather than scrolling in
+        its own overflow-x-auto box, and on a phone the whole page pans sideways.
+        Every centred main therefore also carries `w-full`.
       */}
-      <body className="flex min-h-dvh flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
+      <body className="flex min-h-dvh flex-col bg-bg text-ink antialiased">
         <SiteHeader />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         {/*

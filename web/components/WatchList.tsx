@@ -183,9 +183,9 @@ export default function WatchList() {
 
   if (!items.length) {
     return (
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto w-full max-w-3xl px-5 py-10">
         <h1 className="text-2xl font-semibold tracking-tight">Sesizări urmărite</h1>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">
           Nu urmărești nicio sesizare încă.
         </p>
 
@@ -193,24 +193,24 @@ export default function WatchList() {
             likely first visitor here, so the offer has to appear in this state
             too -- not only once the list is non-empty. */}
         {pending.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line-strong px-3 py-2 text-sm">
             <span>
               Linkul conține {pending.length === 1 ? 'o sesizare' : `${pending.length} sesizări`}.
             </span>
             <button onClick={() => merge(pending)}
-              className="rounded-full border border-neutral-900 bg-neutral-900 px-3 py-1 text-xs text-white transition dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900">
+              className="inline-flex items-center justify-center rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
               Adaugă în lista mea
             </button>
           </div>
         )}
-        <div className="mt-6 rounded-md border border-neutral-300 p-4 text-sm leading-relaxed dark:border-neutral-700">
-          <p className="text-neutral-700 dark:text-neutral-300">
+        <div className="mt-6 rounded-md border border-line-strong p-4 text-sm leading-relaxed">
+          <p className="text-ink-2">
             Deschide <Link href="/harta" className="underline underline-offset-2">harta</Link>,
             apasă pe o sesizare și apoi pe <strong>Urmărește</strong>. De atunci înainte,
             pagina asta îți arată dacă a fost închisă, dacă răspunsul oficial s-a
             schimbat și dacă au apărut sesizări noi în același loc.
           </p>
-          <p className="mt-3 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 text-ink-2">
             Lista e păstrată doar în browserul tău. Nu are nevoie de cont și nu ajunge
             pe server — dar nu se sincronizează între dispozitive. Butonul „Copiază
             link” de aici îți dă o adresă care mută lista pe alt dispozitiv.
@@ -221,48 +221,48 @@ export default function WatchList() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-5 py-10">
+    <main className="mx-auto w-full max-w-3xl px-5 py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Sesizări urmărite</h1>
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-ink-2">
             {items.length === 1 ? 'O sesizare' : `${items.length} sesizări`} · păstrate în acest browser
           </p>
         </div>
         <div className="flex gap-2">
           <button onClick={share}
-            className="rounded-full border border-neutral-300 px-3 py-1 text-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900">
+            className="inline-flex items-center justify-center rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 transition hover:bg-sunken">
             {copied ? 'Link copiat' : 'Copiază link'}
           </button>
           <button
             onClick={() => { if (confirm('Ștergi toate sesizările urmărite?')) clear(); }}
-            className="rounded-full border border-neutral-300 px-3 py-1 text-sm text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-900">
+            className="inline-flex items-center justify-center rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 text-ink-2 transition hover:bg-sunken">
             Golește
           </button>
         </div>
       </div>
 
       {pending.length > 0 && imported === null && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line-strong px-3 py-2 text-sm">
           <span>
             Linkul conține {pending.length === 1 ? 'o sesizare' : `${pending.length} sesizări`} pe
             care nu le urmărești.
           </span>
           <button onClick={() => setImported(merge(pending))}
-            className="rounded-full border border-neutral-900 bg-neutral-900 px-3 py-1 text-xs text-white transition dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900">
+            className="inline-flex items-center justify-center rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
             Adaugă în lista mea
           </button>
         </div>
       )}
 
       {imported !== null && (
-        <p className="mt-4 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700">
+        <p className="mt-4 rounded-md border border-line-strong px-3 py-2 text-sm">
           {imported === 1 ? 'O sesizare adăugată' : `${imported} sesizări adăugate`} din link.
         </p>
       )}
 
       {error && (
-        <p className="mt-4 rounded-md border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700">
+        <p className="mt-4 rounded-md border border-line-strong px-3 py-2 text-sm">
           {error}
         </p>
       )}
@@ -271,7 +271,7 @@ export default function WatchList() {
         <div className="mt-6 space-y-3" aria-busy="true">
           <span className="sr-only">Se încarcă</span>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-md bg-neutral-100 dark:bg-neutral-900" />
+            <div key={i} className="h-20 animate-pulse rounded-md bg-sunken" />
           ))}
         </div>
       )}
@@ -281,10 +281,10 @@ export default function WatchList() {
         if (!list.length) return null;
         return (
           <section key={b} className="mt-8">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-3">
               {title} ({list.length})
             </h2>
-            <p className="mt-1 text-xs text-neutral-500">{note}</p>
+            <p className="mt-1 text-xs text-ink-3">{note}</p>
             <ul className="mt-3 space-y-3">
               {list.map((r) => <Card key={r.ticket_number} r={r} onRemove={remove} />)}
             </ul>
@@ -292,7 +292,7 @@ export default function WatchList() {
         );
       })}
 
-      <footer className="mt-10 border-t border-neutral-200 pt-4 text-xs leading-relaxed text-neutral-500 dark:border-neutral-800">
+      <footer className="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">
         Datele despre închidere provin din observațiile acestui proiect, nu de la
         platforma oficială: API-ul public expune doar starea curentă, niciodată data
         închiderii. „Închisă” înseamnă aici prima dată la care am văzut-o închisă.
@@ -308,7 +308,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
   const answerChange = r.events.find((e) => e.previous_resolve_reason !== null);
 
   return (
-    <li className="rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
+    <li className="rounded-md border border-line p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="inline-flex items-center gap-1.5 text-sm font-medium">
@@ -318,7 +318,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
             )}
             <span className="truncate">{r.category}</span>
           </span>
-          <p className="mt-0.5 font-mono text-xs text-neutral-500">
+          <p className="mt-0.5 tabular-nums text-xs text-ink-3">
             {r.ticket_number}
             {r.neighborhood ? ` · ${r.neighborhood}` : ''}
             {` · raportată ${dt(r.created_at)}`}
@@ -326,7 +326,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
         </div>
         <button onClick={() => onRemove(r.ticket_number)}
           aria-label={`Nu mai urmări ${r.ticket_number}`}
-          className="shrink-0 rounded p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100">
+          className="shrink-0 rounded p-1 text-ink-3 transition hover:bg-sunken hover:text-ink">
           <svg viewBox="0 0 16 16" className="h-4 w-4" aria-hidden="true">
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5"
               strokeLinecap="round" fill="none" />
@@ -334,13 +334,13 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
         </button>
       </div>
 
-      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-2">
         {r.description ?? '(fără descriere)'}
       </p>
 
       <div className="mt-3 space-y-1.5 text-sm">
         {closing && (
-          <p className="text-neutral-800 dark:text-neutral-200">
+          <p className="text-ink">
             <strong>Închisă</strong> ca „{OUTCOME_LABEL[closing.status_label ?? ''] ?? closing.status_label}”
             {' — '}observată pe {dt(closing.observed_at)},{' '}
             {dupa(days(r.starred_at, closing.observed_at))} ai adăugat-o.
@@ -348,23 +348,23 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
         )}
 
         {reopened && (
-          <p className="text-neutral-800 dark:text-neutral-200">
+          <p className="text-ink">
             <strong>Redeschisă</strong> — este din nou „{OUTCOME_LABEL[r.status_label] ?? r.status_label}”.
           </p>
         )}
 
         {answerChange && (
-          <details className="text-neutral-800 dark:text-neutral-200">
+          <details className="text-ink">
             <summary className="cursor-pointer"><strong>Răspunsul oficial s-a schimbat</strong></summary>
-            <div className="mt-2 space-y-2 border-l-2 border-neutral-300 pl-2 text-sm dark:border-neutral-700">
+            <div className="mt-2 space-y-2 border-l-2 border-line-strong pl-2 text-sm">
               <div>
-                <span className="text-[11px] font-medium text-neutral-500">Înainte</span>
-                <p className="whitespace-pre-line text-neutral-600 dark:text-neutral-400">
+                <span className="text-xs font-medium text-ink-3">Înainte</span>
+                <p className="whitespace-pre-line text-ink-2">
                   {answerChange.previous_resolve_reason}
                 </p>
               </div>
               <div>
-                <span className="text-[11px] font-medium text-neutral-500">Acum</span>
+                <span className="text-xs font-medium text-ink-3">Acum</span>
                 <p className="whitespace-pre-line">{r.resolve_reason ?? '(gol)'}</p>
               </div>
             </div>
@@ -372,17 +372,17 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
         )}
 
         {r.followup_count > 0 && (
-          <details className="text-neutral-800 dark:text-neutral-200">
+          <details className="text-ink">
             <summary className="cursor-pointer">
               <strong>{followupPhrase(r.recurrence_meaning, r.followup_count)}</strong>
             </summary>
-            <ul className="mt-2 space-y-1.5 border-l-2 border-neutral-300 pl-2 dark:border-neutral-700">
+            <ul className="mt-2 space-y-1.5 border-l-2 border-line-strong pl-2">
               {r.followups.map((f) => (
                 <li key={f.ticket_number} className="text-sm">
-                  <span className="font-mono text-xs text-neutral-500">
+                  <span className="tabular-nums text-xs text-ink-3">
                     {f.ticket_number} · {dt(f.created_at)}
                   </span>
-                  <p className="text-neutral-600 dark:text-neutral-400">{f.description ?? '—'}</p>
+                  <p className="text-ink-2">{f.description ?? '—'}</p>
                 </li>
               ))}
             </ul>
@@ -390,7 +390,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
         )}
 
         {!closing && !reopened && !answerChange && r.followup_count === 0 && (
-          <p className="text-neutral-600 dark:text-neutral-400">
+          <p className="text-ink-2">
             {r.status_code === 'O'
               ? `Încă deschisă — „${OUTCOME_LABEL[r.status_label] ?? r.status_label}”, ${de(days(r.created_at))}.`
               : `Era deja închisă ca „${OUTCOME_LABEL[r.status_label] ?? r.status_label}” când ai adăugat-o.`}
@@ -406,7 +406,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
           target="_blank" rel="noreferrer" className="underline underline-offset-2">
           Platforma oficială →
         </a>
-        <span className="text-neutral-400">urmărită din {dt(r.starred_at)}</span>
+        <span className="text-ink-3">urmărită din {dt(r.starred_at)}</span>
       </div>
     </li>
   );

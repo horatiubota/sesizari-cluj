@@ -15,3 +15,11 @@ dist/
 *.sw?
 *~
 .*.swp
+.vercel
+
+# Impeccable: per-machine settings, caches and review captures (the shared
+# config, product/design records, critiques and surface briefs are committed).
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/review/
+.impeccable/live/

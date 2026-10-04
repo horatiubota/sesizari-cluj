@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T18:26:52+00:00",
+  "title": "Design System: Sesizări Cluj",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "White Paper",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "dark": "#121417",
+        "purpose": "Page ground; same white as surface, separation comes from rules.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Paper (surface)",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "dark": "#181b1f",
+        "purpose": "Raised surfaces: header, example cards, controls.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "sunken": {
+        "role": "neutral",
+        "displayName": "Sunken Grey",
+        "canonical": "oklch(96.1% 0.000 89.9)",
+        "dark": "#1c1f23",
+        "purpose": "Strip track, freshness pill, row hover.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(88.5% 0.000 89.9)",
+        "dark": "#2e3137",
+        "purpose": "Row dividers, chart gridlines, card borders.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "canonical": "oklch(76.7% 0.000 89.9)",
+        "dark": "#474c54",
+        "purpose": "Control borders, link underlines, zero axes.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(15.4% 0.000 89.9)",
+        "dark": "#f0f0f0",
+        "purpose": "Primary text, 2px rules above headline figures, highlighted bar.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "oklch(32.1% 0.000 89.9)",
+        "dark": "#d0d0d0",
+        "purpose": "Notes and secondary text.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "oklch(46.4% 0.000 89.9)",
+        "dark": "#a3a3a3",
+        "purpose": "Captions, axis ticks, source line; clears 4.5:1 on every ground.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "focus": {
+        "role": "secondary",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#3ebcd2",
+        "purpose": "2px focus outline and selection tint.",
+        "tonalRamp": [
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
+        ]
+      },
+      "tag": {
+        "role": "primary",
+        "displayName": "Chart-Desk Red (tag)",
+        "canonical": "oklch(58.0% 0.232 29.2)",
+        "dark": "#ff4d45",
+        "purpose": "Section tag bar and rule only.",
+        "tonalRamp": [
+          "#220000",
+          "#4c0000",
+          "#7d0000",
+          "#b20201",
+          "#e71a12",
+          "#fa6a59",
+          "#ffab9e",
+          "#ffe9e5"
+        ]
+      },
+      "alarm": {
+        "role": "primary",
+        "displayName": "Chart-Desk Red (finding)",
+        "canonical": "oklch(58.0% 0.232 29.2)",
+        "dark": "#ff4d45",
+        "purpose": "Dysfunction findings only: headline numerals, template counts, above-average bars, open >90 days.",
+        "tonalRamp": [
+          "#220000",
+          "#4c0000",
+          "#7d0000",
+          "#b20201",
+          "#e71a12",
+          "#fa6a59",
+          "#ffab9e",
+          "#ffe9e5"
+        ]
+      },
+      "chart": {
+        "role": "secondary",
+        "displayName": "Chart-Desk Blue",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#4ea1d3",
+        "purpose": "Ordinary data: volume bars, sparklines, below-average bars.",
+        "tonalRamp": [
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
+        ]
+      },
+      "o-fav": {
+        "role": "tertiary",
+        "displayName": "Favorabil",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#4ea1d3",
+        "purpose": "Outcome band: Favorabil.",
+        "tonalRamp": [
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
+        ]
+      },
+      "o-part": {
+        "role": "tertiary",
+        "displayName": "Parțial",
+        "canonical": "oklch(73.6% 0.111 211.7)",
+        "dark": "#9fdde8",
+        "purpose": "Outcome band: Parțial.",
+        "tonalRamp": [
+          "#000f13",
+          "#012a30",
+          "#054853",
+          "#0e6978",
+          "#018da0",
+          "#2eb0c6",
+          "#5ed7ee",
+          "#d0f7ff"
+        ]
+      },
+      "o-transf": {
+        "role": "tertiary",
+        "displayName": "Transferată (hatch)",
+        "canonical": "oklch(62.9% 0.033 229.6)",
+        "dark": "#9aa9b2",
+        "purpose": "135° hatch stripes for transferred to operator.",
+        "tonalRamp": [
+          "#000d16",
+          "#122731",
+          "#2d434e",
+          "#4b616d",
+          "#6a818d",
+          "#8aa3af",
+          "#afc9d5",
+          "#dcf3fe"
+        ]
+      },
+      "o-transf-bg": {
+        "role": "tertiary",
+        "displayName": "Transferată (ground)",
+        "canonical": "oklch(93.3% 0.008 228.9)",
+        "dark": "#263038",
+        "purpose": "Ground under the transferred hatch.",
+        "tonalRamp": [
+          "#080c0e",
+          "#202527",
+          "#3c4143",
+          "#595e61",
+          "#797e81",
+          "#9a9fa2",
+          "#bfc5c8",
+          "#e9f0f3"
+        ]
+      },
+      "o-resp": {
+        "role": "tertiary",
+        "displayName": "Respinsă",
+        "canonical": "oklch(56.3% 0.086 346.9)",
+        "dark": "#c48fae",
+        "purpose": "Outcome band: rejected / unfavourable.",
+        "tonalRamp": [
+          "#1f0011",
+          "#3f0d2c",
+          "#5f2b48",
+          "#804967",
+          "#a36887",
+          "#c689a9",
+          "#eeaecf",
+          "#fee7f2"
+        ]
+      },
+      "o-open": {
+        "role": "tertiary",
+        "displayName": "Încă deschisă",
+        "canonical": "oklch(92.5% 0.000 89.9)",
+        "dark": "#33373d",
+        "purpose": "Ground of the still-open band.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "o-open-hatch": {
+        "role": "tertiary",
+        "displayName": "Încă deschisă (hatch)",
+        "canonical": "oklch(80.5% 0.000 89.9)",
+        "dark": "#4a4f57",
+        "purpose": "45° hatch over the still-open band.",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
+        ]
+      },
+      "up": {
+        "role": "tertiary",
+        "displayName": "Amber Up",
+        "canonical": "oklch(52.7% 0.127 54.7)",
+        "dark": "#f0a35e",
+        "purpose": "Positive deltas; direction only (owner decision).",
+        "tonalRamp": [
+          "#1b0300",
+          "#3b1a00",
+          "#633002",
+          "#8e4806",
+          "#b66627",
+          "#da874b",
+          "#ffaf79",
+          "#feeadd"
+        ]
+      },
+      "down": {
+        "role": "tertiary",
+        "displayName": "Teal Down",
+        "canonical": "oklch(48.9% 0.080 194.9)",
+        "dark": "#5cc7c0",
+        "purpose": "Negative deltas; direction only (owner decision).",
+        "tonalRamp": [
+          "#000f0f",
+          "#002b2b",
+          "#024a4a",
+          "#096b6b",
+          "#398c8c",
+          "#5daeae",
+          "#83d5d4",
+          "#b4fffe"
+        ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Stale Amber",
+        "canonical": "oklch(47.9% 0.110 58.6)",
+        "dark": "#f3b46b",
+        "purpose": "Stale-data freshness pill text and dot.",
+        "tonalRamp": [
+          "#1a0400",
+          "#3b1a00",
+          "#603203",
+          "#8a4b08",
+          "#ad6b33",
+          "#d18d55",
+          "#fab27a",
+          "#feeadc"
+        ]
+      },
+      "warn-bg": {
+        "role": "tertiary",
+        "displayName": "Stale Amber Ground",
+        "canonical": "oklch(96.2% 0.021 76.5)",
+        "dark": "#2d2214",
+        "purpose": "Stale-data freshness pill ground.",
+        "tonalRamp": [
+          "#100a03",
+          "#2a2318",
+          "#463e33",
+          "#655c50",
+          "#857c6f",
+          "#a69d90",
+          "#ccc3b5",
+          "#f7eddf"
+        ]
+      }
+    },
+    "colorScheme": {
+      "mechanism": "prefers-color-scheme: dark redefines every token on :root (web/app/globals.css); colorMeta.<token>.dark holds the dark value."
+    },
+    "typographyMeta": {
+      "headline-finding": {
+        "displayName": "Finding headline",
+        "purpose": "Verdict h2 of each finding section; 1.75rem below sm, 2rem from sm; max 36ch; text-wrap balance."
+      },
+      "headline-section": {
+        "displayName": "Section headline",
+        "purpose": "Descriptive h2 of non-finding sections."
+      },
+      "figure-lead": {
+        "displayName": "Lead figure",
+        "purpose": "The four headline-finding numerals, in alarm red."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Template counts (2rem) and breakdown values (1.75rem)."
+      },
+      "quote": {
+        "displayName": "Quoted reply",
+        "purpose": "The city's replies verbatim, max 72ch, clamped to four lines with a disclosure."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, finding labels, list rows."
+      },
+      "note": {
+        "displayName": "Note",
+        "purpose": "Section notes under headlines, max 68ch, ink 2."
+      },
+      "chart-label": {
+        "displayName": "Chart label",
+        "purpose": "Category names and values inside charts; subtitles at 14px."
+      },
+      "label": {
+        "displayName": "Official label",
+        "purpose": "The city's own label, uppercase, bordered."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Scope lines, legends, axis ticks; the 12px floor."
+      }
+    },
+    "fonts": {
+      "loading": "next/font/google, self-hosted, subsets latin + latin-ext (comma-below ș ț)",
+      "serif": "Roboto Serif, axes wdth + opsz",
+      "sans": "Source Sans 3",
+      "condensed": "Roboto Condensed",
+      "provenance": "Free relatives chosen for a financial-press look; no publication's name, logo or typefaces are used."
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "layout": {
+      "container": "72rem (1152px), padding 16px / 24px from sm",
+      "touchTarget": "44px minimum",
+      "smallSample": "base < 20: counts not percentages, dashed outline on strips",
+      "numberFormat": "ro-RO"
+    }
+  },
+  "components": [
+    {
+      "name": "Section Tag",
+      "kind": "custom",
+      "refersTo": "section-tag",
+      "description": "Short red bar on a hairline red rule that opens every section.",
+      "html": "<div class=\"ds-tagged\"><h2 class=\"ds-headline\">Cât de repede se închid</h2></div>",
+      "css": ".ds-tagged { position: relative; border-top: 1px solid var(--tag, #e3120b); padding-top: 20px; } .ds-tagged::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-headline { margin: 0; font-family: 'Roboto Serif', Georgia, serif; font-weight: 700; font-variation-settings: 'wdth' 72, 'opsz' 36; letter-spacing: -0.005em; font-size: 1.5rem; line-height: 1.25; color: var(--ink, #0c0c0c); text-wrap: balance; }"
+    },
+    {
+      "name": "Finding Section",
+      "kind": "custom",
+      "refersTo": "finding-headline",
+      "description": "Tag, verdict as the h2, a short note; no label above the verdict.",
+      "html": "<section class=\"ds-finding\"><h2 class=\"ds-finding-h\">1 din 4 sesizări închise „Favorabil” nu spun că s-a rezolvat ceva.</h2><p class=\"ds-finding-note\">Din cele 9.412 închise „Favorabil”: răspunsuri care doar anunță că sesizarea a fost trimisă altcuiva, plus cele fără text.</p></section>",
+      "css": ".ds-finding { position: relative; border-top: 1px solid var(--tag, #e3120b); padding: 20px 0 16px; } .ds-finding::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-finding-h { margin: 0; max-width: 36ch; font-family: 'Roboto Serif', Georgia, serif; font-weight: 700; font-variation-settings: 'wdth' 72, 'opsz' 36; letter-spacing: -0.005em; font-size: 2rem; line-height: 1.15; color: var(--ink, #0c0c0c); text-wrap: balance; } .ds-finding-note { margin: 8px 0 0; max-width: 68ch; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; line-height: 1.625; color: var(--ink-2, #333333); }"
+    },
+    {
+      "name": "Headline Finding",
+      "kind": "custom",
+      "refersTo": "finding-numeral",
+      "description": "Red condensed numeral under a 2px ink rule, linked to its evidence.",
+      "html": "<a class=\"ds-hf\" href=\"#sabloane\"><span class=\"ds-hf-n\">62,4%</span><span class=\"ds-hf-l\">din sesizările închise au primit unul din cele 41 de răspunsuri-șablon</span><span class=\"ds-hf-d\">Cel mai folosit a fost trimis de 812 ori.</span></a>",
+      "css": ".ds-hf { display: block; max-width: 22rem; border-top: 2px solid var(--ink, #0c0c0c); padding-top: 12px; color: var(--ink, #0c0c0c); text-decoration: none; } .ds-hf-n { display: block; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 3rem; line-height: 1; color: var(--alarm, #e3120b); font-variant-numeric: tabular-nums; } .ds-hf-l { display: block; margin-top: 8px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; font-weight: 500; line-height: 1.375; } .ds-hf-d { display: block; margin-top: 4px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; line-height: 1.625; color: var(--ink-3, #595959); } .ds-hf:hover .ds-hf-l { text-decoration: underline; text-underline-offset: 4px; } .ds-hf:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; border-radius: 2px; }"
+    },
+    {
+      "name": "Official Label with Quoted Reply",
+      "kind": "custom",
+      "refersTo": "official-label",
+      "description": "Signature: the city's words in serif, its label as a bordered uppercase tag, and the count.",
+      "html": "<div class=\"ds-reply\"><span class=\"ds-reply-n\">812×</span><div><blockquote class=\"ds-quote\">„Sesizarea dumneavoastră a fost transmisă spre competentă soluționare direcției de specialitate.”</blockquote><span class=\"ds-label\">Favorabil</span></div></div>",
+      "css": ".ds-reply { display: grid; grid-template-columns: 7rem 1fr; gap: 8px 24px; padding: 20px 0; border-top: 1px solid var(--line, #d9d9d9); border-bottom: 1px solid var(--line, #d9d9d9); } .ds-reply-n { font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 2rem; line-height: 1; color: var(--alarm, #e3120b); font-variant-numeric: tabular-nums; } .ds-quote { margin: 0 0 8px; max-width: 72ch; font-family: 'Roboto Serif', Georgia, serif; font-size: 15px; line-height: 1.625; color: var(--ink, #0c0c0c); } .ds-label { display: inline-flex; align-items: center; border: 1px solid var(--ink, #0c0c0c); border-radius: 2px; padding: 2px 6px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; line-height: 1; font-weight: 600; letter-spacing: 0.025em; text-transform: uppercase; color: var(--ink, #0c0c0c); }"
+    },
+    {
+      "name": "Example Reply Card",
+      "kind": "card",
+      "refersTo": "example-card",
+      "description": "The only card in the system: a quoted example reply.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-meta\"><span class=\"ds-card-label\">Favorabil</span><span>Iluminat</span></div><blockquote class=\"ds-card-q\">„Soluționat prin dispecerat.”</blockquote><a class=\"ds-card-link\" href=\"#\">123456</a></div>",
+      "css": ".ds-card { max-width: 20rem; border: 1px solid var(--line, #d9d9d9); border-radius: 6px; background: var(--surface, #ffffff); padding: 16px; } .ds-card-meta { display: flex; gap: 8px; align-items: center; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; color: var(--ink-3, #595959); } .ds-card-label { border: 1px solid var(--ink, #0c0c0c); border-radius: 2px; padding: 2px 6px; font-weight: 600; letter-spacing: 0.025em; text-transform: uppercase; color: var(--ink, #0c0c0c); line-height: 1; } .ds-card-q { margin: 12px 0; font-family: 'Roboto Serif', Georgia, serif; font-size: 15px; line-height: 1.625; color: var(--ink, #0c0c0c); } .ds-card-link { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; color: var(--ink-2, #333333); text-decoration: underline; text-decoration-color: var(--line-strong, #b3b3b3); text-underline-offset: 4px; font-variant-numeric: tabular-nums; } .ds-card-link:hover { color: var(--ink, #0c0c0c); }"
+    },
+    {
+      "name": "Category Bar Chart",
+      "kind": "custom",
+      "refersTo": "chart",
+      "description": "Titled chart: blue for ordinary bars, red only above the city average, dashed average rule, source line.",
+      "html": "<figure class=\"ds-chart\"><figcaption><span class=\"ds-chart-t\">„Favorabil” fără rezolvare declarată</span><span class=\"ds-chart-s\">% din închiderile „Favorabil”, pe categorii, ultimele 13 săptămâni</span></figcaption><div class=\"ds-chart-body\"><span class=\"ds-chart-avg\" style=\"left:calc(8.5rem + (100% - 8.5rem) * 0.4)\"></span><div class=\"ds-row\"><span>Salubrizare</span><span class=\"ds-bar ds-bar-alarm\" style=\"width:58%\"></span></div><div class=\"ds-row\"><span>Iluminat</span><span class=\"ds-bar\" style=\"width:28%\"></span></div><div class=\"ds-row\"><span>Străzi</span><span class=\"ds-bar\" style=\"width:35%\"></span></div></div><p class=\"ds-source\">Sursa: My Cluj, Primăria Cluj-Napoca; calcule Sesizări Cluj.</p></figure>",
+      "css": ".ds-chart { position: relative; margin: 0; max-width: 32rem; border-top: 1px solid var(--tag, #e3120b); padding-top: 12px; } .ds-chart::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-chart-t { display: block; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: var(--ink, #0c0c0c); } .ds-chart-s { display: block; margin-top: 2px; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 14px; color: var(--ink-3, #595959); } .ds-chart-body { position: relative; margin-top: 16px; display: grid; gap: 6px; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 13px; color: var(--ink-2, #333333); } .ds-row { display: grid; grid-template-columns: 8rem 1fr; gap: 8px; align-items: center; } .ds-row > span:first-child { text-align: right; } .ds-bar { display: block; height: 16px; background: var(--chart, #006ba2); } .ds-bar-alarm { background: var(--alarm, #e3120b); } .ds-chart-avg { position: absolute; top: 0; bottom: 0; border-left: 1.5px dashed var(--ink, #0c0c0c); } .ds-source { margin: 12px 0 0; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 12px; color: var(--ink-3, #595959); }"
+    },
+    {
+      "name": "Outcome Strip",
+      "kind": "custom",
+      "refersTo": "outcome-strip",
+      "description": "Five official-label bands, two hatched; a dashed outline marks a base under 20.",
+      "html": "<div class=\"ds-strip\"><span style=\"width:62%;background:var(--o-fav,#006ba2)\"></span><span style=\"width:6%;background:var(--o-part,#3ebcd2)\"></span><span class=\"ds-transf\" style=\"width:14%\"></span><span style=\"width:8%;background:var(--o-resp,#9a607f)\"></span><span class=\"ds-open\" style=\"width:10%\"></span></div><div class=\"ds-strip ds-strip-thin\" style=\"margin-top:16px\"><span style=\"width:80%;background:var(--o-fav,#006ba2)\"></span><span class=\"ds-open\" style=\"width:20%\"></span></div>",
+      "css": ".ds-strip { display: flex; width: 20rem; height: 10px; overflow: hidden; border-radius: 3px; background: var(--sunken, #f2f2f2); } .ds-strip > span { height: 100%; } .ds-transf { background-color: var(--o-transf-bg, #e4eaed); background-image: repeating-linear-gradient(135deg, var(--o-transf, #758d99) 0 1.5px, transparent 1.5px 5px); } .ds-open { background-color: var(--o-open, #e6e6e6); background-image: repeating-linear-gradient(45deg, var(--o-open-hatch, #bfbfbf) 0 1px, transparent 1px 4px); } .ds-strip-thin { outline: 1px dashed var(--ink-3, #595959); outline-offset: 2px; }"
+    },
+    {
+      "name": "Sort Toggle",
+      "kind": "button",
+      "refersTo": "sort-button",
+      "description": "44px pressed-state toggles that re-rank the tables.",
+      "html": "<div class=\"ds-sorts\"><button class=\"ds-sort\" aria-pressed=\"true\">volum</button><button class=\"ds-sort\" aria-pressed=\"false\">răspuns șablon</button></div>",
+      "css": ".ds-sorts { display: flex; gap: 6px; } .ds-sort { height: 44px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--line-strong, #b3b3b3); background: var(--surface, #ffffff); color: var(--ink-2, #333333); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; cursor: pointer; } .ds-sort:hover { border-color: var(--ink, #0c0c0c); color: var(--ink, #0c0c0c); } .ds-sort[aria-pressed='true'] { background: var(--ink, #0c0c0c); border-color: var(--ink, #0c0c0c); color: var(--surface, #ffffff); font-weight: 500; } .ds-sort:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
+    },
+    {
+      "name": "Select",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "Picker select with a small label above.",
+      "html": "<label class=\"ds-field\"><span>Categorie</span><select class=\"ds-select\"><option>Toate categoriile</option></select></label>",
+      "css": ".ds-field { display: block; max-width: 18rem; } .ds-field > span { display: block; margin-bottom: 6px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; font-weight: 500; color: var(--ink-2, #333333); } .ds-select { height: 44px; width: 100%; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line-strong, #b3b3b3); background: var(--surface, #ffffff); color: var(--ink, #0c0c0c); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; } .ds-select:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
+    },
+    {
+      "name": "Site Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky header tabs; active tab carries a 2px ink underline.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a\" aria-current=\"page\" href=\"#\">Panou</a><a class=\"ds-nav-a\" href=\"#\">Hartă</a><a class=\"ds-nav-a\" href=\"#\">Recurente</a><a class=\"ds-nav-a\" href=\"#\">Urmărite</a></nav>",
+      "css": ".ds-nav { display: flex; border-bottom: 1px solid var(--line, #d9d9d9); background: var(--surface, #ffffff); } .ds-nav-a { position: relative; display: flex; align-items: center; height: 48px; padding: 0 12px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; color: var(--ink-3, #595959); text-decoration: none; } .ds-nav-a:hover { color: var(--ink, #0c0c0c); } .ds-nav-a[aria-current='page'] { color: var(--ink, #0c0c0c); font-weight: 500; } .ds-nav-a[aria-current='page']::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 2px; border-radius: 9999px; background: var(--ink, #0c0c0c); } .ds-nav-a:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Chart Desk",
+    "overview": "**Creative North Star: \"The Chart Desk\"**\n\nSesizări Cluj reads like the data page of a financial weekly turned on a city hall: white paper, near-black ink, one red that means \"here is the problem\", one blue that means \"here is data\". Every finding opens with the desk's red tag, states its verdict as the headline, proves it with a chart that carries a title, a subtitle and a source line, and then quotes the city's own reply as evidence beside the city's own label. The tone is deadpan: the system does not grade, it arranges checkable numbers so the dysfunction is visible.\n\nDensity is editorial rather than dashboard: long single column on phones, a two-thirds / one-third split at desktop for the opening viewport, then full-width sections separated by red hairlines. There are no KPI tiles, no card grids, no decorative colour; the only cards are the quoted example replies. Depth is flat. Motion is absent apart from native details/summary disclosure.\n\nThe faces are free relatives chosen for the financial-press look: Roboto Serif narrowed on its width axis, Source Sans 3, Roboto Condensed. No publication's name, logo or typefaces are used anywhere; only the chart-desk colour conventions are matched.",
+    "keyCharacteristics": [
+      "White paper, near-black ink, hairline rules instead of boxes.",
+      "Red is reserved for the section tag and the dysfunction findings; blue is ordinary data.",
+      "The verdict is the heading; no label sits above it.",
+      "Narrow bold serif headlines, condensed figures, plain sans for reading, the city's replies in serif.",
+      "The city's official label printed as a bordered uppercase tag beside its quoted words, with a count.",
+      "Every chart carries a title, subtitle and source line.",
+      "Light and dark from `prefers-color-scheme`; every pair clears AA."
+    ],
+    "rules": [
+      {
+        "name": "The Red Means Problem Rule",
+        "body": "Red appears only as the section tag and on the dysfunction findings (templated replies, \"Favorabil\" with no stated fix, reports left open). If a series is not a finding, it is blue or ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Unjudged Label Rule",
+        "body": "The outcome scale reports the city's own labels and contains no red. Favourable is blue, not green; rejected is purple, not red.",
+        "section": "colors"
+      },
+      {
+        "name": "The Map Owns the Category Colours Rule",
+        "body": "The sixteen category colours live on the map pages only. The dashboard never colours by category, so a category dot can never be mistaken for an outcome band.",
+        "section": "colors"
+      },
+      {
+        "name": "The Verdict Is the Heading Rule",
+        "body": "A finding section's h2 is its one-line verdict, generated from the numbers it states. The section name exists only for screen readers and anchors; nothing is printed above the headline.",
+        "section": "typography"
+      },
+      {
+        "name": "The 12px Floor Rule",
+        "body": "No text is set below 12px (`text-xs`), axis ticks and captions included.",
+        "section": "typography"
+      },
+      {
+        "name": "The Comma Rule",
+        "body": "Every number goes through ro-RO formatting: \"86,9%\", thousands with a dot, and \"de\" before the noun from 20 up. Use tabular figures wherever digits align.",
+        "section": "typography"
+      },
+      {
+        "name": "The Rules, Not Boxes Rule",
+        "body": "Separate with a line, not a card or a shadow. The quoted example replies are the only bordered cards.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do open every finding section with the red tag rule and make its verdict the h2 in the narrow serif.",
+      "Do keep red for the tag and the dysfunction findings; draw ordinary data in chart blue (#006ba2, dark #4ea1d3) or ink.",
+      "Do quote the city's reply verbatim in serif (max 72ch) beside its official label as a bordered uppercase tag, with the count.",
+      "Do give every chart a title, a subtitle and the source line.",
+      "Do set figures and chart labels in Roboto Condensed with tabular numerals, reading text in Source Sans 3.",
+      "Do print counts with a dashed outline when a base has fewer than 20 reports.",
+      "Do format every number ro-RO, keep text at 12px or above and AA contrast in both schemes, and make touch targets at least 44px.",
+      "Do colour deltas amber (up) and teal (down) for direction only."
+    ],
+    "donts": [
+      "Don't use red on an ordinary data series, a delta, or an outcome band.",
+      "Don't print an eyebrow, kicker or section label above a verdict headline.",
+      "Don't use the sixteen category colours anywhere but the map.",
+      "Don't add KPI tiles, card grids, shadows or decorative colour; separate with rules.",
+      "Don't use any publication's name, logo or typefaces; the system matches colour conventions only.",
+      "Don't fit a share chart's scale to its data, or show a percentage on a base under 20."
+    ]
+  }
+}
