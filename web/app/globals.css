@@ -81,12 +81,11 @@
   Faces are loaded by next/font in layout.tsx, which self-hosts them and exposes
   each as a CSS variable. One family carries the whole site: Inter has the
   comma-below ș and ț in latin-ext and true tabular figures, so numbers line up
-  without a second, monospaced face. `font-mono` is kept as an alias for the
-  tabular setting so older call sites keep working while they are migrated.
+  without a second, monospaced face; use `tabular-nums` wherever digits must
+  align.
 */
 @theme inline {
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-inter);
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -120,7 +119,6 @@ body {
   font-feature-settings: 'cv11', 'ss01';
 }
 
-.font-mono,
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }

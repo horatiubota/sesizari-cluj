@@ -165,18 +165,20 @@ export default function OutcomeTable({
                 <Delta cur={r.cur} base={r.ly} />
               </span>
             </div>
-            <div className="mt-2"><OutcomeBar counts={r.o} label={r.label} /></div>
-            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs text-ink-3">
+            <div className="mt-2 flex items-center gap-3">
+              <div className="min-w-0 flex-1"><OutcomeBar counts={r.o} label={r.label} /></div>
+              <span className="shrink-0 text-xs text-ink-3 tabular-nums">{sesizari(r.o[0])} / {weeks} săpt.</span>
+            </div>
+            <dl className="mt-2 grid grid-cols-3 gap-x-3 text-xs">
               {SORTS.slice(1).map((s) => (
-                <div key={s.key} className="contents">
-                  <dt>{s.label}</dt>
+                <div key={s.key} className="min-w-0">
+                  <dt className="truncate text-ink-3">{s.label}</dt>
                   <dd className={`tabular-nums ${
-                    isZero(r.o, s.key as RateKey) ? '' : sort === s.key ? 'font-semibold text-ink' : 'text-ink-2'}`}>
+                    isZero(r.o, s.key as RateKey) ? 'text-ink-3' : sort === s.key ? 'font-semibold text-ink' : 'text-ink-2'}`}>
                     {rate(r.o, s.key as RateKey)}
                   </dd>
                 </div>
               ))}
-              <div className="contents"><dt>în {weeks} săptămâni</dt><dd className="tabular-nums text-ink-2">{sesizari(r.o[0])}</dd></div>
             </dl>
           </li>
         ))}

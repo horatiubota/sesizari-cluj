@@ -563,7 +563,7 @@ export default function MapExplorer() {
         <div className="rounded-md border border-line p-3 text-sm">
           <div className="flex items-baseline justify-between">
             <span className="text-ink-2">În zona afișată</span>
-            <span className="font-mono text-base font-semibold tabular-nums">
+            <span className="text-base font-semibold tabular-nums">
               {loading ? '…' : (data?.total ?? 0).toLocaleString('ro-RO')}
             </span>
           </div>
@@ -611,7 +611,7 @@ export default function MapExplorer() {
                 inputMode="numeric"
                 aria-invalid={idMiss ? true : undefined}
                 aria-describedby={idMiss || idOutside ? 'id-lookup-msg' : undefined}
-                className="w-full rounded border border-line-strong bg-transparent px-2 py-1.5 font-mono text-sm focus:border-ink-3"
+                className="w-full rounded border border-line-strong bg-transparent px-2 py-1.5 tabular-nums text-sm focus:border-ink-3"
               />
               <button type="submit" disabled={idBusy || !idQuery.trim()}
                 className="shrink-0 rounded border border-line-strong px-2.5 text-sm transition hover:bg-sunken disabled:cursor-not-allowed disabled:text-line-strong">
@@ -642,7 +642,7 @@ export default function MapExplorer() {
               {Q_SCOPES.map((o) => (
                 <button key={o.key} type="button" onClick={() => setQScope(o.key)}
                   aria-pressed={qScope === o.key} title={o.hint}
-                  className={`rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
+                  className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
  qScope === o.key
  ? 'border-ink bg-ink text-surface '
  : 'border-line-strong text-ink-2 hover:border-ink-3 '
@@ -660,7 +660,7 @@ export default function MapExplorer() {
             {RANGES.map((r) => (
               <button key={r.key} type="button" onClick={() => setRange(r.key)}
                 aria-pressed={range === r.key}
-                className={`rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
+                className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs transition pointer-coarse:min-h-11 ${
  range === r.key
  ? 'border-ink bg-ink text-surface '
  : 'border-line-strong text-ink-2 hover:border-ink-3 '
@@ -778,7 +778,7 @@ export default function MapExplorer() {
           >
             <header className="flex items-start justify-between gap-2 border-b border-line px-3 py-2">
               <div className="min-w-0">
-                <span className="block font-mono text-xs text-ink-3">{selectedId}</span>
+                <span className="block tabular-nums text-xs text-ink-3">{selectedId}</span>
                 {cat && (
                   <span className="mt-0.5 inline-flex items-center gap-1.5 text-sm font-medium">
                     <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full"

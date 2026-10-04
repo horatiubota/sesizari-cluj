@@ -139,8 +139,12 @@ function YearlyTable({ monthly }: { monthly: { month: string; total: number; fav
     for (let i = 0; i < 6; i++) y[i] += c[i]!;
     years.set(m.month.slice(0, 4), y as Counts);
   }
+  // sr-only goes on a wrapper: a <table> ignores the 1px width that sr-only
+  // relies on and lays out at full content width, which widened the phone
+  // viewport to 712px.
   return (
-    <table className="sr-only">
+    <div className="sr-only">
+    <table>
       <caption>Cum s-au închis sesizările, pe anul depunerii</caption>
       <thead>
         <tr><th scope="col">An</th><th scope="col">Sesizări</th>{BANDS.map((b) => <th key={b.key} scope="col">{b.label}</th>)}</tr>
@@ -154,6 +158,7 @@ function YearlyTable({ monthly }: { monthly: { month: string; total: number; fav
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -339,28 +344,38 @@ export default async function Dashboard() {
           >
             <div className="grid gap-8 lg:grid-cols-5">
               <div className="lg:col-span-3">
-                <div className="grid grid-cols-[2.25rem_1fr]">
+                <div className="grid grid-cols-[2.75rem_1fr]">
                   <div className="relative" aria-hidden="true">
                     {[100, 75, 50, 25, 0].map((v) => (
                       <span key={v} className="absolute right-2 -translate-y-1/2 text-xs text-ink-3 tabular-nums"
                         style={{ top: `${100 - v}%` }}>{v}%</span>
                     ))}
                   </div>
-                  <StepCurve points={resolution.points} />
+                  <div className="relative">
+                    <StepCurve points={resolution.points} />
+                    {resolution.median_day !== null && (
+                      <span aria-hidden="true" className="absolute inset-y-0 w-px border-l border-dashed border-ink"
+                        style={{ left: `${(resolution.median_day / lastDay) * 100}%` }}>
+                        <span className="absolute top-0 left-1.5 rounded-sm bg-bg/90 px-1 text-xs whitespace-nowrap text-ink">
+                          jumătate închise în {resolution.median_day} {resolution.median_day === 1 ? 'zi' : 'zile'}
+                        </span>
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {/* Each day owns an equal slice and its step lands on the slice's right
                     edge, so right-aligning the labels puts them under their own step.
                     A month of two-digit labels needs ~350px, wider than a small phone,
                     so below sm every slice stays (keeping the alignment) but only day 1
                     and the week marks print; min-w-0 stops any label widening the page. */}
-                <div className="mt-1.5 ml-9 flex text-xs text-ink-3" aria-hidden="true">
+                <div className="mt-1.5 ml-11 flex text-xs text-ink-3" aria-hidden="true">
                   {resolution.points.map((p) => (
                     <span key={p.day} className="min-w-0 flex-1 text-right tabular-nums">
                       <span className={p.day === 1 || p.day % 7 === 0 ? undefined : 'max-sm:hidden'}>{p.day}</span>
                     </span>
                   ))}
                 </div>
-                <div className="mt-1 ml-9 text-xs text-ink-3">zile de la depunere</div>
+                <div className="mt-1 ml-11 text-xs text-ink-3">zile de la depunere</div>
               </div>
 
               <div className="lg:col-span-2">

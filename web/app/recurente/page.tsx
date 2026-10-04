@@ -61,7 +61,7 @@ export default async function Recurente({
       </p>
 
       <section className="mt-5 max-w-2xl rounded-md border border-line-strong p-4 text-sm leading-relaxed">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-3">Cum se citesc datele</h2>
+        <h2 className="text-sm font-semibold">Cum se citesc datele</h2>
         <p className="mt-2 text-ink-2">
           Repetarea nu înseamnă același lucru pentru toate categoriile.
         </p>
@@ -87,7 +87,7 @@ export default async function Recurente({
       <div className="mt-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <Link key={t.key} href={`/recurente?tip=${t.key}`}
-            className={`rounded-full border px-3 py-1 text-sm transition pointer-coarse:min-h-11 ${
+            className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-sm transition pointer-coarse:min-h-11 ${
  meaning === t.key
  ? 'border-ink bg-ink text-surface '
  : 'border-line-strong '
@@ -104,7 +104,7 @@ export default async function Recurente({
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[46rem] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-line-strong text-left text-xs uppercase tracking-wide text-ink-3">
+            <tr className="border-b border-line-strong text-left text-xs text-ink-3">
               <th className="py-2 pr-3 font-medium">Sesizări</th>
               <th className="py-2 pr-3 font-medium">Ani</th>
               <th className="py-2 pr-3 font-medium">Favorabil</th>
@@ -117,11 +117,11 @@ export default async function Recurente({
           <tbody>
             {clusters.map((c) => (
               <tr key={c.cluster_id} className="border-b border-line align-top">
-                <td className="py-2 pr-3 font-mono tabular-nums">{c.n}</td>
+                <td className="py-2 pr-3 tabular-nums">{c.n}</td>
                 <td className="py-2 pr-3 tabular-nums">{c.years_spanned}</td>
                 <td className="py-2 pr-3 tabular-nums">{c.pct_favorabil}%</td>
                 <td className="py-2 pr-3">{c.category}</td>
-                <td className="py-2 pr-3 text-ink-2">{c.neighborhood ?? '—'}</td>
+                <td className="py-2 pr-3 text-ink-2">{c.neighborhood ?? 'Fără locație'}</td>
                 <td className="py-2 pr-3 whitespace-nowrap tabular-nums text-ink-2">
                   {yr(c.first_at)}–{yr(c.last_at)}
                 </td>
@@ -130,7 +130,7 @@ export default async function Recurente({
                     {c.recent_tickets.slice(0, 3).map((t) => (
                       <a key={t} href={`https://mycluj.e-primariaclujnapoca.ro/?c=${t}`}
                         target="_blank" rel="noreferrer"
-                        className="font-mono text-xs underline underline-offset-2">
+                        className="tabular-nums text-xs underline underline-offset-2">
                         {t.replace('CAS-0', '')}
                       </a>
                     ))}

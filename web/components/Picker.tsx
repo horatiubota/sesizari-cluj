@@ -164,7 +164,10 @@ function WeeklyVolume({ weeks, values }: { weeks: string[]; values: number[] }) 
   if (!total) return null;
   return (
     <figure className="mt-6">
-      <figcaption className="text-xs font-medium text-ink-2">Sesizări pe săptămână</figcaption>
+      <figcaption className="text-xs text-ink-2">
+        <span className="font-medium">Sesizări pe săptămână</span>
+        <span className="text-ink-3"> · ultima săptămână evidențiată</span>
+      </figcaption>
       <div role="img"
         aria-label={`Sesizări pe săptămână, ${weeks.map((w, i) => `${fmt(w)}: ${values[i]}`).join('; ')}`}
         className="mt-2 flex h-16 items-end gap-1">
@@ -176,7 +179,7 @@ function WeeklyVolume({ weeks, values }: { weeks: string[]; values: number[] }) 
       </div>
       <div className="mt-1 flex justify-between text-xs text-ink-3 tabular-nums" aria-hidden="true">
         <span>{weeks[0] ? fmt(weeks[0]) : ''}</span>
-        <span>max {nf.format(max)}/săpt. · ultima săptămână evidențiată</span>
+        <span>max {nf.format(max)}</span>
         <span>{weeks.at(-1) ? fmt(weeks.at(-1)!) : ''}</span>
       </div>
     </figure>

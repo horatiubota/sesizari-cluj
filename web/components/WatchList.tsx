@@ -198,7 +198,7 @@ export default function WatchList() {
               Linkul conține {pending.length === 1 ? 'o sesizare' : `${pending.length} sesizări`}.
             </span>
             <button onClick={() => merge(pending)}
-              className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
+              className="inline-flex items-center justify-center rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
               Adaugă în lista mea
             </button>
           </div>
@@ -231,12 +231,12 @@ export default function WatchList() {
         </div>
         <div className="flex gap-2">
           <button onClick={share}
-            className="rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 transition hover:bg-sunken">
+            className="inline-flex items-center justify-center rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 transition hover:bg-sunken">
             {copied ? 'Link copiat' : 'Copiază link'}
           </button>
           <button
             onClick={() => { if (confirm('Ștergi toate sesizările urmărite?')) clear(); }}
-            className="rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 text-ink-2 transition hover:bg-sunken">
+            className="inline-flex items-center justify-center rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 text-ink-2 transition hover:bg-sunken">
             Golește
           </button>
         </div>
@@ -249,7 +249,7 @@ export default function WatchList() {
             care nu le urmărești.
           </span>
           <button onClick={() => setImported(merge(pending))}
-            className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
+            className="inline-flex items-center justify-center rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
             Adaugă în lista mea
           </button>
         </div>
@@ -318,7 +318,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
             )}
             <span className="truncate">{r.category}</span>
           </span>
-          <p className="mt-0.5 font-mono text-xs text-ink-3">
+          <p className="mt-0.5 tabular-nums text-xs text-ink-3">
             {r.ticket_number}
             {r.neighborhood ? ` · ${r.neighborhood}` : ''}
             {` · raportată ${dt(r.created_at)}`}
@@ -379,7 +379,7 @@ function Card({ r, onRemove }: { r: Row; onRemove: (t: string) => void }) {
             <ul className="mt-2 space-y-1.5 border-l-2 border-line-strong pl-2">
               {r.followups.map((f) => (
                 <li key={f.ticket_number} className="text-sm">
-                  <span className="font-mono text-xs text-ink-3">
+                  <span className="tabular-nums text-xs text-ink-3">
                     {f.ticket_number} · {dt(f.created_at)}
                   </span>
                   <p className="text-ink-2">{f.description ?? '—'}</p>
