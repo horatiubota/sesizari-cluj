@@ -3,42 +3,47 @@
 /*
   Design tokens.
 
-  One neutral ramp, one ink, and a dedicated outcome scale. Everything a page
-  draws comes from here, so light and dark stay in step and no component picks
-  its own grey.
+  The palette follows the conventions of the financial-press chart desks:
+  white paper, near-black ink, the chart-desk red (#e3120b) for the tag on
+  every section and for the dysfunction this site measures, and the chart-desk
+  blue (#006ba2) as the colour of data. Colour values are matched exactly;
+  nothing here borrows a publication's name, logo or typefaces.
 
-  The outcome scale is deliberately not drawn from the 16 category colours. The
-  previous palette reused four of them -- Favorabil was the Spații verzi green,
-  Respinsă the Parcări red -- so a category row's bar and its outcome strip
-  could not be told apart. It is a muted set read mostly by lightness: a sage
-  for favourable, sand for partial, dark slate for rejected, with pattern
-  carrying the two bands that are not outcomes of the city's own work --
-  "transferred" is hatched slate, "still open" is hatched pale grey. There is no
-  red: a rejection is a recorded outcome, not an alarm, and the site does not
-  grade the city. Blue is kept for interaction and focus only.
+  Red is reserved. It marks the findings -- template replies, "Favorabil" with
+  no stated fix, reports left open -- and the section tag. It never marks an
+  ordinary data series, so wherever it appears it means "this is the problem".
+
+  The outcome scale (the city's own labels) is drawn from the chart palette and
+  never from the 16 category colours, so a category dot and an outcome band
+  cannot be confused. "Transferred" and "still open" carry a hatch because they
+  are not outcomes of the city's own work. There is no red in it: the official
+  label is reported, not graded.
 
   Ink tiers are chosen for contrast, not taste: --ink-2 and --ink-3 both clear
-  4.5:1 on --bg and --surface, so secondary text can carry data. Anything that
-  must recede further is a rule or a fill, never text.
+  4.5:1 on --bg, --surface and --sunken, so secondary text can carry data.
 */
 :root {
-  --bg: #f7f7f5;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --sunken: #efefec;
-  --line: #e2e2de;
-  --line-strong: #c9c9c3;
-  --ink: #17181a;
-  --ink-2: #4a4c50;
-  --ink-3: #66686d;
-  --focus: #2b59c3;
+  --sunken: #f2f2f2;
+  --line: #d9d9d9;
+  --line-strong: #b3b3b3;
+  --ink: #0c0c0c;
+  --ink-2: #333333;
+  --ink-3: #595959;
+  --focus: #006ba2;
 
-  --o-fav: #4f7464;
-  --o-part: #c8b68c;
-  --o-transf: #6f7a8c;
-  --o-transf-bg: #e3e6eb;
-  --o-resp: #2e3136;
-  --o-open: #e4e4df;
-  --o-open-hatch: #c4c4bd;
+  --tag: #e3120b;
+  --alarm: #e3120b;
+  --chart: #006ba2;
+
+  --o-fav: #006ba2;
+  --o-part: #3ebcd2;
+  --o-transf: #758d99;
+  --o-transf-bg: #e4eaed;
+  --o-resp: #9a607f;
+  --o-open: #e6e6e6;
+  --o-open-hatch: #bfbfbf;
 
   --up: #a1530b;
   --down: #0f6e6e;
@@ -51,23 +56,27 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111214;
-    --surface: #18191c;
-    --sunken: #0c0d0e;
-    --line: #2a2c30;
-    --line-strong: #3d4046;
-    --ink: #ececea;
-    --ink-2: #b6b8bb;
-    --ink-3: #9a9da1;
-    --focus: #8fb0ff;
+    --bg: #121417;
+    --surface: #181b1f;
+    --sunken: #1c1f23;
+    --line: #2e3137;
+    --line-strong: #474c54;
+    --ink: #f0f0f0;
+    --ink-2: #d0d0d0;
+    --ink-3: #a3a3a3;
+    --focus: #3ebcd2;
 
-    --o-fav: #7fa894;
-    --o-part: #8e7f5c;
-    --o-transf: #9aa3b2;
-    --o-transf-bg: #2a2e36;
-    --o-resp: #e2e4e7;
-    --o-open: #2f3135;
-    --o-open-hatch: #45484d;
+    --tag: #ff4d45;
+    --alarm: #ff4d45;
+    --chart: #4ea1d3;
+
+    --o-fav: #4ea1d3;
+    --o-part: #9fdde8;
+    --o-transf: #9aa9b2;
+    --o-transf-bg: #263038;
+    --o-resp: #c48fae;
+    --o-open: #33373d;
+    --o-open-hatch: #4a4f57;
 
     --up: #f0a35e;
     --down: #5cc7c0;
@@ -79,13 +88,19 @@
 
 /*
   Faces are loaded by next/font in layout.tsx, which self-hosts them and exposes
-  each as a CSS variable. One family carries the whole site: Inter has the
-  comma-below ș and ț in latin-ext and true tabular figures, so numbers line up
-  without a second, monospaced face; use `tabular-nums` wherever digits must
-  align.
+  each as a CSS variable:
+
+    sans  -- Source Sans 3, everything that is read;
+    serif -- Roboto Serif, headlines and the city's quoted replies, narrowed on
+             its width axis through `.headline`;
+    cond  -- Roboto Condensed, big figures and chart labels.
+
+  Use `tabular-nums` wherever digits must align.
 */
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-sans-face), system-ui, sans-serif;
+  --font-serif: var(--font-serif-face), Georgia, serif;
+  --font-cond: var(--font-cond-face), "Arial Narrow", sans-serif;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -96,6 +111,9 @@
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-focus: var(--focus);
+  --color-tag: var(--tag);
+  --color-alarm: var(--alarm);
+  --color-chart: var(--chart);
   --color-up: var(--up);
   --color-down: var(--down);
   --color-warn: var(--warn);
@@ -116,11 +134,37 @@ html {
 
 body {
   font-family: var(--font-sans);
-  font-feature-settings: 'cv11', 'ss01';
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Narrow, tall serif headlines: long Romanian sentences fit in two lines. */
+.headline {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-variation-settings: "wdth" 72, "opsz" 36;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+/*
+  The section tag: a short red bar sitting on a hairline red rule, the chart
+  desk's way of saying "a finding starts here".
+*/
+.tagged {
+  position: relative;
+  border-top: 1px solid var(--tag);
+}
+.tagged::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2.25rem;
+  height: 0.5rem;
+  background: var(--tag);
 }
 
 ::selection {

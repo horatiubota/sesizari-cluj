@@ -1,299 +1,334 @@
 ---
 name: Sesizări Cluj
-description: A calm, light, sortable public-data dashboard where outcomes, not volume, lead every comparison.
+description: A city's complaint replies laid out with financial-press chart-desk discipline; the finding is the headline, the chart proves it, the city's own words are the evidence.
 colors:
-  bg: "#f7f7f5"
+  bg: "#ffffff"
   surface: "#ffffff"
-  sunken: "#efefec"
-  line: "#e2e2de"
-  line-strong: "#c9c9c3"
-  ink: "#17181a"
-  ink-2: "#4a4c50"
-  ink-3: "#66686d"
-  focus: "#2b59c3"
-  o-fav: "#4f7464"
-  o-part: "#c8b68c"
-  o-transf: "#6f7a8c"
-  o-transf-bg: "#e3e6eb"
-  o-resp: "#2e3136"
-  o-open: "#e4e4df"
-  o-open-hatch: "#c4c4bd"
+  sunken: "#f2f2f2"
+  line: "#d9d9d9"
+  line-strong: "#b3b3b3"
+  ink: "#0c0c0c"
+  ink-2: "#333333"
+  ink-3: "#595959"
+  focus: "#006ba2"
+  tag: "#e3120b"
+  alarm: "#e3120b"
+  chart: "#006ba2"
+  o-fav: "#006ba2"
+  o-part: "#3ebcd2"
+  o-transf: "#758d99"
+  o-transf-bg: "#e4eaed"
+  o-resp: "#9a607f"
+  o-open: "#e6e6e6"
+  o-open-hatch: "#bfbfbf"
   up: "#a1530b"
   down: "#0f6e6e"
   warn: "#8a4b08"
   warn-bg: "#fbf1e3"
 typography:
-  display:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "2.5rem"
-    fontWeight: 600
-    lineHeight: 1
-    letterSpacing: "-0.025em"
-    fontFeature: "'cv11', 'ss01', 'tnum'"
-  headline:
-    fontFamily: "Inter, sans-serif"
+  headline-finding:
+    fontFamily: "Roboto Serif, Georgia, serif"
+    fontSize: "2rem"
+    fontWeight: 700
+    lineHeight: 1.15
+    letterSpacing: "-0.005em"
+    fontVariation: "'wdth' 72, 'opsz' 36"
+  headline-section:
+    fontFamily: "Roboto Serif, Georgia, serif"
     fontSize: "1.5rem"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
-    fontFeature: "'cv11', 'ss01'"
-  title:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.55
-    letterSpacing: "-0.025em"
-    fontFeature: "'cv11', 'ss01'"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.005em"
+    fontVariation: "'wdth' 72, 'opsz' 36"
+  figure-lead:
+    fontFamily: "Roboto Condensed, Arial Narrow, sans-serif"
+    fontSize: "3rem"
+    fontWeight: 700
+    lineHeight: 1
+    fontFeature: "'tnum'"
   figure:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.55
-    fontFeature: "'cv11', 'ss01', 'tnum'"
+    fontFamily: "Roboto Condensed, Arial Narrow, sans-serif"
+    fontSize: "1.75rem"
+    fontWeight: 700
+    lineHeight: 1
+    fontFeature: "'tnum'"
+  quote:
+    fontFamily: "Roboto Serif, Georgia, serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.625
   body:
-    fontFamily: "Inter, sans-serif"
+    fontFamily: "Source Sans 3, system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.625
+  note:
+    fontFamily: "Source Sans 3, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.625
-    fontFeature: "'cv11', 'ss01'"
-  control:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "15px"
+  chart-label:
+    fontFamily: "Roboto Condensed, Arial Narrow, sans-serif"
+    fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.4
-    fontFeature: "'cv11', 'ss01'"
+    fontFeature: "'tnum'"
   label:
-    fontFamily: "Inter, sans-serif"
+    fontFamily: "Source Sans 3, system-ui, sans-serif"
     fontSize: "0.75rem"
-    fontWeight: 500
-    lineHeight: 1.33
-    fontFeature: "'cv11', 'ss01'"
+    fontWeight: 600
+    lineHeight: 1
+    letterSpacing: "0.025em"
+  caption:
+    fontFamily: "Source Sans 3, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 400
+    lineHeight: 1.625
 rounded:
-  hairline: "2px"
+  swatch: "2px"
+  sm: "2px"
   strip: "3px"
-  control: "6px"
-  panel: "8px"
-  pill: "9999px"
+  md: "6px"
+  full: "9999px"
 spacing:
   xs: "4px"
   sm: "8px"
-  md: "16px"
-  lg: "24px"
-  xl: "32px"
-  2xl: "48px"
+  md: "12px"
+  lg: "20px"
+  xl: "24px"
+  2xl: "32px"
+  3xl: "48px"
+  tag-bar: "2.25rem"
 components:
-  button-toggle:
+  section-tag:
+    backgroundColor: "{colors.tag}"
+    width: "2.25rem"
+    height: "0.5rem"
+  finding-headline:
+    textColor: "{colors.ink}"
+    typography: "{typography.headline-finding}"
+  finding-numeral:
+    textColor: "{colors.alarm}"
+    typography: "{typography.figure-lead}"
+  official-label:
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.sm}"
+    padding: "2px 6px"
+  reply-quote:
+    textColor: "{colors.ink}"
+    typography: "{typography.quote}"
+    width: "72ch"
+  example-card:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  sort-button:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink-2}"
-    rounded: "{rounded.control}"
-    typography: "{typography.body}"
+    rounded: "{rounded.md}"
     padding: "0 14px"
     height: "44px"
-  button-toggle-selected:
+  sort-button-active:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.surface}"
-    rounded: "{rounded.control}"
+    rounded: "{rounded.md}"
+    padding: "0 14px"
     height: "44px"
-  chip-filter:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.ink-2}"
-    rounded: "{rounded.pill}"
-    typography: "{typography.label}"
-    padding: "4px 12px"
-  chip-filter-selected:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.surface}"
-    rounded: "{rounded.pill}"
   select:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.control}"
-    typography: "{typography.control}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
     padding: "0 12px"
     height: "44px"
-  panel:
-    backgroundColor: "{colors.surface}"
-    rounded: "{rounded.panel}"
-    padding: "24px"
+  nav-link:
+    textColor: "{colors.ink-3}"
+    padding: "0 12px"
+    height: "44px"
+  nav-link-active:
+    textColor: "{colors.ink}"
+    padding: "0 12px"
+    height: "44px"
   outcome-strip:
     backgroundColor: "{colors.sunken}"
     rounded: "{rounded.strip}"
     height: "10px"
-  outcome-strip-large:
+  status-chip:
+    textColor: "{colors.ink-2}"
+    typography: "{typography.caption}"
+    rounded: "{rounded.full}"
+    padding: "2px 8px"
+  source-line:
+    textColor: "{colors.ink-3}"
+    typography: "{typography.caption}"
+  freshness-pill:
     backgroundColor: "{colors.sunken}"
-    rounded: "{rounded.strip}"
-    height: "16px"
+    textColor: "{colors.ink-2}"
+    rounded: "{rounded.md}"
+    padding: "6px 10px"
+  freshness-pill-stale:
+    backgroundColor: "{colors.warn-bg}"
+    textColor: "{colors.warn}"
+    rounded: "{rounded.md}"
+    padding: "6px 10px"
 ---
 
 # Design System: Sesizări Cluj
 
 ## Overview
 
-**Creative North Star: "The Public Ledger"**
+**Creative North Star: "The Chart Desk"**
 
-A calm, light reading surface for public records, made to the craft standard of a good data desk. The page is near-white tinted neutral with near-black ink, ruled by hairlines rather than boxed in cards, and almost everything on it is a number set in tabular figures. One idea owns the system: outcomes, not volume, lead every comparison. Wherever reports are counted, a strip in the five outcome bands sits beside the count, its shares printed, and the row can be re-sorted by outcome in one tap.
+Sesizări Cluj reads like the data page of a financial weekly turned on a city hall: white paper, near-black ink, one red that means "here is the problem", one blue that means "here is data". Every finding opens with the desk's red tag, states its verdict as the headline, proves it with a chart that carries a title, a subtitle and a source line, and then quotes the city's own reply as evidence beside the city's own label. The tone is deadpan: the system does not grade, it arranges checkable numbers so the dysfunction is visible.
 
-Colour is rationed by job. Neutrals carry structure and text; a dedicated, muted outcome scale carries how reports were closed; category colours exist only to say which category something is; blue appears only where the visitor is acting. Nothing is coloured to grade the city: there is no red verdict and no green "good". Density is high but quiet: an 8px rhythm, 12px text floor, generous line height on prose, and sections separated by a single top rule.
+Density is editorial rather than dashboard: long single column on phones, a two-thirds / one-third split at desktop for the opening viewport, then full-width sections separated by red hairlines. There are no KPI tiles, no card grids, no decorative colour; the only cards are the quoted example replies. Depth is flat. Motion is absent apart from native details/summary disclosure.
 
-Light and dark are one system. Every token has a dark value under `prefers-color-scheme: dark`, so components never pick their own grey.
+The faces are free relatives chosen for the financial-press look: Roboto Serif narrowed on its width axis, Source Sans 3, Roboto Condensed. No publication's name, logo or typefaces are used anywhere; only the chart-desk colour conventions are matched.
 
 **Key Characteristics:**
-- Near-white tinted-neutral ground, near-black ink, three AA ink tiers.
-- A five-band outcome scale read by lightness and pattern, independent of the 16 category colours, with no red.
-- One family (Inter, latin-ext, tabular figures) for everything, including numbers.
-- Hairline rules between sections and rows; one bordered panel at most per view.
-- Selection is shown by ink fill; blue is reserved for focus and active state.
-- Small samples are marked as small: counts instead of shares, dashed outline on strips.
+- White paper, near-black ink, hairline rules instead of boxes.
+- Red is reserved for the section tag and the dysfunction findings; blue is ordinary data.
+- The verdict is the heading; no label sits above it.
+- Narrow bold serif headlines, condensed figures, plain sans for reading, the city's replies in serif.
+- The city's official label printed as a bordered uppercase tag beside its quoted words, with a count.
+- Every chart carries a title, subtitle and source line.
+- Light and dark from `prefers-color-scheme`; every pair clears AA.
 
 ## Colors
 
-A tinted-neutral ledger with one interaction blue, a muted outcome scale, and a direction-only delta pair.
+A two-voice chart-desk palette on neutral paper: red for problems, blue for data, everything else greyscale or the city's official outcome scale.
 
 ### Primary
-- **Interaction Blue** (`focus`): the only blue. Focus rings (2px outline, 2px offset), text selection tint (22% mix), and the active/inspected column in interactive charts. Never a fill for content, never a link colour, never a selected-control fill.
+- **Chart-Desk Red** (`tag`, `alarm`; dark #ff4d45): the section tag on every section, the large numerals of the four headline findings, the template counts, the categories above the city average in the "Favorabil, dar" chart, and the open-over-90-days buckets. It measures 4.82:1 on white and 5.62:1 on the dark ground, so it can carry numerals. It never paints an ordinary series.
 
-### Secondary: the outcome scale
-Five bands in reading order, shared by every strip, stacked column, legend and key. Read mostly by lightness, with pattern on the two bands that are not outcomes of the city's own work.
-- **Sage** (`o-fav`): Favorabil. Also the resolution curve stroke and the proportional bar default, and the "fresh" dot on the freshness line.
-- **Sand** (`o-part`): Parțial.
-- **Hatched Slate** (`o-transf` stripes at 135deg, 1.5px on 5px, over `o-transf-bg`): Transferată operatorului. In SVG it is the `#o-hatch` pattern.
-- **Dark Slate** (`o-resp`): Respinsă / nefavorabil. Inverts to near-white in dark mode so it stays the extreme of the scale.
-- **Hatched Pale Grey** (`o-open-hatch` stripes at 45deg, 1px on 4px, over `o-open`): Încă deschisă.
+### Secondary
+- **Chart-Desk Blue** (`chart`, also `focus`; dark #4ea1d3, dark focus #3ebcd2): the colour of ordinary data. Weekly and daily volume bars, category sparklines, below-average bars in the category chart, the resolution curve, the focus ring and text selection tint.
 
-### Tertiary: direction of change
-- **Amber Up** (`up`) and **Teal Down** (`down`): year-on-year and period deltas, coloured only by direction, carrying no judgement about which is good. Zero change and bases under 10 print in `ink-3` (bases under 10 show "a → b" counts, not a percentage). This is the owner's explicit decision and the current rule (confirmed 2026-10-04).
-- **Warn** (`warn` on `warn-bg`): operational warnings only, such as the stale-data notice. Kept separate from `up` so that "more than before" never reads as an alarm. 6.1:1 light, 8.6:1 dark.
+### Tertiary: the outcome scale (the city's official labels)
+- **Favorabil** (`o-fav`, dark #4ea1d3): solid chart blue.
+- **Parțial** (`o-part`, dark #9fdde8): light cyan.
+- **Transferată operatorului** (`o-transf` stripes on `o-transf-bg`, dark #9aa9b2 on #263038): slate, 135° hatch, because the outcome is not the city's own work.
+- **Respinsă / nefavorabil** (`o-resp`, dark #c48fae): muted purple.
+- **Încă deschisă** (`o-open` with `o-open-hatch`, dark #33373d / #4a4f57): grey, 45° hatch.
 
-### Category identity (data, not tokens)
-The 16 category colours live in `web/lib/categories.ts` and are used only for category identity: 10px round dots beside category names, sparkline strokes, and map pins. They never paint an outcome, a state, or chrome.
+### Direction and status
+- **Amber Up** (`up`, dark #f0a35e) and **Teal Down** (`down`, dark #5cc7c0): year-on-year and week-on-week deltas, by the owner's explicit decision. Direction only, no judgement.
+- **Stale Amber** (`warn` on `warn-bg`, dark #f3b46b on #2d2214): the freshness pill when data stops updating. Kept separate from `up` so "more than before" never reads as a warning.
 
 ### Neutral
-- **Paper** (`bg`): page ground.
-- **White Sheet** (`surface`): header bar (95% with backdrop blur), the picker panel, controls, map overlay panel. Also the text colour on ink-filled selected controls.
-- **Sunken** (`sunken`): empty track behind strips and bars, quiet chips (freshness line), table row hover at 60%.
-- **Hairline** (`line`): section top rules, row dividers, header bottom border.
-- **Strong Hairline** (`line-strong`): control borders, underline decoration on links, chart baselines and the dashed 50% rule, non-highlighted volume columns.
-- **Ink** (`ink`): primary text, headline figures, selected-control fill, active nav underline, highlighted chart series.
-- **Ink 2** (`ink-2`): secondary text that still carries data: notes, captions, field labels, unselected control text.
-- **Ink 3** (`ink-3`): tertiary text: table headers, axis labels, legends, observed zeros. Clears 4.5:1 on `bg`, `surface` and `sunken`.
+- **White Paper** (`bg`, `surface`; dark #121417 / #181b1f): page and raised surfaces are the same white; separation comes from rules.
+- **Sunken Grey** (`sunken`, dark #1c1f23): empty strip track, freshness pill, row hover.
+- **Hairline** (`line`, dark #2e3137) and **Strong Hairline** (`line-strong`, dark #474c54): row dividers, chart gridlines, control borders, link underlines.
+- **Ink** (`ink`, dark #f0f0f0), **Ink 2** (`ink-2`, dark #d0d0d0), **Ink 3** (`ink-3`, dark #a3a3a3): text tiers. Ink 3 still clears 4.5:1 on paper, surface and sunken in both schemes, so secondary text can carry data.
 
 ### Named Rules
-**The Outcomes Own Their Scale Rule.** Outcome bands come only from the `o-*` tokens via the shared band list; never from a category colour, and never red. A rejection is a recorded outcome, not an alarm.
+**The Red Means Problem Rule.** Red appears only as the section tag and on the dysfunction findings (templated replies, "Favorabil" with no stated fix, reports left open). If a series is not a finding, it is blue or ink.
 
-**The Blue Means You Rule.** `focus` marks only focus, selection tint, and the active element of an interactive chart. Selected controls are ink, not blue.
+**The Unjudged Label Rule.** The outcome scale reports the city's own labels and contains no red. Favourable is blue, not green; rejected is purple, not red.
 
-**The Text Is Ink Rule.** Every text colour is `ink`, `ink-2` or `ink-3` (or `surface` on an ink fill, `up`/`down` on a delta, `warn` on a warning). Anything that must recede further than `ink-3` becomes a rule or a fill, never text.
+**The Map Owns the Category Colours Rule.** The sixteen category colours live on the map pages only. The dashboard never colours by category, so a category dot can never be mistaken for an outcome band.
 
 ## Typography
 
-**Display Font:** Inter (self-hosted via next/font, `latin` + `latin-ext`, sans-serif fallback)
-**Body Font:** Inter
-**Label/Mono Font:** Inter with tabular figures; the `font-mono` utility is an alias for tabular Inter, not a monospaced face.
+**Display Font:** Roboto Serif (with Georgia, serif), variable, narrowed to width 72, optical size 36
+**Body Font:** Source Sans 3 (with system-ui, sans-serif)
+**Label/Mono Font:** Roboto Condensed (with Arial Narrow, sans-serif) for figures and chart labels
 
-**Character:** One workhorse sans carries the whole site: comma-below ș and ț, true tabular figures, `cv11` and `ss01` alternates on the body. Hierarchy comes from size and weight 600, never from a second family.
+**Character:** A tall, narrow, bold serif carries verdicts that are often long Romanian sentences in two balanced lines; a plain humanist sans carries everything read; a condensed sans packs numerals and axis labels tightly. All three load through next/font, self-hosted, with the latin-ext subset for ș and ț with comma-below.
 
 ### Hierarchy
-- **Display** (600, 2.5rem, line-height 1, tight tracking, tabular): the three headline figures only.
-- **Headline** (600, 1.5rem rising to 1.875rem from 640px, tight tracking): the page H1.
-- **Title** (600, 1.125rem, tight tracking): section headings; subheads drop to 1rem or 0.875rem at 600.
-- **Figure** (600, 1.125rem to 1.25rem, tabular): printed shares in outcome legends and long-run stat blocks.
-- **Body** (400, 0.875rem, line-height 1.625, prose capped at 68ch): notes, descriptions, table cells.
-- **Control** (400, 15px): select values and row names on phones, a step above body for thumb-sized targets.
-- **Label** (500 or 400, 0.75rem): field labels, table headers, legends, axis ticks, captions. Sentence case, no tracking.
+- **Finding headline** (700, 1.75rem rising to 2rem at sm, 1.15, wdth 72, max 36ch, balanced): the verdict of each finding section; it is the h2.
+- **Section headline** (700, 1.5rem, 1.25, same narrowed serif): descriptive titles of non-finding sections (picker, tables, curve, daily, monthly, latest).
+- **Lead figure** (Roboto Condensed 700, 3rem, 1, tabular, red): the four headline numerals under black 2px rules.
+- **Figure** (Roboto Condensed 700, 2rem / 1.75rem, 1, tabular): template counts and breakdown values.
+- **Quote** (Roboto Serif 400, 15px, 1.625, max 72ch, in „…” quotes, clamped to four lines with a "Tot textul" disclosure): the city's replies, verbatim.
+- **Body** (Source Sans 3 400, 15px, 1.625): identity line, finding labels, list rows. **Notes** run at 14px, max 68ch, in ink 2.
+- **Chart label** (Roboto Condensed, 13px, tabular): category chart names and values; the chart subtitle runs at 14px condensed in ink 3.
+- **Label** (Source Sans 3 600, 12px, 0.025em, uppercase): the city's official label tag.
+- **Caption** (Source Sans 3, 12px, ink 3): scope lines, legends, axis ticks; the source line sets it in Roboto Condensed.
 
 ### Named Rules
-**The 12px Floor Rule.** No text below 0.75rem (12px), including axis ticks and legend labels. The only sub-label size in use is 13px.
+**The Verdict Is the Heading Rule.** A finding section's h2 is its one-line verdict, generated from the numbers it states. The section name exists only for screen readers and anchors; nothing is printed above the headline.
 
-**The Tabular Rule.** Every number that may be compared is set with `tabular-nums` and formatted `ro-RO`: decimal comma ("86,9%"), non-breaking group separator, "<0,1%" for nonzero shares under 0.05%.
+**The 12px Floor Rule.** No text is set below 12px (`text-xs`), axis ticks and captions included.
 
-**The Honest Zero Rule.** An observed zero prints "0%" (muted to `ink-3` in tables). "—" is reserved for "no reports at all", because a dash in a table reads as missing data.
+**The Comma Rule.** Every number goes through ro-RO formatting: "86,9%", thousands with a dot, and "de" before the noun from 20 up. Use tabular figures wherever digits align.
 
 ## Layout
 
-A single centred column, `max-width` 72rem with 16px side padding (24px from 640px). Narrow reading pages (watch list) cap at 48rem. Prose and notes cap at 68ch.
+One centred column, max 72rem (1152px), 16px side padding rising to 24px at sm. The opening viewport at lg (1024px+) is a three-column grid with 48px gap: identity line, freshness pill, weekly line and the four headline findings (2×2 at sm, 32px × 24px gaps) across two columns, the weekly summary in the third under its own tag. On phones everything stacks and the summary follows the findings.
 
-The dashboard's first band is a 3-column grid from 1024px: two columns for the H1, freshness line, headline figures and picker; one column for latest reports. Below 1024px the aside moves down the page as its own section. Headline figures sit in a row from 640px, separated by vertical hairlines; stacked below with top hairlines.
+Below the fold, sections run full width in a fixed order, each opening with a tag rule: 24px above, 20px top padding inside, 16px bottom. Notes sit 6–8px under the headline; content starts 20–24px below. Inside sections, structure comes from hairline-divided lists (`divide-y` with top and bottom rules) and three-up figure rows with a 1px rule above each value, not from boxes.
 
-Sections are separated by a top hairline with 32px above the heading and 20px between heading/note and content. The spacing rhythm is 8px-based (4, 8, 12, 16, 20, 24, 32, 40, 48px in use).
+Tables become stacked rows below md (768px): name and weekly count with delta, then the outcome strip with its total, then the three rates in a three-column grid. Charts are HTML or stretched SVG with HTML labels, never text inside SVG; axis labels thin out below sm so they never widen the page. Every centred main carries `w-full` so wide tables scroll inside their own box.
 
-Tables become stacked blocks below 768px rather than scrolling sideways: name and 7-day count on one line, strip below, rates as a two-column definition list. Every centred `main` is `w-full` so a wide table scrolls in its own overflow box instead of widening the page on phones.
+Breakpoints are Tailwind defaults: sm 640px, md 768px, lg 1024px.
 
 ## Elevation & Depth
 
-Flat by default. Depth is conveyed by tone (`bg` page, `surface` sheet, `sunken` track) and hairlines, not shadows. The sticky header separates by a bottom hairline and a 95% surface with light backdrop blur.
-
-### Shadow Vocabulary
-- **Map overlay** (`box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`): only the ticket detail panel floating over the map, where tone alone cannot separate it from tiles.
+Flat. There are no shadows anywhere on the dashboard. Depth is conveyed by rules (hairline, strong hairline, 2px ink above headline figures, red tag rule above sections) and by the single sunken grey. The sticky site header is the only layered surface: 95% surface with a light backdrop blur and a hairline below.
 
 ### Named Rules
-**The Hairline Not Card Rule.** Sections are divided by a single top rule. At most one bordered panel per view (the picker), and never a card inside a card.
+**The Rules, Not Boxes Rule.** Separate with a line, not a card or a shadow. The quoted example replies are the only bordered cards.
 
 ## Shapes
 
-Small, quiet corners. Data marks use hairline corners (2px on swatches, bars and column tops; 3px on outcome strips) so they read as measurements, not buttons. Rectangular controls and selects take 6px; the one panel takes 8px. Filter chips and freshness/status chips are pills. Category identity marks are always circles; outcome swatches are always 10px rounded squares, so the two kinds of colour can be told apart by shape too.
+Mostly square. Controls, the freshness pill and example cards take a gentle 6px radius; the official label takes 2px; outcome strips 3px and legend swatches 2px; status chips and the active nav underline are fully rounded. The section tag is a hard-cornered 36 × 8px red bar sitting on a 1px red rule at the left edge. Hatches (135° for transferred, 45° for open) are the system's only patterns. Small samples (under 20 reports) draw the outcome strip with a 1px dashed ink 3 outline offset 2px and print counts ("11 din 12") instead of percentages.
 
 ## Components
 
-### Buttons
-Quiet, rectangular, ink-on-select.
-- **Shape:** gently rounded (6px), 44px tall, 14px side padding, 1px `line-strong` border.
-- **Toggle (sort by):** `surface` ground, `ink-2` text; hover moves border and text to `ink`.
-- **Selected:** `ink` fill and border, `surface` text, weight 500, `aria-pressed`.
-- **Text action (Descarcă CSV, copy link):** no box; `ink-2` text with a `line-strong` underline at 4px offset that darkens to `ink` on hover. Still 44px tall where it stands alone.
-- **Focus:** global 2px `focus` outline, 2px offset.
+### Section Tag
+The chart desk's mark for "a section starts here". A 1px rule in tag red across the top of the section with a 2.25rem × 0.5rem red bar at its left end. Every finding section, every dashboard section, the weekly summary aside and the category chart figure open with it.
 
-### Chips
-- **Style:** pill, 1px `line-strong` border, 12px text (14px on /recurente tabs), 4px by 12px padding.
-- **State:** selected is `ink` fill with `surface` text, same as buttons. On the map, chips grow to 44px minimum height under `pointer: coarse`.
-- **Status chip:** pill with a 1px `line` border, 8px outcome-band dot, 12px `ink-2` text.
+### Finding Section
+Tag, then the verdict h2 in the narrow serif (max 36ch), then an optional note in 14px ink 2 (max 68ch), then the evidence. The verdict is computed from the numbers it states.
 
-### Cards / Containers
-- **Corner Style:** 8px.
-- **Background:** `surface` on `bg`.
-- **Shadow Strategy:** none (see Elevation).
-- **Border:** 1px `line`.
-- **Internal Padding:** 16px, 24px from 640px.
-- Used once, for the category by cartier picker.
+### Headline Findings
+Four linked items in a 2×2 grid, each under a 2px ink rule: a 3rem red condensed numeral, a 15px medium label that underlines on hover, a 12px ink 3 detail line. Each links to the section holding its evidence. A 12px scope line sits above the grid.
 
-### Inputs / Fields
-- **Select:** 44px tall, 6px radius, 1px `line-strong` border, `surface` ground, 15px `ink` text; label above in 12px weight-500 `ink-2`.
-- **Focus:** global blue outline.
-- **Disabled:** 60% opacity (the prerendered picker before hydration).
+### Official Label and Quote
+The signature. The city's label (FAVORABIL, ÎN LUCRU…) as a 12px semibold uppercase tag with a 1px ink border and 2px radius, beside the reply quoted verbatim in serif at max 72ch and the count of times it was sent (a 2rem red condensed "N×"). Ticket numbers link to My Cluj, underlined in strong hairline.
 
-### Navigation
-- Sticky header, 48px bar: wordmark (15px, 600) with a three-bar mark in sage, sand and ink; four destinations; support link last in `ink-3`.
-- **Links:** 14px `ink-3`, hover `ink`. **Active:** `ink`, weight 500, a 2px `ink` underline bar, `aria-current="page"`.
-- **Mobile:** the nav becomes a full-width row of four equal 44px tabs under a top hairline.
-
-### Outcome Strip (signature)
-A 100% strip in the five bands, in fixed order, on a `sunken` track with 3px corners: 10px tall in tables, 16px in the picker answer. Numbers are never hidden behind it: its accessible name lists every nonzero band, and where a sighted reader needs them a legend prints each band's share in 18px tabular figures beside a 10px swatch (two columns on phones, five from 640px). Strips that print no numbers carry the compact outcome key nearby.
-- **Small sample (under 20 reports):** a 1px dashed `ink-3` outline at 2px offset, and counts ("11 din 12") instead of shares. Never fade the strip; fading makes sage read as sand.
-- **Stacked columns** over time reuse the exact same fill classes so one legend reads both.
-
-### Outcome Table
-Ranked rows that can be re-ranked by outcome. Sort toggles above (volume, still open, partial or rejected, rejected), state held in the URL; the active sort column turns `ink` and its values go weight 600. Rows divided by `line` hairlines, hover `sunken` at 60%. Row names link to the map with a category dot when the row is a category. Below 768px each row is a stacked block.
+### Example Card
+The only card: 1px hairline border, 6px radius, surface background, 16px padding, holding label, category, quote and ticket link. Three across at md.
 
 ### Charts
-Dependency-free. No text inside SVG; all labels are HTML. Lines use non-scaling 1.5 to 2px strokes. Resolution curve: sage stroke over a 10% sage area on a fixed 0 to 100% scale, light rules at 25/75% and a dashed `line-strong` 50% rule. Volume columns: `line-strong`, with the latest or inspected column in `ink` (static) or `focus` (interactive, keyboard/pointer active). Sparklines take the category colour.
+Every chart has a title and subtitle (a figcaption, or the section headline and note) and ends with the source line: "Sursa: My Cluj, Primăria Cluj-Napoca; calcule Sesizări Cluj." in 12px condensed ink 3, with an optional method note. Bars are flat, unrounded; the city average is a 1.5px dashed ink rule with its value labelled; scales are fixed (0–60% minimum, 0–100% for the resolution curve) rather than fitted. Interactive charts are readable by pointer, tap and arrow keys, with a live readout above.
+
+### Outcome Strip
+A 100% strip in the five outcome bands, 10px tall (16px large), 3px radius, sunken track, its numbers in its accessible name and printed beside it where they matter. A shared key lists the five bands with 10px swatches.
+
+### Buttons
+- **Sort toggles:** 44px tall, 14px horizontal padding, 6px radius, 1px strong-hairline border on surface with ink 2 text; hover darkens the border and text to ink. Pressed: ink fill, surface text, medium weight, `aria-pressed`.
+- **Text actions** (download CSV, copy link): 44px tall underlined text in ink 2, hover ink.
+
+### Inputs / Fields
+- **Select:** 44px tall, full width, 1px strong-hairline border, 6px radius, surface fill, 15px ink text, 12px label above in medium ink 2. Disabled at 60% opacity.
+- **Focus:** a 2px blue outline offset 2px on every focusable element.
+
+### Navigation
+A sticky header: wordmark with a three-bar glyph (blue, cyan, ink) at left, four tabs, a quiet Ko-fi link last. Tabs are 14px ink 3, hover ink; active is medium ink with a 2px ink underline. Below sm the tabs become a full-width row of equal 44px tabs under a hairline.
+
+### Status Chip
+For a ticket's current state in lists: fully rounded, 1px hairline border, 12px ink 2 text, an 8px round dot in the matching outcome band so lists and strips agree.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** draw every outcome from the shared five-band list and the `o-*` tokens, hatched for transferred and still open.
-- **Do** print shares beside strips wherever the numbers matter, and keep them in the strip's accessible name.
-- **Do** switch to counts and a dashed strip outline below 20 reports, and to "a → b" counts for deltas on bases under 10.
-- **Do** print an observed zero as "0%"; use "—" only when there are no reports.
-- **Do** show selection with an `ink` fill and `surface` text; keep `focus` blue for focus rings, selection tint and the active chart element.
-- **Do** colour deltas only by direction with `up`/`down` (current owner decision, under review).
-- **Do** keep every interactive target at least 44px tall on touch; on the map use `pointer: coarse` to grow chips.
-- **Do** set every compared number in tabular Inter, formatted `ro-RO`.
-- **Do** give every new colour a dark value under `prefers-color-scheme: dark` in the same token.
+- **Do** open every finding section with the red tag rule and make its verdict the h2 in the narrow serif.
+- **Do** keep red for the tag and the dysfunction findings; draw ordinary data in chart blue (#006ba2, dark #4ea1d3) or ink.
+- **Do** quote the city's reply verbatim in serif (max 72ch) beside its official label as a bordered uppercase tag, with the count.
+- **Do** give every chart a title, a subtitle and the source line.
+- **Do** set figures and chart labels in Roboto Condensed with tabular numerals, reading text in Source Sans 3.
+- **Do** print counts with a dashed outline when a base has fewer than 20 reports.
+- **Do** format every number ro-RO, keep text at 12px or above and AA contrast in both schemes, and make touch targets at least 44px.
+- **Do** colour deltas amber (up) and teal (down) for direction only.
 
 ### Don't:
-- **Don't** use a category colour for an outcome, a state, or chrome; category colours are for identity dots, sparklines and map pins only.
-- **Don't** use red, or green-as-good, to judge an outcome or a change.
-- **Don't** set text below 12px or in any colour lighter than `ink-3`.
-- **Don't** fade a strip to signal uncertainty; outline it.
-- **Don't** add a second typeface or a monospaced face for figures.
-- **Don't** box sections in cards or nest cards; separate with a top hairline.
-- **Don't** put labels inside SVG or let a share chart's scale fit the data; shares sit on a fixed 0 to 100% scale.
+- **Don't** use red on an ordinary data series, a delta, or an outcome band.
+- **Don't** print an eyebrow, kicker or section label above a verdict headline.
+- **Don't** use the sixteen category colours anywhere but the map.
+- **Don't** add KPI tiles, card grids, shadows or decorative colour; separate with rules.
+- **Don't** use any publication's name, logo or typefaces; the system matches colour conventions only.
+- **Don't** fit a share chart's scale to its data, or show a percentage on a base under 20.

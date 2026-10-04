@@ -49,7 +49,7 @@ export default function OutcomeBar({
                 <span className={`${b.cls} inline-block h-2.5 w-2.5 shrink-0 rounded-[2px]`} />
                 <span className="truncate">{b.short}</span>
               </span>
-              <span className="mt-0.5 block text-lg font-semibold tabular-nums">
+              <span className="mt-0.5 block font-cond text-xl font-bold tabular-nums">
                 {thin ? counts[b.idx] : pct(counts[b.idx], total)}
               </span>
             </li>

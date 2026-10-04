@@ -5,26 +5,26 @@ primary_target: "web/app/page.tsx"
 related_targets: ["web/app/harta/page.tsx","web/app/recurente/page.tsx","web/app/urmarite/page.tsx","web/app/layout.tsx"]
 ---
 
-# Surface brief: Sesizări Cluj web (whole site, dashboard first)
+# Surface brief: Sesizări Cluj web (whole site, dashboard first) — v2
 
-Mode: Operate. Scope: shared shell + tokens, dashboard restructure, /harta /recurente /urmarite restyled (confirm any structural change on those pages with the user first).
+Mode: Operate. Scope: dashboard restructured around what the city's replies say; shell, tokens and type site-wide; /harta /recurente /urmarite restyled only.
 
-Audience and job: Cluj residents on phones asking "what happens to reports like this, here?"; journalists/civic groups who sort, cite and download. Proof is the real corpus only; every figure traceable to MyCluj; never assert unobserved close dates.
+Stance (PRODUCT.md, owner decision 2026-10-04): neutral, checkable data arranged so the complaint system's dysfunction is visible. Deadpan: the city's label next to the city's words, a number, one short factual verdict line per section. Never lead with favourable rates.
 
-Dashboard order: overview (visible freshness + 3 headline numbers) → category × cartier picker (outcome breakdown with printed non-favourable shares + volume trend; no per-combination time-to-close; precomputed at build) → sortable category and cartier tables (volume / % nefavorabil / % respinse / % deschise; stacked rows on mobile; legend beside strips) → resolution curve + checkpoints → daily volume (total + top 5) → monthly outcomes since 2017 with factual mid-2021 note → latest reports → weekly AI summary collapsed → method notes. URL holds picker, sort, window. CSV per table from build-time data.
+Audience and job: Cluj residents on phones; journalists and civic groups who sort, cite, download. Every figure traceable to MyCluj; heuristics stated with their measured accuracy in the method notes.
 
-Unresolved at build start: typeface (Inter vs alternative), exact outcome palette, layouts of the three secondary pages, Ko-fi placement.
+Dashboard order: one-line identity (independent mirror of My Cluj, linked) + freshness → weekly count with change vs previous week and vs last year → four findings (template replies %, "Favorabil" with no stated fix, infrastructure places re-reported ≥3 years, reports open >90 days) with the AI weekly summary beside them on desktop / after them on phones → Ce răspunde Primăria (top templates quoted in full) → „Favorabil”, dar… (breakdown, per-category chart vs city average, recent examples) → Rezolvat, raportat din nou → Încă deschise → picker (template %, no-fix %, open %; official labels as context) → category and cartier tables (sort by volume / template / no-fix / open; CSV) → resolution curve → daily volume → monthly history → latest reports → method notes.
 
 ## Direction contract
 
-THESIS: The category standard executed at Datawrapper/Linear/FT craft: a calm, light, sortable public-data dashboard whose one owned idea is that outcomes, not volume, lead every comparison. It refuses the grey-card KPI template with equal-weight sections and decorative 16-colour charts.
+THESIS: Financial-press chart-desk discipline applied to a city's complaint replies: the finding is the headline, the chart proves it, the city's own words are quoted as evidence. It refuses the KPI-tile dashboard and any decorative colour.
 
-OWN-WORLD: Near-white tinted-neutral ground, ink near-black, one blue accent reserved for interaction and selection. A dedicated outcome scale independent of category colours: favourable a deep neutral-green-grey, partial and transferred as mid tones with pattern support, rejected/unfavourable a dark slate, open a light hatched grey; no red verdict colour. One workhorse sans with tabular figures and full ș/ț; numbers in ro-RO format. Hairline rules, no cards-in-cards, 8px rhythm, 12px minimum text.
+OWN-WORLD: White paper, near-black ink, the chart-desk red (#e3120b) used only for the section tag and for the dysfunction (templated, no fix, ignored), the chart-desk blue (#006ba2) as the colour of ordinary data. Narrow bold serif headlines (Roboto Serif, width axis 72), Source Sans 3 for reading, Roboto Condensed for figures and chart labels, city replies in serif. Every finding section starts with a short red bar on a hairline red rule; charts carry title, subtitle and a source line. No cards except the example replies; no red on any ordinary series.
 
-STORY: The visitor sees how fresh the data is and three city-wide numbers, then narrows to their category and cartier and reads how such reports were closed, then (journalist) sorts by outcome, links the exact view and downloads it.
+STORY: The visitor learns this mirrors My Cluj, sees four numbers that describe how the system answers, reads the actual replies behind them, then checks their own category and cartier, and (journalist) sorts, links and downloads.
 
-FIRST VIEWPORT: Mobile 390: compact header (wordmark, nav, support link) → one line of freshness → three headline figures stacked at display size with their windows and year-on-year change → the picker's two selects begin at the fold. Desktop 1440: header bar; left two-thirds headline figures in a row above the picker and its answer; right third latest reports.
+FIRST VIEWPORT: Desktop 1440: left two-thirds = one-line identity, freshness pill, weekly line, four findings in a 2×2 grid with large red condensed numerals under black rules; right third = AI weekly summary under a red tag. Phone 390: identity, freshness, weekly line, findings stacked; the summary follows the findings.
 
-FORM: The category standard (canon card, chosen by the user over the rolled transit-network direction), seed key 2a17e884. Signature move: outcome strips with printed minority shares and one-tap sort by outcome, everywhere outcomes appear.
+FORM: Category standard executed in the financial-press chart style (user chose "red tag" over salmon paper and graphic-detail variants; fonts are the closest free relatives, no publication's name, logo or typefaces), seed key 2a17e884. Signature move: the city's label beside the city's words, with counts — and the red tag that marks where each finding starts.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

@@ -1,6 +1,9 @@
 import { Suspense } from 'react';
 import { Bar, Delta, Sparkline, StackedColumns, StepCurve } from '@/components/charts';
 import DailyVolume from '@/components/DailyVolume';
+import {
+  FavorabilSection, HeadlineFindings, OpenSection, RecurringSection, Source, TemplatesSection,
+} from '@/components/Findings';
 import { OutcomeKey } from '@/components/OutcomeBar';
 import OutcomeTable, { type TableRow } from '@/components/OutcomeTable';
 import Picker, { PickerView } from '@/components/Picker';
@@ -10,10 +13,16 @@ import {
   getMonthlyOutcome, getOutcomeMatrix, getOverview, getResolutionCurve,
   getRollingTotals, getWeeklySummary, OUTCOME_WEEKS, type Counts, type LatestTicket,
 } from '@/lib/dashboard';
-import { BANDS, nf, pct } from '@/lib/outcomes';
+import { BANDS, nf, pct, sesizari } from '@/lib/outcomes';
+import { getFindings, TEMPLATE_MIN } from '@/lib/replies';
 
 /**
- * Main dashboard.
+ * Main dashboard: how the complaint system actually behaves.
+ *
+ * It leads with what the city's replies say -- templates, "Favorabil" with no
+ * stated fix, problems reported again for years, reports left open -- because
+ * the status labels alone flatter the system (PRODUCT.md). The favourable rate
+ * appears only as context.
  *
  * Rebuilt on a schedule rather than per request: the underlying data changes
  * once a day when the sync job runs, so every visitor can share one render.
@@ -52,26 +61,11 @@ function Section({ id, title, note, children }: {
   id?: string; title: string; note?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-28 border-t border-line pt-8 pb-4">
-      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+    <section id={id} className="tagged mt-6 scroll-mt-28 pt-5 pb-4">
+      <h2 className="headline text-[1.5rem] leading-tight">{title}</h2>
       {note && <div className="mt-1.5 max-w-[68ch] text-sm leading-relaxed text-ink-2">{note}</div>}
       <div className="mt-5">{children}</div>
     </section>
-  );
-}
-
-/**
- * A headline figure. Set large and bare -- no card around it -- with what it
- * counts and over which window directly beneath, so it cannot be quoted
- * without its denominator.
- */
-function Figure({ value, label, detail }: { value: string; label: string; detail: React.ReactNode }) {
-  return (
-    <div className="min-w-0 border-t border-line pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5 sm:first:border-l-0 sm:first:pl-0">
-      <div className="text-[2.5rem] leading-none font-semibold tracking-tight tabular-nums">{value}</div>
-      <div className="mt-2 text-sm font-medium">{label}</div>
-      <div className="mt-0.5 text-xs leading-relaxed text-ink-3">{detail}</div>
-    </div>
   );
 }
 
@@ -100,11 +94,7 @@ function LatestList({ latest, compact = false }: { latest: LatestTicket[]; compa
         return (
           <li key={t.ticket_number} className="py-3 first:pt-0">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs text-ink-3">
-              <span className="inline-flex items-center gap-1.5 font-medium text-ink-2">
-                <span className="inline-block h-2.5 w-2.5 rounded-full" aria-hidden="true"
-                  style={{ backgroundColor: cat?.color ?? 'var(--ink-3)' }} />
-                {cat?.short ?? t.category_id}
-              </span>
+              <span className="font-medium text-ink-2">{cat?.short ?? t.category_id}</span>
               {t.neighborhood && <span>{t.neighborhood}</span>}
               <span className="tabular-nums">{fmtStamp(t.created_at, false)}</span>
               <Status label={t.status_label} />
@@ -163,22 +153,20 @@ function YearlyTable({ monthly }: { monthly: { month: string; total: number; fav
 }
 
 export default async function Dashboard() {
-  const [overview, totals, byCat, byNb, daily, breakdown, latest, monthly, weekly, resolution, matrix] =
+  const [overview, totals, byCat, byNb, daily, breakdown, latest, monthly, weekly, resolution, matrix, findings] =
     await Promise.all([
       getOverview(), getRollingTotals(), getByCategory(), getByNeighborhood(),
       getDaily(DAILY_DAYS), getDailyBreakdown(DAILY_DAYS), getLatest(5),
       getMonthlyOutcome(), getWeeklySummary(), getResolutionCurve(), getOutcomeMatrix(),
+      getFindings(OUTCOME_WEEKS),
     ]);
 
   const to = totals.d7.to;
-  const city = matrix.cells['*|*']?.o ?? ([0, 0, 0, 0, 0, 0] as Counts);
-  const closedCity = city[0] - city[5];
 
   // Freshness, from the newest report the mirror holds. Reports arrive around
   // the clock, so a gap this long means the sync stopped, not that Cluj went quiet.
   const stale = overview.hours_since_last > STALE_HOURS;
 
-  const day7 = resolution?.points.find((p) => p.day === 7);
   const lastDay = resolution?.points.at(-1)?.day ?? 0;
   const checkpoints = resolution
     ? resolution.points.filter((p) => p.day === lastDay || CHECKPOINTS.includes(p.day))
@@ -224,18 +212,30 @@ export default async function Dashboard() {
     }
   }
 
+  // "Favorabil" without a stated fix, per category, for the chart in that
+  // section. Only categories large enough for a share to mean something, and
+  // only those the city closes as Favorabil at all (CTP and CAS never are).
+  const nofixByCategory = CATEGORIES
+    .map((c) => ({ c, cell: matrix.cells[`${c.id}|*`] }))
+    .filter(({ cell }) => cell && cell.o[0] >= 150 && cell.o[1] > 0)
+    .map(({ c, cell }) => ({ name: c.short, value: Math.round((1000 * cell!.x[1]) / cell!.o[1]) / 10 }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+
   const win = `from=${totals.d7.from}&to=${to}`;
   const catRows: TableRow[] = byCat.map((r) => {
     const c = CATEGORY_BY_ID.get(Number(r.key));
     return {
-      key: r.key, label: c?.short ?? r.label, color: c?.color, href: `/harta?cat=${r.key}&${win}`,
-      cur: r.cur, prev: r.prev, ly: r.ly, o: matrix.cells[`${r.key}|*`]?.o ?? [0, 0, 0, 0, 0, 0],
+      key: r.key, label: c?.short ?? r.label, href: `/harta?cat=${r.key}&${win}`,
+      cur: r.cur, prev: r.prev, ly: r.ly,
+      o: matrix.cells[`${r.key}|*`]?.o ?? [0, 0, 0, 0, 0, 0], x: matrix.cells[`${r.key}|*`]?.x ?? [0, 0],
     };
   });
   const nbRows: TableRow[] = byNb.map((r) => ({
     key: r.key, label: r.key === '(nelocalizat)' ? 'Fără locație' : r.label,
     href: r.key === '(nelocalizat)' ? `/harta?${win}` : `/harta?cartier=${encodeURIComponent(r.key)}&${win}`,
-    cur: r.cur, prev: r.prev, ly: r.ly, o: matrix.cells[`*|${r.key}`]?.o ?? [0, 0, 0, 0, 0, 0],
+    cur: r.cur, prev: r.prev, ly: r.ly,
+    o: matrix.cells[`*|${r.key}`]?.o ?? [0, 0, 0, 0, 0, 0], x: matrix.cells[`*|${r.key}`]?.x ?? [0, 0],
   }));
 
   const years = monthly
@@ -246,65 +246,74 @@ export default async function Dashboard() {
     <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
       <div className="lg:grid lg:grid-cols-3 lg:gap-12">
         <div className="lg:col-span-2">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Sesizările din Cluj-Napoca</h1>
-          <p className="mt-2 text-sm text-ink-2">
-            {nf.format(overview.total)} sesizări publice trimise Primăriei prin My Cluj,
-            din {fmtLong(overview.first_day)} până azi.
-          </p>
+          <h1 className="max-w-[60ch] text-[15px] leading-relaxed text-ink-2">
+            <span className="font-semibold text-ink">Sesizări Cluj</span> este o oglindă independentă a platformei{' '}
+            <a href="https://mycluj.e-primariaclujnapoca.ro/" target="_blank" rel="noreferrer"
+              className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">My Cluj</a>{' '}
+            a Primăriei Cluj-Napoca: {nf.format(overview.total)} de sesizări publice din {fmtLong(overview.first_day)} până azi,
+            cu răspunsurile oficiale la ele.
+          </h1>
           <p className={`mt-3 inline-flex flex-wrap items-center gap-x-2 rounded-md px-2.5 py-1.5 text-xs ${
             stale ? 'bg-warn-bg text-warn' : 'bg-sunken text-ink-2'}`} role={stale ? 'status' : undefined}>
-            <span className={`inline-block h-1.5 w-1.5 rounded-full ${stale ? 'bg-warn' : 'bg-o-fav'}`} aria-hidden="true" />
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${stale ? 'bg-warn' : 'bg-ink-3'}`} aria-hidden="true" />
             {stale
               ? <>Datele nu s-au mai actualizat din {fmtStamp(overview.last_seen)}. Cifrele de mai jos pot fi învechite.</>
               : <>Actualizat zilnic. Ultima sesizare preluată: <span className="tabular-nums">{fmtStamp(overview.last_seen)}</span></>}
           </p>
 
-          <div className="mt-8 grid gap-5 sm:grid-cols-3 sm:gap-0">
-            <Figure
-              value={nf.format(totals.d7.cur)}
-              label="sesizări în ultimele 7 zile"
-              detail={<>{fmtShort(totals.d7.from)} – {fmtShort(to)} · <Delta cur={totals.d7.cur} base={totals.d7.ly} /> față de aceleași zile de anul trecut</>}
-            />
-            {day7 ? (
-              <Figure
-                value={pctNum(day7.pct)}
-                label="închise în cel mult 7 zile"
-                detail={<>estimat din {nf.format(resolution!.cohort)} sesizări urmărite din {fmtShort(resolution!.obs_from)}</>}
-              />
-            ) : (
-              <Figure value="—" label="închise în cel mult 7 zile" detail="încă nu sunt destule observații" />
-            )}
-            <Figure
-              value={closedCity ? pct(city[1], closedCity) : '—'}
-              label="dintre cele închise, favorabil"
-              detail={<>sesizările din ultimele {OUTCOME_WEEKS} săptămâni deja închise ({nf.format(closedCity)})</>}
-            />
-          </div>
+          <p className="mt-6 text-sm text-ink-2 tabular-nums">
+            <span className="font-semibold text-ink">{sesizari(totals.d7.cur)}</span> în ultimele 7 zile
+            ({fmtShort(totals.d7.from)} – {fmtShort(to)}):{' '}
+            <Delta cur={totals.d7.cur} base={totals.d7.prev} /> față de săptămâna dinainte,{' '}
+            <Delta cur={totals.d7.cur} base={totals.d7.ly} /> față de aceleași zile de anul trecut.
+          </p>
 
-          <section aria-labelledby="picker-title" className="mt-10 rounded-lg border border-line bg-surface p-4 sm:p-6">
-            <h2 id="picker-title" className="text-lg font-semibold tracking-tight">Ce se întâmplă cu sesizările ca a mea?</h2>
-            <p className="mt-1 mb-5 text-sm text-ink-2">
-              Alege o categorie și un cartier: vezi cum s-au închis sesizările din ultimele {OUTCOME_WEEKS} săptămâni.
+          <div className="mt-6">
+            <HeadlineFindings f={findings} weeks={OUTCOME_WEEKS} />
+          </div>
+        </div>
+
+        {weekly && (
+          <aside aria-labelledby="weekly-t" className="tagged mt-10 pt-4 lg:mt-0">
+            <h2 id="weekly-t" className="text-sm font-semibold">Săptămâna pe scurt</h2>
+            <p className="mt-1 text-xs leading-relaxed text-ink-3">
+              Rezumat generat automat de un model de limbaj ({weekly.model}) din cele{' '}
+              {nf.format(weekly.n_tickets)} sesizări depuse între {fmtShort(weekly.period_start)} și{' '}
+              {fmtShort(weekly.period_end).replace(/\.$/, '')}. Nu e redactat și nici verificat de o persoană; restul cifrelor vin direct din date.
             </p>
+            <div className="mt-3">
+              {weekly.summary.split(/\n\s*\n/).filter(Boolean).map((para, i) => (
+                <p key={i} className="mt-3 text-sm leading-relaxed first:mt-0">{para}</p>
+              ))}
+            </div>
+          </aside>
+        )}
+      </div>
+
+      <div className="mt-14">
+        <TemplatesSection f={findings} weeks={OUTCOME_WEEKS} />
+        <FavorabilSection f={findings} byCategory={nofixByCategory} />
+        <RecurringSection f={findings} />
+        <OpenSection f={findings} />
+
+        <section aria-labelledby="picker-title" className="tagged mt-6 scroll-mt-28 pt-5 pb-4">
+          <h2 id="picker-title" className="headline text-[1.5rem] leading-tight">Ce se întâmplă cu sesizările ca a mea?</h2>
+          <p className="mt-1 mb-5 max-w-[68ch] text-sm text-ink-2">
+            Alege o categorie și un cartier: cât din sesizările din ultimele {OUTCOME_WEEKS} săptămâni au primit
+            un răspuns șablon, au fost închise „Favorabil” fără să se spună ce s-a rezolvat, sau sunt încă deschise.
+          </p>
+          <div className="border-t border-line pt-5">
             <Suspense fallback={<PickerView matrix={matrix} to={to} cat="*" cartier="*" />}>
               <Picker matrix={matrix} to={to} />
             </Suspense>
-          </section>
-        </div>
-
-        <aside className="hidden lg:block" aria-labelledby="latest-title-lg">
-          <h2 id="latest-title-lg" className="text-sm font-semibold tracking-tight">Ultimele sesizări</h2>
-          <p className="mt-0.5 mb-4 text-xs text-ink-3">Cele mai recente preluate de pe platformă.</p>
-          <LatestList latest={latest} compact />
-        </aside>
-      </div>
-
-      <div className="mt-12 space-y-4">
+            <Source />
+          </div>
+        </section>
         <Section
           title="Pe categorii"
-          note={<>Sesizări în ultimele 7 zile și cum s-au închis cele din ultimele {OUTCOME_WEEKS} săptămâni.
-            Procentele includ sesizările încă deschise. Apasă pe o categorie ca s-o vezi pe hartă.
-            Transport (CTP) și Apă/canal (CAS) sunt trimise integral operatorilor, deci apar ca transferate.</>}
+          note={<>Volumul din ultimele 7 zile și ce spun răspunsurile la sesizările din ultimele {OUTCOME_WEEKS} săptămâni.
+            Apasă pe o categorie ca s-o vezi pe hartă. Transport (CTP) și Apă/canal (CAS) sunt trimise integral
+            operatorilor, deci nu primesc „Favorabil”.</>}
         >
           <Suspense fallback={null}>
             <OutcomeTable rows={catRows} param="ord_cat" nameHeader="Categorie" weeks={OUTCOME_WEEKS}
@@ -410,6 +419,7 @@ export default async function Dashboard() {
                   scade, cu atât rândul se sprijină pe mai puține observații; zilele rămase
                   fără destule sesizări nici nu sunt desenate.
                 </p>
+                <Source note="Estimare Kaplan-Meier pe tranzițiile observate." />
               </div>
             </div>
           </Section>
@@ -428,12 +438,8 @@ export default async function Dashboard() {
               const c = CATEGORY_BY_ID.get(t.id);
               return (
                 <li key={t.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 py-2.5 sm:grid-cols-[14rem_1fr_7rem]">
-                  <span className="flex min-w-0 items-center gap-2 text-sm">
-                    <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" aria-hidden="true"
-                      style={{ backgroundColor: c?.color }} />
-                    <span className="truncate">{c?.name ?? t.id}</span>
-                  </span>
-                  <Sparkline values={t.weeks} color={c?.color ?? 'var(--ink-3)'} className="col-span-2 row-start-2 h-7 w-full sm:col-span-1 sm:row-start-auto" />
+                  <span className="min-w-0 truncate text-sm">{c?.name ?? t.id}</span>
+                  <Sparkline values={t.weeks} color="var(--chart)" className="col-span-2 row-start-2 h-7 w-full sm:col-span-1 sm:row-start-auto" />
                   <span className="text-right text-sm tabular-nums">
                     {pct(t.total, dailyTotal)}<span className="text-ink-3"> din total</span>
                   </span>
@@ -442,6 +448,7 @@ export default async function Dashboard() {
             })}
           </ul>
           <p className="mt-2 text-xs text-ink-3">Sesizări pe săptămână, ultimele 26 de săptămâni. Toate categoriile sunt în tabelul de mai sus.</p>
+          <Source />
         </Section>
 
         <Section
@@ -487,6 +494,7 @@ export default async function Dashboard() {
               compară perioadele de o parte și de alta a liniei cu prudență.
             </p>
           )}
+          <Source />
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
             {[
               { k: 'Favorabil', v: pct(overview.favorabil, overview.total), n: overview.favorabil },
@@ -503,44 +511,37 @@ export default async function Dashboard() {
           </dl>
         </Section>
 
-        <section className="border-t border-line pt-8 pb-4 lg:hidden" aria-labelledby="latest-title">
-          <h2 id="latest-title" className="text-lg font-semibold tracking-tight">Ultimele sesizări</h2>
+        <section className="tagged mt-6 pt-5 pb-4" aria-labelledby="latest-title">
+          <h2 id="latest-title" className="headline text-[1.5rem] leading-tight">Ultimele sesizări</h2>
           <p className="mt-1.5 mb-5 text-sm text-ink-2">Cele mai recente înregistrări preluate de pe platformă.</p>
           <LatestList latest={latest} />
         </section>
 
-        {weekly && (
-          <section className="border-t border-line pt-8 pb-4">
-            <details className="group">
-              <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
-                <span>
-                  <span className="block text-lg font-semibold tracking-tight">Săptămâna pe scurt</span>
-                  <span className="mt-1 block text-sm text-ink-2">
-                    Rezumat generat automat de un model de limbaj, {fmtShort(weekly.period_start)} – {fmtShort(weekly.period_end)}
-                  </span>
-                </span>
-                <span className="mt-1 shrink-0 rounded-md border border-line-strong px-3 py-1.5 text-[13px] text-ink-2 group-open:hidden">Arată</span>
-                <span className="mt-1 hidden shrink-0 rounded-md border border-line-strong px-3 py-1.5 text-[13px] text-ink-2 group-open:inline">Ascunde</span>
-              </summary>
-              <div className="mt-5 max-w-[68ch]">
-                <p className="text-xs leading-relaxed text-ink-3">
-                  Text generat automat de un model de limbaj ({weekly.model}) pe baza celor{' '}
-                  {nf.format(weekly.n_tickets)} sesizări depuse
-                  între {fmtLong(weekly.period_start)} și {fmtLong(weekly.period_end)}.
-                  Generat la {weekly.generated_at}. Nu este text redactat de o persoană și
-                  nu a fost verificat manual; restul cifrelor de pe această pagină vin direct
-                  din date.
-                </p>
-                {weekly.summary.split(/\n\s*\n/).filter(Boolean).map((para, i) => (
-                  <p key={i} className="mt-3 text-sm leading-relaxed">{para}</p>
-                ))}
-              </div>
-            </details>
-          </section>
-        )}
-
-        <Section title="Note de metodă">
+        <Section id="metoda" title="Note de metodă">
           <ul className="max-w-[68ch] space-y-3 text-sm leading-relaxed text-ink-2">
+            <li>
+              <strong className="font-medium text-ink">Răspunsuri-șablon.</strong>{' '}
+              Fiecare răspuns e redus la literele lui: fără diacritice, cifre, date și punctuație, fără
+              „Bună ziua” la început și formulele de politețe de la sfârșit; se compară primele 200 de
+              litere. Două răspunsuri care spun același lucru în afară de numere și date au aceeași
+              cheie. Un text trimis de cel puțin {TEMPLATE_MIN} ori în ultimele {OUTCOME_WEEKS} săptămâni
+              e numărat ca șablon.
+            </li>
+            <li>
+              <strong className="font-medium text-ink">„Favorabil” fără rezolvare.</strong>{' '}
+              Un răspuns etichetat „Favorabil” care e gol, e doar „Soluționat prin dispecerat”, sau spune
+              doar că sesizarea a fost transmisă altcuiva ori că ceva se va analiza sau efectua — fără
+              nicio formulare care să spună că s-a intervenit, s-a reparat sau s-a sancționat. Regula
+              folosește liste de cuvinte; verificată manual pe 92 de cazuri alese la întâmplare, a avut
+              dreptate în 84. E o limită inferioară: răspunsurile care doar explică sau spun că un operator
+              „a fost atenționat” nu sunt numărate, deși nici ele nu spun că s-a rezolvat ceva.
+            </li>
+            <li>
+              <strong className="font-medium text-ink">Raportat din nou.</strong>{' '}
+              Sesizări din aceeași categorie de infrastructură cu coordonate identice la a patra
+              zecimală (cam 11 metri), în cel puțin trei ani diferiți, dintre care cel puțin trei închise
+              „Favorabil”. Două probleme diferite în același loc pot fi numărate împreună.
+            </li>
             <li>
               <strong className="font-medium text-ink">
                 Timpul până la închidere nu poate fi calculat retroactiv.

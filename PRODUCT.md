@@ -42,8 +42,8 @@ Success: a resident or reporter can answer "what happens to reports like this, h
 ## Brand Commitments
 
 - Name: **Sesizări Cluj**.
-- **Neutral mirror.** Present the data plainly and let readers draw conclusions. No editorial framing, no scoring or campaigning against Primăria, no loaded adjectives. Comparisons are allowed; verdicts are not.
-- **Conventional data-dashboard look, by choice** (2026-10-04, chosen over themed directions). Execute the category standard at full craft rather than inventing a themed identity. Quality benchmarks: Datawrapper (chart and table readability, mobile), Vercel / Linear dashboards (grid, type, control polish), FT / Economist data pages (confident headline numbers, annotated charts).
+- **Neutral data, arranged so the dysfunction is visible** (owner decision, 2026-10-04, replacing "neutral mirror, no verdicts"). The site exists to show how the complaint system actually behaves: templated replies, reports closed as "Favorabil" with no claim that anything was fixed, problems "resolved" and reported again for years, reports left open. Every number stays checkable and traceable to MyCluj. Tone is deadpan — the city's own labels and words placed side by side — with at most one short, factual verdict line per section (e.g. "Jumătate din răspunsuri sunt șabloane"). No insults, no adjectives doing the work the data should do, no invented intent ("they don't care"). The favourable-closure rate is context, never the headline.
+- **Investigative-newsroom look** (owner decision, 2026-10-04, replacing the conventional-dashboard look). High-contrast, big numbers, the city's replies quoted like evidence, one alarm accent reserved for templated / unfixed / ignored. Quality benchmarks remain Datawrapper (readability, mobile) and FT / Economist data pages (confident numbers, annotated charts).
 - Support link to Ko-fi, labelled in Romanian ("Ia-mi o cafea"), drawn in markup rather than using Ko-fi's image or mark.
 
 ## Evidence on Hand
@@ -54,7 +54,7 @@ Success: a resident or reporter can answer "what happens to reports like this, h
 
 ## Product Principles
 
-1. **Data first, no verdicts.** Show what the city's own records say. Readers decide what it means.
+1. **Show the system as it behaves.** Lead with what the city's replies actually say and what happens after a report is "resolved" — not with how often reports are marked favourable.
 2. **Never assert what isn't known.** Unobserved close dates, truncated windows and partial coverage are stated, never papered over.
 3. **Always traceable to the source.** Any number or ticket should lead back to the official record.
 4. **Quick to answer on a phone.** A resident on the street should get the answer to "what happens to reports like this, here?" in a few taps.

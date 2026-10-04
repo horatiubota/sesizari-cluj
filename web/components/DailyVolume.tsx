@@ -76,7 +76,7 @@ export default function DailyVolume({ days, partialDay }: {
         <div className="absolute inset-0 flex items-end gap-px">
           {days.map((x, i) => (
             <span key={x.day}
-              className={`flex-1 rounded-t-[1px] ${i === active ? 'bg-focus' : 'bg-line-strong'}`}
+              className={`flex-1 ${i === active ? 'bg-ink' : 'bg-chart/70'}`}
               style={{ height: `${100 - y(x.total)}%`, opacity: x.day === partialDay ? 0.4 : 1 }} />
           ))}
         </div>
@@ -95,7 +95,7 @@ export default function DailyVolume({ days, partialDay }: {
       </div>
       <figcaption className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-[2px] bg-line-strong" aria-hidden="true" />
+          <span className="inline-block h-2.5 w-2.5 bg-chart/70" aria-hidden="true" />
           sesizări în ziua respectivă
         </span>
         <span className="flex items-center gap-1.5">

@@ -1,30 +1,32 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-04T08:58:38+00:00",
+  "generatedAt": "2026-10-04T18:26:52+00:00",
   "title": "Design System: Sesizări Cluj",
   "extensions": {
     "colorMeta": {
       "bg": {
         "role": "neutral",
-        "displayName": "Paper",
-        "canonical": "#f7f7f5",
-        "dark": "#111214",
+        "displayName": "White Paper",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "dark": "#121417",
+        "purpose": "Page ground; same white as surface, separation comes from rules.",
         "tonalRamp": [
-          "#0b0b0a",
-          "#242423",
-          "#40403e",
-          "#5e5e5c",
-          "#7d7d7c",
-          "#9e9e9d",
-          "#c4c4c3",
-          "#eeeeed"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "surface": {
         "role": "neutral",
-        "displayName": "White Sheet",
-        "canonical": "#ffffff",
-        "dark": "#18191c",
+        "displayName": "White Paper (surface)",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "dark": "#181b1f",
+        "purpose": "Raised surfaces: header, example cards, controls.",
         "tonalRamp": [
           "#0b0b0b",
           "#242424",
@@ -38,319 +40,416 @@
       },
       "sunken": {
         "role": "neutral",
-        "displayName": "Sunken",
-        "canonical": "#efefec",
-        "dark": "#0c0d0e",
+        "displayName": "Sunken Grey",
+        "canonical": "oklch(96.1% 0.000 89.9)",
+        "dark": "#1c1f23",
+        "purpose": "Strip track, freshness pill, row hover.",
         "tonalRamp": [
-          "#0b0b0a",
-          "#242422",
-          "#40403e",
-          "#5e5e5b",
-          "#7d7d7b",
-          "#9e9e9c",
-          "#c4c4c2",
-          "#eeeeec"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "line": {
         "role": "neutral",
         "displayName": "Hairline",
-        "canonical": "#e2e2de",
-        "dark": "#2a2c30",
+        "canonical": "oklch(88.5% 0.000 89.9)",
+        "dark": "#2e3137",
+        "purpose": "Row dividers, chart gridlines, card borders.",
         "tonalRamp": [
-          "#0b0b0a",
-          "#242422",
-          "#40403d",
-          "#5e5e5b",
-          "#7d7d7a",
-          "#9f9f9b",
-          "#c4c4c1",
-          "#efefec"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "line-strong": {
         "role": "neutral",
         "displayName": "Strong Hairline",
-        "canonical": "#c9c9c3",
-        "dark": "#3d4046",
+        "canonical": "oklch(76.7% 0.000 89.9)",
+        "dark": "#474c54",
+        "purpose": "Control borders, link underlines, zero axes.",
         "tonalRamp": [
-          "#0b0b09",
-          "#242421",
-          "#40403c",
-          "#5e5e59",
-          "#7e7e78",
-          "#9f9f9a",
-          "#c4c4c0",
-          "#efefea"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "ink": {
         "role": "neutral",
         "displayName": "Ink",
-        "canonical": "#17181a",
-        "dark": "#ececea",
+        "canonical": "oklch(15.4% 0.000 89.9)",
+        "dark": "#f0f0f0",
+        "purpose": "Primary text, 2px rules above headline figures, highlighted bar.",
         "tonalRamp": [
-          "#0a0b0c",
-          "#232426",
-          "#3f4042",
-          "#5c5e60",
-          "#7c7d80",
-          "#9d9ea1",
-          "#c3c4c6",
-          "#edeef0"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "ink-2": {
         "role": "neutral",
         "displayName": "Ink 2",
-        "canonical": "#4a4c50",
-        "dark": "#b6b8bb",
+        "canonical": "oklch(32.1% 0.000 89.9)",
+        "dark": "#d0d0d0",
+        "purpose": "Notes and secondary text.",
         "tonalRamp": [
-          "#0a0b0d",
-          "#232427",
-          "#3e4043",
-          "#5c5e61",
-          "#7b7d81",
-          "#9c9ea2",
-          "#c2c4c8",
-          "#edeef2"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "ink-3": {
         "role": "neutral",
         "displayName": "Ink 3",
-        "canonical": "#66686d",
-        "dark": "#9a9da1",
+        "canonical": "oklch(46.4% 0.000 89.9)",
+        "dark": "#a3a3a3",
+        "purpose": "Captions, axis ticks, source line; clears 4.5:1 on every ground.",
         "tonalRamp": [
-          "#0a0b0e",
-          "#232427",
-          "#3e4044",
-          "#5c5d62",
-          "#7b7d82",
-          "#9c9ea3",
-          "#c2c4c8",
-          "#edeef2"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "focus": {
-        "role": "primary",
-        "displayName": "Interaction Blue",
-        "canonical": "#2b59c3",
-        "dark": "#8fb0ff",
+        "role": "secondary",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#3ebcd2",
+        "purpose": "2px focus outline and selection tint.",
         "tonalRamp": [
-          "#00003c",
-          "#011863",
-          "#13378d",
-          "#2a56b8",
-          "#4777e0",
-          "#6c9bfd",
-          "#96c3ff",
-          "#c6eeff"
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
+        ]
+      },
+      "tag": {
+        "role": "primary",
+        "displayName": "Chart-Desk Red (tag)",
+        "canonical": "oklch(58.0% 0.232 29.2)",
+        "dark": "#ff4d45",
+        "purpose": "Section tag bar and rule only.",
+        "tonalRamp": [
+          "#220000",
+          "#4c0000",
+          "#7d0000",
+          "#b20201",
+          "#e71a12",
+          "#fa6a59",
+          "#ffab9e",
+          "#ffe9e5"
+        ]
+      },
+      "alarm": {
+        "role": "primary",
+        "displayName": "Chart-Desk Red (finding)",
+        "canonical": "oklch(58.0% 0.232 29.2)",
+        "dark": "#ff4d45",
+        "purpose": "Dysfunction findings only: headline numerals, template counts, above-average bars, open >90 days.",
+        "tonalRamp": [
+          "#220000",
+          "#4c0000",
+          "#7d0000",
+          "#b20201",
+          "#e71a12",
+          "#fa6a59",
+          "#ffab9e",
+          "#ffe9e5"
+        ]
+      },
+      "chart": {
+        "role": "secondary",
+        "displayName": "Chart-Desk Blue",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#4ea1d3",
+        "purpose": "Ordinary data: volume bars, sparklines, below-average bars.",
+        "tonalRamp": [
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
         ]
       },
       "o-fav": {
-        "role": "secondary",
-        "displayName": "Sage (Favorabil)",
-        "canonical": "#4f7464",
-        "dark": "#7fa894",
+        "role": "tertiary",
+        "displayName": "Favorabil",
+        "canonical": "oklch(50.5% 0.119 241.6)",
+        "dark": "#4ea1d3",
+        "purpose": "Outcome band: Favorabil.",
         "tonalRamp": [
-          "#000f08",
-          "#102a20",
-          "#29473a",
-          "#446657",
-          "#628777",
-          "#86a798",
-          "#aecdbe",
-          "#dbf6e9"
+          "#000c1d",
+          "#00273f",
+          "#034468",
+          "#0a6395",
+          "#2d85bd",
+          "#52a7e2",
+          "#8dccfb",
+          "#e1f1fe"
         ]
       },
       "o-part": {
-        "role": "secondary",
-        "displayName": "Sand (Parțial)",
-        "canonical": "#c8b68c",
-        "dark": "#8e7f5c",
+        "role": "tertiary",
+        "displayName": "Parțial",
+        "canonical": "oklch(73.6% 0.111 211.7)",
+        "dark": "#9fdde8",
+        "purpose": "Outcome band: Parțial.",
         "tonalRamp": [
-          "#120900",
-          "#2d2206",
-          "#4b3e1e",
-          "#6b5c37",
-          "#8c7c55",
-          "#ac9d79",
-          "#d1c3a2",
-          "#faedd0"
+          "#000f13",
+          "#012a30",
+          "#054853",
+          "#0e6978",
+          "#018da0",
+          "#2eb0c6",
+          "#5ed7ee",
+          "#d0f7ff"
         ]
       },
       "o-transf": {
-        "role": "secondary",
-        "displayName": "Hatched Slate stripe (Transferată)",
-        "canonical": "#6f7a8c",
-        "dark": "#9aa3b2",
+        "role": "tertiary",
+        "displayName": "Transferată (hatch)",
+        "canonical": "oklch(62.9% 0.033 229.6)",
+        "dark": "#9aa9b2",
+        "purpose": "135° hatch stripes for transferred to operator.",
         "tonalRamp": [
-          "#060b14",
-          "#1d2430",
-          "#38404e",
-          "#545e6e",
-          "#737e8f",
-          "#959fb0",
-          "#bbc5d4",
-          "#e7effd"
+          "#000d16",
+          "#122731",
+          "#2d434e",
+          "#4b616d",
+          "#6a818d",
+          "#8aa3af",
+          "#afc9d5",
+          "#dcf3fe"
         ]
       },
       "o-transf-bg": {
-        "role": "secondary",
-        "displayName": "Hatched Slate ground",
-        "canonical": "#e3e6eb",
-        "dark": "#2a2e36",
+        "role": "tertiary",
+        "displayName": "Transferată (ground)",
+        "canonical": "oklch(93.3% 0.008 228.9)",
+        "dark": "#263038",
+        "purpose": "Ground under the transferred hatch.",
         "tonalRamp": [
-          "#0a0b0d",
-          "#222427",
-          "#3e4043",
-          "#5b5e62",
-          "#7b7d82",
-          "#9c9ea3",
-          "#c2c4c8",
-          "#eceef2"
+          "#080c0e",
+          "#202527",
+          "#3c4143",
+          "#595e61",
+          "#797e81",
+          "#9a9fa2",
+          "#bfc5c8",
+          "#e9f0f3"
         ]
       },
       "o-resp": {
-        "role": "secondary",
-        "displayName": "Dark Slate (Respinsă)",
-        "canonical": "#2e3136",
-        "dark": "#e2e4e7",
+        "role": "tertiary",
+        "displayName": "Respinsă",
+        "canonical": "oklch(56.3% 0.086 346.9)",
+        "dark": "#c48fae",
+        "purpose": "Outcome band: rejected / unfavourable.",
         "tonalRamp": [
-          "#0a0b0e",
-          "#222428",
-          "#3d4044",
-          "#5b5e63",
-          "#7a7d83",
-          "#9b9fa4",
-          "#c1c4c9",
-          "#eceff3"
+          "#1f0011",
+          "#3f0d2c",
+          "#5f2b48",
+          "#804967",
+          "#a36887",
+          "#c689a9",
+          "#eeaecf",
+          "#fee7f2"
         ]
       },
       "o-open": {
-        "role": "secondary",
-        "displayName": "Hatched Pale Grey ground (Deschisă)",
-        "canonical": "#e4e4df",
-        "dark": "#2f3135",
+        "role": "tertiary",
+        "displayName": "Încă deschisă",
+        "canonical": "oklch(92.5% 0.000 89.9)",
+        "dark": "#33373d",
+        "purpose": "Ground of the still-open band.",
         "tonalRamp": [
-          "#0b0b09",
-          "#242421",
-          "#40403c",
-          "#5e5e5a",
-          "#7d7d79",
-          "#9f9f9a",
-          "#c4c4c0",
-          "#efefeb"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "o-open-hatch": {
-        "role": "secondary",
-        "displayName": "Hatched Pale Grey stripe",
-        "canonical": "#c4c4bd",
-        "dark": "#45484d",
+        "role": "tertiary",
+        "displayName": "Încă deschisă (hatch)",
+        "canonical": "oklch(80.5% 0.000 89.9)",
+        "dark": "#4a4f57",
+        "purpose": "45° hatch over the still-open band.",
         "tonalRamp": [
-          "#0b0b08",
-          "#242420",
-          "#40403b",
-          "#5e5e58",
-          "#7e7e77",
-          "#9f9f99",
-          "#c4c4bf",
-          "#efefea"
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
+          "#eeeeee"
         ]
       },
       "up": {
         "role": "tertiary",
         "displayName": "Amber Up",
-        "canonical": "#a1530b",
+        "canonical": "oklch(52.7% 0.127 54.7)",
         "dark": "#f0a35e",
+        "purpose": "Positive deltas; direction only (owner decision).",
         "tonalRamp": [
-          "#230000",
-          "#451000",
-          "#692b00",
-          "#8f4700",
-          "#b4672b",
-          "#d48b58",
-          "#f7b386",
-          "#ffe0b8"
+          "#1b0300",
+          "#3b1a00",
+          "#633002",
+          "#8e4806",
+          "#b66627",
+          "#da874b",
+          "#ffaf79",
+          "#feeadd"
         ]
       },
       "down": {
         "role": "tertiary",
         "displayName": "Teal Down",
-        "canonical": "#0f6e6e",
+        "canonical": "oklch(48.9% 0.080 194.9)",
         "dark": "#5cc7c0",
+        "purpose": "Negative deltas; direction only (owner decision).",
         "tonalRamp": [
-          "#001112",
-          "#002d2d",
-          "#004b4b",
-          "#176b6b",
-          "#3c8c8b",
-          "#67acac",
-          "#94d1d0",
-          "#c5fbfa"
+          "#000f0f",
+          "#002b2b",
+          "#024a4a",
+          "#096b6b",
+          "#398c8c",
+          "#5daeae",
+          "#83d5d4",
+          "#b4fffe"
         ]
       },
       "warn": {
         "role": "tertiary",
-        "displayName": "Warn",
-        "canonical": "#8a4b08",
+        "displayName": "Stale Amber",
+        "canonical": "oklch(47.9% 0.110 58.6)",
         "dark": "#f3b46b",
-        "usage": "Operational warnings only (stale data); never a delta"
+        "purpose": "Stale-data freshness pill text and dot.",
+        "tonalRamp": [
+          "#1a0400",
+          "#3b1a00",
+          "#603203",
+          "#8a4b08",
+          "#ad6b33",
+          "#d18d55",
+          "#fab27a",
+          "#feeadc"
+        ]
       },
       "warn-bg": {
-        "role": "neutral",
-        "displayName": "Warn ground",
-        "canonical": "#fbf1e3",
+        "role": "tertiary",
+        "displayName": "Stale Amber Ground",
+        "canonical": "oklch(96.2% 0.021 76.5)",
         "dark": "#2d2214",
-        "usage": "Background behind warn text"
+        "purpose": "Stale-data freshness pill ground.",
+        "tonalRamp": [
+          "#100a03",
+          "#2a2318",
+          "#463e33",
+          "#655c50",
+          "#857c6f",
+          "#a69d90",
+          "#ccc3b5",
+          "#f7eddf"
+        ]
       }
     },
+    "colorScheme": {
+      "mechanism": "prefers-color-scheme: dark redefines every token on :root (web/app/globals.css); colorMeta.<token>.dark holds the dark value."
+    },
     "typographyMeta": {
-      "display": {
-        "displayName": "Display",
-        "purpose": "The three headline figures only."
+      "headline-finding": {
+        "displayName": "Finding headline",
+        "purpose": "Verdict h2 of each finding section; 1.75rem below sm, 2rem from sm; max 36ch; text-wrap balance."
       },
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Page H1; 1.5rem rising to 1.875rem from 640px."
+      "headline-section": {
+        "displayName": "Section headline",
+        "purpose": "Descriptive h2 of non-finding sections."
       },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Section headings."
+      "figure-lead": {
+        "displayName": "Lead figure",
+        "purpose": "The four headline-finding numerals, in alarm red."
       },
       "figure": {
         "displayName": "Figure",
-        "purpose": "Printed shares in outcome legends and stat blocks (up to 1.25rem)."
+        "purpose": "Template counts (2rem) and breakdown values (1.75rem)."
+      },
+      "quote": {
+        "displayName": "Quoted reply",
+        "purpose": "The city's replies verbatim, max 72ch, clamped to four lines with a disclosure."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Notes, descriptions, table cells; prose capped at 68ch."
+        "purpose": "Reading text, finding labels, list rows."
       },
-      "control": {
-        "displayName": "Control",
-        "purpose": "Select values and phone row names."
+      "note": {
+        "displayName": "Note",
+        "purpose": "Section notes under headlines, max 68ch, ink 2."
+      },
+      "chart-label": {
+        "displayName": "Chart label",
+        "purpose": "Category names and values inside charts; subtitles at 14px."
       },
       "label": {
-        "displayName": "Label",
-        "purpose": "Field labels, table headers, legends, axis ticks. 12px is the floor."
+        "displayName": "Official label",
+        "purpose": "The city's own label, uppercase, bordered."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Scope lines, legends, axis ticks; the 12px floor."
       }
     },
-    "shadows": [
-      {
-        "name": "map-overlay",
-        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-        "purpose": "Only the ticket panel floating over the map."
-      }
-    ],
-    "motion": [
-      {
-        "name": "state-transition",
-        "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
-        "purpose": "Colour/border change on chips and toggles; no other motion."
-      }
-    ],
+    "fonts": {
+      "loading": "next/font/google, self-hosted, subsets latin + latin-ext (comma-below ș ț)",
+      "serif": "Roboto Serif, axes wdth + opsz",
+      "sans": "Source Sans 3",
+      "condensed": "Roboto Condensed",
+      "provenance": "Free relatives chosen for a financial-press look; no publication's name, logo or typefaces are used."
+    },
+    "shadows": [],
+    "motion": [],
     "breakpoints": [
       {
         "name": "sm",
@@ -358,167 +457,168 @@
       },
       {
         "name": "md",
-        "value": "768px",
-        "note": "tables switch from stacked rows to table"
+        "value": "768px"
       },
       {
         "name": "lg",
-        "value": "1024px",
-        "note": "dashboard 2/3 + 1/3 split"
+        "value": "1024px"
       }
     ],
-    "patterns": [
-      {
-        "name": "fill-o-transf",
-        "value": "background-color: var(--o-transf-bg); background-image: repeating-linear-gradient(135deg, var(--o-transf) 0 1.5px, transparent 1.5px 5px)"
-      },
-      {
-        "name": "fill-o-open",
-        "value": "background-color: var(--o-open); background-image: repeating-linear-gradient(45deg, var(--o-open-hatch) 0 1px, transparent 1px 4px)"
-      }
-    ],
-    "focusRing": "outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px",
-    "darkMode": "prefers-color-scheme: dark; every colour token redefined on :root (see colorMeta.*.dark)",
-    "thresholds": {
-      "minForShare": 20,
-      "minDeltaBase": 10,
-      "minTextPx": 12,
-      "minTouchPx": 44
+    "layout": {
+      "container": "72rem (1152px), padding 16px / 24px from sm",
+      "touchTarget": "44px minimum",
+      "smallSample": "base < 20: counts not percentages, dashed outline on strips",
+      "numberFormat": "ro-RO"
     }
   },
   "components": [
     {
+      "name": "Section Tag",
+      "kind": "custom",
+      "refersTo": "section-tag",
+      "description": "Short red bar on a hairline red rule that opens every section.",
+      "html": "<div class=\"ds-tagged\"><h2 class=\"ds-headline\">Cât de repede se închid</h2></div>",
+      "css": ".ds-tagged { position: relative; border-top: 1px solid var(--tag, #e3120b); padding-top: 20px; } .ds-tagged::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-headline { margin: 0; font-family: 'Roboto Serif', Georgia, serif; font-weight: 700; font-variation-settings: 'wdth' 72, 'opsz' 36; letter-spacing: -0.005em; font-size: 1.5rem; line-height: 1.25; color: var(--ink, #0c0c0c); text-wrap: balance; }"
+    },
+    {
+      "name": "Finding Section",
+      "kind": "custom",
+      "refersTo": "finding-headline",
+      "description": "Tag, verdict as the h2, a short note; no label above the verdict.",
+      "html": "<section class=\"ds-finding\"><h2 class=\"ds-finding-h\">1 din 4 sesizări închise „Favorabil” nu spun că s-a rezolvat ceva.</h2><p class=\"ds-finding-note\">Din cele 9.412 închise „Favorabil”: răspunsuri care doar anunță că sesizarea a fost trimisă altcuiva, plus cele fără text.</p></section>",
+      "css": ".ds-finding { position: relative; border-top: 1px solid var(--tag, #e3120b); padding: 20px 0 16px; } .ds-finding::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-finding-h { margin: 0; max-width: 36ch; font-family: 'Roboto Serif', Georgia, serif; font-weight: 700; font-variation-settings: 'wdth' 72, 'opsz' 36; letter-spacing: -0.005em; font-size: 2rem; line-height: 1.15; color: var(--ink, #0c0c0c); text-wrap: balance; } .ds-finding-note { margin: 8px 0 0; max-width: 68ch; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; line-height: 1.625; color: var(--ink-2, #333333); }"
+    },
+    {
+      "name": "Headline Finding",
+      "kind": "custom",
+      "refersTo": "finding-numeral",
+      "description": "Red condensed numeral under a 2px ink rule, linked to its evidence.",
+      "html": "<a class=\"ds-hf\" href=\"#sabloane\"><span class=\"ds-hf-n\">62,4%</span><span class=\"ds-hf-l\">din sesizările închise au primit unul din cele 41 de răspunsuri-șablon</span><span class=\"ds-hf-d\">Cel mai folosit a fost trimis de 812 ori.</span></a>",
+      "css": ".ds-hf { display: block; max-width: 22rem; border-top: 2px solid var(--ink, #0c0c0c); padding-top: 12px; color: var(--ink, #0c0c0c); text-decoration: none; } .ds-hf-n { display: block; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 3rem; line-height: 1; color: var(--alarm, #e3120b); font-variant-numeric: tabular-nums; } .ds-hf-l { display: block; margin-top: 8px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; font-weight: 500; line-height: 1.375; } .ds-hf-d { display: block; margin-top: 4px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; line-height: 1.625; color: var(--ink-3, #595959); } .ds-hf:hover .ds-hf-l { text-decoration: underline; text-underline-offset: 4px; } .ds-hf:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; border-radius: 2px; }"
+    },
+    {
+      "name": "Official Label with Quoted Reply",
+      "kind": "custom",
+      "refersTo": "official-label",
+      "description": "Signature: the city's words in serif, its label as a bordered uppercase tag, and the count.",
+      "html": "<div class=\"ds-reply\"><span class=\"ds-reply-n\">812×</span><div><blockquote class=\"ds-quote\">„Sesizarea dumneavoastră a fost transmisă spre competentă soluționare direcției de specialitate.”</blockquote><span class=\"ds-label\">Favorabil</span></div></div>",
+      "css": ".ds-reply { display: grid; grid-template-columns: 7rem 1fr; gap: 8px 24px; padding: 20px 0; border-top: 1px solid var(--line, #d9d9d9); border-bottom: 1px solid var(--line, #d9d9d9); } .ds-reply-n { font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 2rem; line-height: 1; color: var(--alarm, #e3120b); font-variant-numeric: tabular-nums; } .ds-quote { margin: 0 0 8px; max-width: 72ch; font-family: 'Roboto Serif', Georgia, serif; font-size: 15px; line-height: 1.625; color: var(--ink, #0c0c0c); } .ds-label { display: inline-flex; align-items: center; border: 1px solid var(--ink, #0c0c0c); border-radius: 2px; padding: 2px 6px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; line-height: 1; font-weight: 600; letter-spacing: 0.025em; text-transform: uppercase; color: var(--ink, #0c0c0c); }"
+    },
+    {
+      "name": "Example Reply Card",
+      "kind": "card",
+      "refersTo": "example-card",
+      "description": "The only card in the system: a quoted example reply.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-meta\"><span class=\"ds-card-label\">Favorabil</span><span>Iluminat</span></div><blockquote class=\"ds-card-q\">„Soluționat prin dispecerat.”</blockquote><a class=\"ds-card-link\" href=\"#\">123456</a></div>",
+      "css": ".ds-card { max-width: 20rem; border: 1px solid var(--line, #d9d9d9); border-radius: 6px; background: var(--surface, #ffffff); padding: 16px; } .ds-card-meta { display: flex; gap: 8px; align-items: center; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; color: var(--ink-3, #595959); } .ds-card-label { border: 1px solid var(--ink, #0c0c0c); border-radius: 2px; padding: 2px 6px; font-weight: 600; letter-spacing: 0.025em; text-transform: uppercase; color: var(--ink, #0c0c0c); line-height: 1; } .ds-card-q { margin: 12px 0; font-family: 'Roboto Serif', Georgia, serif; font-size: 15px; line-height: 1.625; color: var(--ink, #0c0c0c); } .ds-card-link { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; color: var(--ink-2, #333333); text-decoration: underline; text-decoration-color: var(--line-strong, #b3b3b3); text-underline-offset: 4px; font-variant-numeric: tabular-nums; } .ds-card-link:hover { color: var(--ink, #0c0c0c); }"
+    },
+    {
+      "name": "Category Bar Chart",
+      "kind": "custom",
+      "refersTo": "chart",
+      "description": "Titled chart: blue for ordinary bars, red only above the city average, dashed average rule, source line.",
+      "html": "<figure class=\"ds-chart\"><figcaption><span class=\"ds-chart-t\">„Favorabil” fără rezolvare declarată</span><span class=\"ds-chart-s\">% din închiderile „Favorabil”, pe categorii, ultimele 13 săptămâni</span></figcaption><div class=\"ds-chart-body\"><span class=\"ds-chart-avg\" style=\"left:calc(8.5rem + (100% - 8.5rem) * 0.4)\"></span><div class=\"ds-row\"><span>Salubrizare</span><span class=\"ds-bar ds-bar-alarm\" style=\"width:58%\"></span></div><div class=\"ds-row\"><span>Iluminat</span><span class=\"ds-bar\" style=\"width:28%\"></span></div><div class=\"ds-row\"><span>Străzi</span><span class=\"ds-bar\" style=\"width:35%\"></span></div></div><p class=\"ds-source\">Sursa: My Cluj, Primăria Cluj-Napoca; calcule Sesizări Cluj.</p></figure>",
+      "css": ".ds-chart { position: relative; margin: 0; max-width: 32rem; border-top: 1px solid var(--tag, #e3120b); padding-top: 12px; } .ds-chart::before { content: ''; position: absolute; top: -1px; left: 0; width: 2.25rem; height: 0.5rem; background: var(--tag, #e3120b); } .ds-chart-t { display: block; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: var(--ink, #0c0c0c); } .ds-chart-s { display: block; margin-top: 2px; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 14px; color: var(--ink-3, #595959); } .ds-chart-body { position: relative; margin-top: 16px; display: grid; gap: 6px; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 13px; color: var(--ink-2, #333333); } .ds-row { display: grid; grid-template-columns: 8rem 1fr; gap: 8px; align-items: center; } .ds-row > span:first-child { text-align: right; } .ds-bar { display: block; height: 16px; background: var(--chart, #006ba2); } .ds-bar-alarm { background: var(--alarm, #e3120b); } .ds-chart-avg { position: absolute; top: 0; bottom: 0; border-left: 1.5px dashed var(--ink, #0c0c0c); } .ds-source { margin: 12px 0 0; font-family: 'Roboto Condensed', 'Arial Narrow', sans-serif; font-size: 12px; color: var(--ink-3, #595959); }"
+    },
+    {
+      "name": "Outcome Strip",
+      "kind": "custom",
+      "refersTo": "outcome-strip",
+      "description": "Five official-label bands, two hatched; a dashed outline marks a base under 20.",
+      "html": "<div class=\"ds-strip\"><span style=\"width:62%;background:var(--o-fav,#006ba2)\"></span><span style=\"width:6%;background:var(--o-part,#3ebcd2)\"></span><span class=\"ds-transf\" style=\"width:14%\"></span><span style=\"width:8%;background:var(--o-resp,#9a607f)\"></span><span class=\"ds-open\" style=\"width:10%\"></span></div><div class=\"ds-strip ds-strip-thin\" style=\"margin-top:16px\"><span style=\"width:80%;background:var(--o-fav,#006ba2)\"></span><span class=\"ds-open\" style=\"width:20%\"></span></div>",
+      "css": ".ds-strip { display: flex; width: 20rem; height: 10px; overflow: hidden; border-radius: 3px; background: var(--sunken, #f2f2f2); } .ds-strip > span { height: 100%; } .ds-transf { background-color: var(--o-transf-bg, #e4eaed); background-image: repeating-linear-gradient(135deg, var(--o-transf, #758d99) 0 1.5px, transparent 1.5px 5px); } .ds-open { background-color: var(--o-open, #e6e6e6); background-image: repeating-linear-gradient(45deg, var(--o-open-hatch, #bfbfbf) 0 1px, transparent 1px 4px); } .ds-strip-thin { outline: 1px dashed var(--ink-3, #595959); outline-offset: 2px; }"
+    },
+    {
       "name": "Sort Toggle",
       "kind": "button",
-      "refersTo": "button-toggle",
-      "description": "Rectangular 44px toggle in a group; selected is ink fill with surface text.",
-      "html": "<div class=\"ds-toggles\" role=\"group\"><button class=\"ds-toggle\" aria-pressed=\"true\">volum</button><button class=\"ds-toggle\" aria-pressed=\"false\">încă deschise</button><button class=\"ds-toggle\" aria-pressed=\"false\">respinse</button></div>",
-      "css": ".ds-toggles{display:flex;gap:6px;flex-wrap:wrap;font-family:var(--font-inter,Inter),sans-serif}.ds-toggle{height:44px;padding:0 14px;border:1px solid var(--line-strong,#c9c9c3);border-radius:6px;background:var(--surface,#fff);color:var(--ink-2,#4a4c50);font-size:14px;cursor:pointer}.ds-toggle:hover{border-color:var(--ink,#17181a);color:var(--ink,#17181a)}.ds-toggle[aria-pressed=true]{background:var(--ink,#17181a);border-color:var(--ink,#17181a);color:var(--surface,#fff);font-weight:500}.ds-toggle:focus-visible{outline:2px solid var(--focus,#2b59c3);outline-offset:2px}"
+      "refersTo": "sort-button",
+      "description": "44px pressed-state toggles that re-rank the tables.",
+      "html": "<div class=\"ds-sorts\"><button class=\"ds-sort\" aria-pressed=\"true\">volum</button><button class=\"ds-sort\" aria-pressed=\"false\">răspuns șablon</button></div>",
+      "css": ".ds-sorts { display: flex; gap: 6px; } .ds-sort { height: 44px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--line-strong, #b3b3b3); background: var(--surface, #ffffff); color: var(--ink-2, #333333); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; cursor: pointer; } .ds-sort:hover { border-color: var(--ink, #0c0c0c); color: var(--ink, #0c0c0c); } .ds-sort[aria-pressed='true'] { background: var(--ink, #0c0c0c); border-color: var(--ink, #0c0c0c); color: var(--surface, #ffffff); font-weight: 500; } .ds-sort:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
     },
     {
-      "name": "Text Action",
-      "kind": "button",
-      "refersTo": "button-text",
-      "description": "Boxless action: ink-2 text with a strong-hairline underline that darkens on hover.",
-      "html": "<button class=\"ds-textaction\">Descarcă CSV</button>",
-      "css": ".ds-textaction{height:44px;padding:0 4px;background:none;border:0;font-family:var(--font-inter,Inter),sans-serif;font-size:14px;color:var(--ink-2,#4a4c50);text-decoration:underline;text-decoration-color:var(--line-strong,#c9c9c3);text-underline-offset:4px;cursor:pointer}.ds-textaction:hover{color:var(--ink,#17181a);text-decoration-color:var(--ink,#17181a)}.ds-textaction:focus-visible{outline:2px solid var(--focus,#2b59c3);outline-offset:2px;border-radius:2px}"
-    },
-    {
-      "name": "Filter Chip",
-      "kind": "chip",
-      "refersTo": "chip-filter",
-      "description": "Pill filter (map period, scope); selected is ink fill; 44px under coarse pointers.",
-      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">7 zile</button><button class=\"ds-chip\" aria-pressed=\"false\">30 de zile</button><button class=\"ds-chip\" aria-pressed=\"false\">1 an</button></div>",
-      "css": ".ds-chips{display:flex;gap:4px;flex-wrap:wrap;font-family:var(--font-inter,Inter),sans-serif}.ds-chip{padding:4px 12px;border:1px solid var(--line-strong,#c9c9c3);border-radius:9999px;background:transparent;color:var(--ink-2,#4a4c50);font-size:12px;cursor:pointer;transition:all .15s}.ds-chip:hover{border-color:var(--ink-3,#66686d)}.ds-chip[aria-pressed=true]{background:var(--ink,#17181a);border-color:var(--ink,#17181a);color:var(--surface,#fff)}.ds-chip:focus-visible{outline:2px solid var(--focus,#2b59c3);outline-offset:2px}@media (pointer:coarse){.ds-chip{min-height:44px}}"
-    },
-    {
-      "name": "Select Field",
+      "name": "Select",
       "kind": "input",
       "refersTo": "select",
-      "description": "44px labelled native select used by the picker.",
-      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Categorie</span><select class=\"ds-select\"><option>Toate categoriile</option><option>Iluminat public</option></select></label>",
-      "css": ".ds-field{display:block;font-family:var(--font-inter,Inter),sans-serif;max-width:320px}.ds-field-label{display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--ink-2,#4a4c50)}.ds-select{width:100%;height:44px;padding:0 12px;border:1px solid var(--line-strong,#c9c9c3);border-radius:6px;background:var(--surface,#fff);color:var(--ink,#17181a);font-size:15px}.ds-select:focus-visible{outline:2px solid var(--focus,#2b59c3);outline-offset:2px}"
+      "description": "Picker select with a small label above.",
+      "html": "<label class=\"ds-field\"><span>Categorie</span><select class=\"ds-select\"><option>Toate categoriile</option></select></label>",
+      "css": ".ds-field { display: block; max-width: 18rem; } .ds-field > span { display: block; margin-bottom: 6px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; font-weight: 500; color: var(--ink-2, #333333); } .ds-select { height: 44px; width: 100%; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line-strong, #b3b3b3); background: var(--surface, #ffffff); color: var(--ink, #0c0c0c); font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px; } .ds-select:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
     },
     {
-      "name": "Site Header",
+      "name": "Site Navigation",
       "kind": "nav",
-      "refersTo": "navigation",
-      "description": "Sticky 48px bar: wordmark with three-bar mark, nav with ink underline on the active page, quiet support link.",
-      "html": "<header class=\"ds-header\"><a class=\"ds-wordmark\" href=\"#\"><svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" aria-hidden=\"true\"><rect x=\"1\" y=\"9\" width=\"3\" height=\"6\" rx=\"0.5\" fill=\"var(--o-fav,#4f7464)\"/><rect x=\"6.5\" y=\"5\" width=\"3\" height=\"10\" rx=\"0.5\" fill=\"var(--o-part,#c8b68c)\"/><rect x=\"12\" y=\"1\" width=\"3\" height=\"14\" rx=\"0.5\" fill=\"var(--ink,#17181a)\"/></svg>Sesizări Cluj</a><nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Panou</a><a href=\"#\">Hartă</a><a href=\"#\">Recurente</a><a href=\"#\">Urmărite</a></nav><a class=\"ds-support\" href=\"#\">Ia-mi o cafea</a></header>",
-      "css": ".ds-header{display:flex;align-items:center;gap:32px;padding:0 24px;height:48px;border-bottom:1px solid var(--line,#e2e2de);background:color-mix(in srgb,var(--surface,#fff) 95%,transparent);backdrop-filter:blur(4px);font-family:var(--font-inter,Inter),sans-serif}.ds-wordmark{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:-.025em;color:var(--ink,#17181a);text-decoration:none}.ds-nav{display:flex}.ds-nav a{position:relative;display:flex;align-items:center;height:48px;padding:0 12px;font-size:14px;color:var(--ink-3,#66686d);text-decoration:none}.ds-nav a:hover{color:var(--ink,#17181a)}.ds-nav a[aria-current=page]{color:var(--ink,#17181a);font-weight:500}.ds-nav a[aria-current=page]::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:9999px;background:var(--ink,#17181a)}.ds-support{margin-left:auto;font-size:14px;color:var(--ink-3,#66686d);text-decoration:none}.ds-support:hover{color:var(--ink,#17181a)}.ds-header a:focus-visible{outline:2px solid var(--focus,#2b59c3);outline-offset:2px;border-radius:2px}"
-    },
-    {
-      "name": "Picker Panel",
-      "kind": "card",
-      "refersTo": "panel",
-      "description": "The single bordered panel per view; surface on bg, 8px corners, no shadow.",
-      "html": "<section class=\"ds-panel\"><h2>Ce se întâmplă cu sesizările ca a mea?</h2><p>1.284 de sesizări depuse între 6 iul. și 4 oct., după cum s-au închis până acum:</p></section>",
-      "css": ".ds-panel{max-width:560px;padding:24px;border:1px solid var(--line,#e2e2de);border-radius:8px;background:var(--surface,#fff);font-family:var(--font-inter,Inter),sans-serif}.ds-panel h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.025em;color:var(--ink,#17181a)}.ds-panel p{margin:4px 0 0;font-size:14px;line-height:1.625;color:var(--ink-2,#4a4c50)}"
-    },
-    {
-      "name": "Outcome Strip with Legend",
-      "kind": "custom",
-      "refersTo": "outcome-strip-large",
-      "description": "Signature: five-band 100% strip with printed shares; hatched transferred and open.",
-      "html": "<div class=\"ds-os\"><div class=\"ds-os-strip\" role=\"img\" aria-label=\"Favorabil 61,2%, Parțial 3,1%, Transferată 9,4%, Respinsă 4,0%, Deschisă 22,3%\"><span class=\"ds-fav\" style=\"width:61.2%\"></span><span class=\"ds-part\" style=\"width:3.1%\"></span><span class=\"ds-transf\" style=\"width:9.4%\"></span><span class=\"ds-resp\" style=\"width:4%\"></span><span class=\"ds-open\" style=\"width:22.3%\"></span></div><ul class=\"ds-os-legend\"><li><i class=\"ds-fav\"></i>Favorabil<b>61,2%</b></li><li><i class=\"ds-part\"></i>Parțial<b>3,1%</b></li><li><i class=\"ds-transf\"></i>Transferată<b>9,4%</b></li><li><i class=\"ds-resp\"></i>Respinsă<b>4,0%</b></li><li><i class=\"ds-open\"></i>Deschisă<b>22,3%</b></li></ul><div class=\"ds-os-strip ds-thin\" style=\"margin-top:24px\" role=\"img\" aria-label=\"11 din 12 favorabil\"><span class=\"ds-fav\" style=\"width:91.7%\"></span><span class=\"ds-open\" style=\"width:8.3%\"></span></div></div>",
-      "css": ".ds-os{font-family:var(--font-inter,Inter),sans-serif;max-width:640px}.ds-os-strip{display:flex;height:16px;overflow:hidden;border-radius:3px;background:var(--sunken,#efefec)}.ds-os-strip span{height:100%}.ds-thin{outline:1px dashed var(--ink-3,#66686d);outline-offset:2px}.ds-fav{background:var(--o-fav,#4f7464)}.ds-part{background:var(--o-part,#c8b68c)}.ds-resp{background:var(--o-resp,#2e3136)}.ds-transf{background-color:var(--o-transf-bg,#e3e6eb);background-image:repeating-linear-gradient(135deg,var(--o-transf,#6f7a8c) 0 1.5px,transparent 1.5px 5px)}.ds-open{background-color:var(--o-open,#e4e4df);background-image:repeating-linear-gradient(45deg,var(--o-open-hatch,#c4c4bd) 0 1px,transparent 1px 4px)}.ds-os-legend{display:grid;grid-template-columns:repeat(5,1fr);gap:8px 24px;margin:12px 0 0;padding:0;list-style:none;font-size:12px;color:var(--ink-3,#66686d)}.ds-os-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}.ds-os-legend b{display:block;margin-top:2px;font-size:18px;font-weight:600;color:var(--ink,#17181a);font-variant-numeric:tabular-nums}"
-    },
-    {
-      "name": "Year-on-year Delta",
-      "kind": "custom",
-      "refersTo": "delta",
-      "description": "Signed change coloured only by direction (owner decision, under review); small bases print counts in ink-3.",
-      "html": "<p class=\"ds-delta-row\"><span class=\"ds-delta ds-up\">+18%</span> <span class=\"ds-delta ds-down\">−7%</span> <span class=\"ds-delta ds-flat\">0%</span> <span class=\"ds-delta ds-flat\">3 → 6</span></p>",
-      "css": ".ds-delta-row{font-family:var(--font-inter,Inter),sans-serif;font-size:13px;display:flex;gap:16px}.ds-delta{font-variant-numeric:tabular-nums}.ds-up{color:var(--up,#a1530b)}.ds-down{color:var(--down,#0f6e6e)}.ds-flat{color:var(--ink-3,#66686d)}"
+      "refersTo": "nav-link",
+      "description": "Sticky header tabs; active tab carries a 2px ink underline.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a\" aria-current=\"page\" href=\"#\">Panou</a><a class=\"ds-nav-a\" href=\"#\">Hartă</a><a class=\"ds-nav-a\" href=\"#\">Recurente</a><a class=\"ds-nav-a\" href=\"#\">Urmărite</a></nav>",
+      "css": ".ds-nav { display: flex; border-bottom: 1px solid var(--line, #d9d9d9); background: var(--surface, #ffffff); } .ds-nav-a { position: relative; display: flex; align-items: center; height: 48px; padding: 0 12px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; color: var(--ink-3, #595959); text-decoration: none; } .ds-nav-a:hover { color: var(--ink, #0c0c0c); } .ds-nav-a[aria-current='page'] { color: var(--ink, #0c0c0c); font-weight: 500; } .ds-nav-a[aria-current='page']::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 2px; border-radius: 9999px; background: var(--ink, #0c0c0c); } .ds-nav-a:focus-visible { outline: 2px solid var(--focus, #006ba2); outline-offset: 2px; }"
     }
   ],
   "narrative": {
-    "northStar": "The Public Ledger",
-    "overview": "**Creative North Star: \"The Public Ledger\"**\n\nA calm, light reading surface for public records, made to the craft standard of a good data desk. The page is near-white tinted neutral with near-black ink, ruled by hairlines rather than boxed in cards, and almost everything on it is a number set in tabular figures. One idea owns the system: outcomes, not volume, lead every comparison. Wherever reports are counted, a strip in the five outcome bands sits beside the count, its shares printed, and the row can be re-sorted by outcome in one tap.\n\nColour is rationed by job. Neutrals carry structure and text; a dedicated, muted outcome scale carries how reports were closed; category colours exist only to say which category something is; blue appears only where the visitor is acting. Nothing is coloured to grade the city: there is no red verdict and no green \"good\". Density is high but quiet: an 8px rhythm, 12px text floor, generous line height on prose, and sections separated by a single top rule.\n\nLight and dark are one system. Every token has a dark value under `prefers-color-scheme: dark`, so components never pick their own grey.",
+    "northStar": "The Chart Desk",
+    "overview": "**Creative North Star: \"The Chart Desk\"**\n\nSesizări Cluj reads like the data page of a financial weekly turned on a city hall: white paper, near-black ink, one red that means \"here is the problem\", one blue that means \"here is data\". Every finding opens with the desk's red tag, states its verdict as the headline, proves it with a chart that carries a title, a subtitle and a source line, and then quotes the city's own reply as evidence beside the city's own label. The tone is deadpan: the system does not grade, it arranges checkable numbers so the dysfunction is visible.\n\nDensity is editorial rather than dashboard: long single column on phones, a two-thirds / one-third split at desktop for the opening viewport, then full-width sections separated by red hairlines. There are no KPI tiles, no card grids, no decorative colour; the only cards are the quoted example replies. Depth is flat. Motion is absent apart from native details/summary disclosure.\n\nThe faces are free relatives chosen for the financial-press look: Roboto Serif narrowed on its width axis, Source Sans 3, Roboto Condensed. No publication's name, logo or typefaces are used anywhere; only the chart-desk colour conventions are matched.",
     "keyCharacteristics": [
-      "Near-white tinted-neutral ground, near-black ink, three AA ink tiers.",
-      "A five-band outcome scale read by lightness and pattern, independent of the 16 category colours, with no red.",
-      "One family (Inter, latin-ext, tabular figures) for everything, including numbers.",
-      "Hairline rules between sections and rows; one bordered panel at most per view.",
-      "Selection is shown by ink fill; blue is reserved for focus and active state.",
-      "Small samples are marked as small: counts instead of shares, dashed outline on strips."
+      "White paper, near-black ink, hairline rules instead of boxes.",
+      "Red is reserved for the section tag and the dysfunction findings; blue is ordinary data.",
+      "The verdict is the heading; no label sits above it.",
+      "Narrow bold serif headlines, condensed figures, plain sans for reading, the city's replies in serif.",
+      "The city's official label printed as a bordered uppercase tag beside its quoted words, with a count.",
+      "Every chart carries a title, subtitle and source line.",
+      "Light and dark from `prefers-color-scheme`; every pair clears AA."
     ],
     "rules": [
       {
-        "name": "The Outcomes Own Their Scale Rule",
-        "body": "Outcome bands come only from the `o-*` tokens via the shared band list; never from a category colour, and never red. A rejection is a recorded outcome, not an alarm.",
+        "name": "The Red Means Problem Rule",
+        "body": "Red appears only as the section tag and on the dysfunction findings (templated replies, \"Favorabil\" with no stated fix, reports left open). If a series is not a finding, it is blue or ink.",
         "section": "colors"
       },
       {
-        "name": "The Blue Means You Rule",
-        "body": "`focus` marks only focus, selection tint, and the active element of an interactive chart. Selected controls are ink, not blue.",
+        "name": "The Unjudged Label Rule",
+        "body": "The outcome scale reports the city's own labels and contains no red. Favourable is blue, not green; rejected is purple, not red.",
         "section": "colors"
       },
       {
-        "name": "The Text Is Ink Rule",
-        "body": "Every text colour is `ink`, `ink-2` or `ink-3` (or `surface` on an ink fill, or `up`/`down` on a delta). Anything that must recede further than `ink-3` becomes a rule or a fill, never text.",
+        "name": "The Map Owns the Category Colours Rule",
+        "body": "The sixteen category colours live on the map pages only. The dashboard never colours by category, so a category dot can never be mistaken for an outcome band.",
         "section": "colors"
+      },
+      {
+        "name": "The Verdict Is the Heading Rule",
+        "body": "A finding section's h2 is its one-line verdict, generated from the numbers it states. The section name exists only for screen readers and anchors; nothing is printed above the headline.",
+        "section": "typography"
       },
       {
         "name": "The 12px Floor Rule",
-        "body": "No text below 0.75rem (12px), including axis ticks and legend labels. The only sub-label size in use is 13px.",
+        "body": "No text is set below 12px (`text-xs`), axis ticks and captions included.",
         "section": "typography"
       },
       {
-        "name": "The Tabular Rule",
-        "body": "Every number that may be compared is set with `tabular-nums` and formatted `ro-RO`: decimal comma (\"86,9%\"), non-breaking group separator, \"<0,1%\" for nonzero shares under 0.05%.",
+        "name": "The Comma Rule",
+        "body": "Every number goes through ro-RO formatting: \"86,9%\", thousands with a dot, and \"de\" before the noun from 20 up. Use tabular figures wherever digits align.",
         "section": "typography"
       },
       {
-        "name": "The Honest Zero Rule",
-        "body": "An observed zero prints \"0%\" (muted to `ink-3` in tables). \"—\" is reserved for \"no reports at all\", because a dash in a table reads as missing data.",
-        "section": "typography"
-      },
-      {
-        "name": "The Hairline Not Card Rule",
-        "body": "Sections are divided by a single top rule. At most one bordered panel per view (the picker), and never a card inside a card.",
+        "name": "The Rules, Not Boxes Rule",
+        "body": "Separate with a line, not a card or a shadow. The quoted example replies are the only bordered cards.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do draw every outcome from the shared five-band list and the `o-*` tokens, hatched for transferred and still open.",
-      "Do print shares beside strips wherever the numbers matter, and keep them in the strip's accessible name.",
-      "Do switch to counts and a dashed strip outline below 20 reports, and to \"a → b\" counts for deltas on bases under 10.",
-      "Do print an observed zero as \"0%\"; use \"—\" only when there are no reports.",
-      "Do show selection with an `ink` fill and `surface` text; keep `focus` blue for focus rings, selection tint and the active chart element.",
-      "Do colour deltas only by direction with `up`/`down` (current owner decision, under review).",
-      "Do keep every interactive target at least 44px tall on touch; on the map use `pointer: coarse` to grow chips.",
-      "Do set every compared number in tabular Inter, formatted `ro-RO`.",
-      "Do give every new colour a dark value under `prefers-color-scheme: dark` in the same token."
+      "Do open every finding section with the red tag rule and make its verdict the h2 in the narrow serif.",
+      "Do keep red for the tag and the dysfunction findings; draw ordinary data in chart blue (#006ba2, dark #4ea1d3) or ink.",
+      "Do quote the city's reply verbatim in serif (max 72ch) beside its official label as a bordered uppercase tag, with the count.",
+      "Do give every chart a title, a subtitle and the source line.",
+      "Do set figures and chart labels in Roboto Condensed with tabular numerals, reading text in Source Sans 3.",
+      "Do print counts with a dashed outline when a base has fewer than 20 reports.",
+      "Do format every number ro-RO, keep text at 12px or above and AA contrast in both schemes, and make touch targets at least 44px.",
+      "Do colour deltas amber (up) and teal (down) for direction only."
     ],
     "donts": [
-      "Don't use a category colour for an outcome, a state, or chrome; category colours are for identity dots, sparklines and map pins only.",
-      "Don't use red, or green-as-good, to judge an outcome or a change.",
-      "Don't set text below 12px or in any colour lighter than `ink-3`.",
-      "Don't fade a strip to signal uncertainty; outline it.",
-      "Don't add a second typeface or a monospaced face for figures.",
-      "Don't box sections in cards or nest cards; separate with a top hairline.",
-      "Don't put labels inside SVG or let a share chart's scale fit the data; shares sit on a fixed 0 to 100% scale."
+      "Don't use red on an ordinary data series, a delta, or an outcome band.",
+      "Don't print an eyebrow, kicker or section label above a verdict headline.",
+      "Don't use the sixteen category colours anywhere but the map.",
+      "Don't add KPI tiles, card grids, shadows or decorative colour; separate with rules.",
+      "Don't use any publication's name, logo or typefaces; the system matches colour conventions only.",
+      "Don't fit a share chart's scale to its data, or show a percentage on a base under 20."
     ]
   }
 }

@@ -56,20 +56,33 @@ export function sesizari(n: number): string {
 }
 
 /**
- * The three sort keys the tables offer beyond volume. Each is a share of every
- * report in the window, open ones included, so it shares a denominator with the
- * strip beside it.
+ * The three rates the picker and tables lead with, beyond volume. Each has its
+ * own denominator, and the label says it:
  *
- * "Transferate" replaced a rejected-only rate: since late 2021 rejections are
- * rarely recorded, so that column tied almost every row, while the share routed
- * to an operator does separate them. "Parțial sau respinse" deliberately leaves
- * out transfers: CTP and CAS reports are routed to the operator wholesale, and
- * counting that as unfavourable would rank who answers, not what was decided.
+ *   templated -- closed reports whose reply is a template (lib/replies.ts),
+ *                over all closed reports;
+ *   nofix     -- Favorabil closures with no stated fix, over all Favorabil;
+ *   deschise  -- reports still open, over all reports in the window.
+ *
+ * `x` is MatrixCell.x: [templated, nofix].
  */
+type X = [number, number];
+interface Rate { label: string; num: (o: Counts, x: X) => number; den: (o: Counts) => number }
 export const RATES = {
-  nefav: { label: 'parțial sau respinse', of: (c: Counts) => (c[0] ? (c[2] + c[4]) / c[0] : 0) },
-  transferat: { label: 'transferate', of: (c: Counts) => (c[0] ? c[3] / c[0] : 0) },
-  deschise: { label: 'încă deschise', of: (c: Counts) => (c[0] ? c[5] / c[0] : 0) },
-} as const;
+  templated: { label: 'răspuns șablon', num: (_, x) => x[0], den: (o) => o[0] - o[5] },
+  nofix: { label: 'favorabil fără rezolvare', num: (_, x) => x[1], den: (o) => o[1] },
+  deschise: { label: 'încă deschise', num: (o) => o[5], den: (o) => o[0] },
+} satisfies Record<string, Rate>;
+
+/** A rate as a fraction, 0 when its denominator is empty. */
+export const rateOf = (r: Rate, o: Counts, x: X) => (r.den(o) ? r.num(o, x) / r.den(o) : 0);
 
 export type RateKey = keyof typeof RATES;
+
+/** "peste 1 din 4" for 0.274: the largest k with 1/k still below the share. */
+export function oneIn(p: number): string {
+  if (p <= 0) return '0';
+  if (p >= 0.5) return `${Math.round(p * 100)}%`;
+  const k = Math.ceil(1 / p);
+  return 1 / k === p ? `1 din ${k}` : `peste 1 din ${k}`;
+}

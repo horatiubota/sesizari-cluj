@@ -1,4 +1,5 @@
 import { query } from '@/lib/db';
+import { NOFIX_KIND, REPLY_TEXT, TEMPLATE_KEY, TEMPLATE_MIN } from '@/lib/replies';
 
 /**
  * Dashboard aggregates.
@@ -198,6 +199,12 @@ export interface MatrixCell {
   o: Counts;
   /** Reports per week, oldest first; the last entry is the 7 days ending on the anchor. */
   w: number[];
+  /**
+   * What the replies say: [closed with a template reply, Favorabil with no
+   * stated fix]. Rules and their measured accuracy live in lib/replies.ts.
+   * Denominators differ -- closed reports (o[0] - o[5]) and Favorabil (o[1]).
+   */
+  x: [number, number];
 }
 
 /**
@@ -222,20 +229,31 @@ export async function getOutcomeMatrix(): Promise<OutcomeMatrix> {
   const rows = await query<{
     cat: string | null; nb: string | null; wk: number; week_start: string; g: number;
     total: number; favorabil: number; partial: number; transferat: number; respins: number; deschise: number;
+    templated: number; nofix: number;
   }>(
     `with ${ANCHOR},
-     b as (
+     r as (
        select t.category_id::text as cat,
               coalesce(t.neighborhood, '(nelocalizat)') as nb,
               ((a.today - dd) / 7)::int as wk,
-              t.status_label, t.status_code
+              t.status_label, t.status_code,
+              ${REPLY_TEXT('t.resolve_reason')} as f
        from public.tickets t, anchor a, ${DAY}
        where ${SCAN} and dd > a.today - ${OUTCOME_WEEKS * 7}
+     ),
+     k as (select *, ${TEMPLATE_KEY('f')} as key from r),
+     -- How often each reply key was sent in the window, across all closed reports:
+     -- a template is a template city-wide, whichever cell it lands in.
+     b as (
+       select *, count(*) filter (where status_code = 'C' and key <> '') over (partition by key) as key_n
+       from k
      )
      select cat, nb, wk,
             ((select today from anchor) - 7 * wk - 6)::text as week_start,
             grouping(cat, nb)::int as g,
-            ${OUTCOME_COUNTS}
+            ${OUTCOME_COUNTS},
+            count(*) filter (where status_code = 'C' and key <> '' and key_n >= ${TEMPLATE_MIN})::int as templated,
+            count(*) filter (where status_label = 'Favorabil' and ${NOFIX_KIND('f')} <> 'other')::int as nofix
      from b
      group by grouping sets ((cat, nb, wk), (cat, wk), (nb, wk), (wk))`,
   );
@@ -245,12 +263,13 @@ export async function getOutcomeMatrix(): Promise<OutcomeMatrix> {
   for (const r of rows) {
     // grouping() sets a bit for each column rolled up: 1 = cartier, 2 = category.
     const key = `${r.g & 2 ? '*' : r.cat}|${r.g & 1 ? '*' : r.nb}`;
-    const cell = (cells[key] ??= { o: [0, 0, 0, 0, 0, 0], w: Array(OUTCOME_WEEKS).fill(0) });
+    const cell = (cells[key] ??= { o: [0, 0, 0, 0, 0, 0], w: Array(OUTCOME_WEEKS).fill(0), x: [0, 0] });
     const i = OUTCOME_WEEKS - 1 - r.wk;
     weeks[i] = r.week_start;
     cell.w[i] = r.total;
     cell.o[0] += r.total; cell.o[1] += r.favorabil; cell.o[2] += r.partial;
     cell.o[3] += r.transferat; cell.o[4] += r.respins; cell.o[5] += r.deschise;
+    cell.x[0] += r.templated; cell.x[1] += r.nofix;
   }
   return { weeks, cells };
 }

@@ -6,7 +6,14 @@ import { useState } from 'react';
 import OutcomeBar from '@/components/OutcomeBar';
 import { CATEGORIES } from '@/lib/categories';
 import type { MatrixCell, OutcomeMatrix } from '@/lib/dashboard';
-import { MIN_FOR_SHARE, nf, sesizari } from '@/lib/outcomes';
+import { MIN_FOR_SHARE, nf, RATES, sesizari, shareOrCount, type RateKey } from '@/lib/outcomes';
+
+/** The three rates as sentences, with the denominator spelled out. */
+const RATE_COPY: Record<RateKey, string> = {
+  templated: 'din cele închise au primit un răspuns șablon',
+  nofix: 'din cele închise „Favorabil” nu spun că s-a rezolvat ceva',
+  deschise: 'sunt încă deschise',
+};
 
 const NELOC = '(nelocalizat)';
 const DATE = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
@@ -79,7 +86,7 @@ export function PickerView({
   // A pair absent from the matrix simply had no reports in the window.
   const validCat = cat === '*' || CATEGORIES.some((c) => String(c.id) === cat) ? cat : '*';
   const validNb = cartier === '*' || cartiere.includes(cartier) ? cartier : '*';
-  const empty: MatrixCell = { o: [0, 0, 0, 0, 0, 0], w: Array(matrix.weeks.length).fill(0) };
+  const empty: MatrixCell = { o: [0, 0, 0, 0, 0, 0], w: Array(matrix.weeks.length).fill(0), x: [0, 0] };
   const cell = matrix.cells[`${validCat}|${validNb}`] ?? empty;
 
   const catName = CATEGORIES.find((c) => String(c.id) === validCat)?.name;
@@ -121,19 +128,36 @@ export function PickerView({
         <h3 className="text-base font-semibold tracking-tight">{title}</h3>
         <p className="mt-1 text-sm text-ink-2">
           {cell.o[0]
-            ? <>{sesizari(cell.o[0])} depuse între {fmt(from)} și {fmt(to)}, după cum s-au închis până acum:</>
+            ? <>{sesizari(cell.o[0])} depuse între {fmt(from)} și {fmt(to).replace(/\.$/, '')}.</>
             : <>Nicio sesizare depusă între {fmt(from)} și {fmt(to)} pentru această combinație.</>}
         </p>
 
         {cell.o[0] > 0 && (
-          <div className="mt-4">
-            <OutcomeBar counts={cell.o} label={title} size="lg" legend />
-            {cell.o[0] < MIN_FOR_SHARE && (
-              <p className="mt-3 text-sm text-ink-2">
-                Prea puține sesizări pentru procente care să spună ceva; sunt afișate numerele.
-              </p>
-            )}
-          </div>
+          <>
+            <dl className="mt-4 grid grid-cols-3 gap-x-4 border-y border-line py-4">
+              {(Object.keys(RATES) as RateKey[]).map((k) => {
+                const r = RATES[k];
+                const den = r.den(cell.o);
+                return (
+                  <div key={k} className="min-w-0">
+                    <dt className="text-xs leading-snug text-ink-3">{RATE_COPY[k]}</dt>
+                    <dd className="mt-1 font-cond text-[1.75rem] leading-none font-bold tabular-nums">
+                      {den ? shareOrCount(r.num(cell.o, cell.x), den) : '—'}
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-medium text-ink-2">Cum le-a etichetat Primăria</p>
+              <OutcomeBar counts={cell.o} label={`${title}, eticheta oficială`} legend />
+              {cell.o[0] < MIN_FOR_SHARE && (
+                <p className="mt-3 text-sm text-ink-2">
+                  Prea puține sesizări pentru procente care să spună ceva; sunt afișate numerele.
+                </p>
+              )}
+            </div>
+          </>
         )}
 
         <WeeklyVolume weeks={matrix.weeks} values={cell.w} />
@@ -173,7 +197,7 @@ function WeeklyVolume({ weeks, values }: { weeks: string[]; values: number[] }) 
         className="mt-2 flex h-16 items-end gap-1">
         {values.map((v, i) => (
           <span key={weeks[i] ?? i}
-            className={`flex-1 rounded-t-[2px] ${i === values.length - 1 ? 'bg-ink' : 'bg-line-strong'}`}
+            className={`flex-1 ${i === values.length - 1 ? 'bg-ink' : 'bg-chart'}`}
             style={{ height: `${Math.max((v / max) * 100, v ? 4 : 1)}%`, opacity: v ? 1 : 0.4 }} />
         ))}
       </div>
