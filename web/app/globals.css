@@ -1,17 +1,140 @@
 @import "tailwindcss";
 
 /*
+  Design tokens.
+
+  One neutral ramp, one ink, and a dedicated outcome scale. Everything a page
+  draws comes from here, so light and dark stay in step and no component picks
+  its own grey.
+
+  The outcome scale is deliberately not drawn from the 16 category colours. The
+  previous palette reused four of them -- Favorabil was the Spații verzi green,
+  Respinsă the Parcări red -- so a category row's bar and its outcome strip
+  could not be told apart. It is a muted set read mostly by lightness: a sage
+  for favourable, sand for partial, dark slate for rejected, with pattern
+  carrying the two bands that are not outcomes of the city's own work --
+  "transferred" is hatched slate, "still open" is hatched pale grey. There is no
+  red: a rejection is a recorded outcome, not an alarm, and the site does not
+  grade the city. Blue is kept for interaction and focus only.
+
+  Ink tiers are chosen for contrast, not taste: --ink-2 and --ink-3 both clear
+  4.5:1 on --bg and --surface, so secondary text can carry data. Anything that
+  must recede further is a rule or a fill, never text.
+*/
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --sunken: #efefec;
+  --line: #e2e2de;
+  --line-strong: #c9c9c3;
+  --ink: #17181a;
+  --ink-2: #4a4c50;
+  --ink-3: #66686d;
+  --focus: #2b59c3;
+
+  --o-fav: #4f7464;
+  --o-part: #c8b68c;
+  --o-transf: #6f7a8c;
+  --o-transf-bg: #e3e6eb;
+  --o-resp: #2e3136;
+  --o-open: #e4e4df;
+  --o-open-hatch: #c4c4bd;
+
+  --up: #a1530b;
+  --down: #0f6e6e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111214;
+    --surface: #18191c;
+    --sunken: #0c0d0e;
+    --line: #2a2c30;
+    --line-strong: #3d4046;
+    --ink: #ececea;
+    --ink-2: #b6b8bb;
+    --ink-3: #9a9da1;
+    --focus: #8fb0ff;
+
+    --o-fav: #7fa894;
+    --o-part: #8e7f5c;
+    --o-transf: #9aa3b2;
+    --o-transf-bg: #2a2e36;
+    --o-resp: #e2e4e7;
+    --o-open: #2f3135;
+    --o-open-hatch: #45484d;
+
+    --up: #f0a35e;
+    --down: #5cc7c0;
+  }
+}
+
+/*
   Faces are loaded by next/font in layout.tsx, which self-hosts them and exposes
-  each as a CSS variable. Mapping them here is what makes the `font-sans` and
-  `font-mono` utilities resolve: the generated scaffolding pointed both at Geist
-  variables that were never defined, so every `font-mono` call site silently fell
-  back to the body font.
+  each as a CSS variable. One family carries the whole site: Inter has the
+  comma-below ș and ț in latin-ext and true tabular figures, so numbers line up
+  without a second, monospaced face. `font-mono` is kept as an alias for the
+  tabular setting so older call sites keep working while they are migrated.
 */
 @theme inline {
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-mono: var(--font-inter);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-focus: var(--focus);
+  --color-up: var(--up);
+  --color-down: var(--down);
+
+  --color-o-fav: var(--o-fav);
+  --color-o-part: var(--o-part);
+  --color-o-transf: var(--o-transf);
+  --color-o-resp: var(--o-resp);
+  --color-o-open: var(--o-open);
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* The two outcome bands that carry a pattern rather than a flat fill. */
+.fill-o-transf {
+  background-color: var(--o-transf-bg);
+  background-image: repeating-linear-gradient(
+    135deg, var(--o-transf) 0 1.5px, transparent 1.5px 5px
+  );
+}
+.fill-o-open {
+  background-color: var(--o-open);
+  background-image: repeating-linear-gradient(
+    45deg, var(--o-open-hatch) 0 1px, transparent 1px 4px
+  );
 }

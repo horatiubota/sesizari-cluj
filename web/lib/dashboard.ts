@@ -60,6 +60,8 @@ export interface Overview {
   total: number; open: number; favorabil: number; partial: number;
   transferat: number; respins: number;
   first_day: string; last_day: string; last_day_count: number; last_seen: string;
+  /** Hours from the newest report to the moment of this render; the staleness signal. */
+  hours_since_last: number;
 }
 
 export interface WindowCounts {
@@ -99,7 +101,8 @@ export async function getOverview(): Promise<Overview> {
                                  = (select max((created_at at time zone 'Europe/Bucharest')::date)
                                     from public.tickets))::int                      as last_day_count,
             to_char(max(created_at at time zone 'Europe/Bucharest'),
-                    'YYYY-MM-DD HH24:MI')                                           as last_seen
+                    'YYYY-MM-DD HH24:MI')                                           as last_seen,
+            (extract(epoch from now() - max(created_at)) / 3600)::float8            as hours_since_last
      from public.tickets`,
   );
   return row;
@@ -165,14 +168,14 @@ export async function getByNeighborhood(): Promise<Breakdown[]> {
  * share still open at the end of the window runs 69% at 7 days, 42% at 30, 23%
  * at 60, 9% at 180.
  *
- * 60 days is what the dashboard uses, and it is the same span the trend
- * sparkline beside these columns already covers. Every share is taken over all
- * reports in the window, still-open ones included, so the columns and the
- * composition strip share one denominator and the strip's grey band shows
- * directly how much of each row has not been answered yet -- around a quarter
- * overall, and from 11% to 38% depending on the category. That band is the
- * thing to read before comparing two rows: a category can look less favourable
- * simply because more of its recent reports are still in progress.
+ * The dashboard uses 13 whole weeks (91 days), so the weekly volume series and
+ * the outcome composition describe exactly the same reports. Every share is
+ * taken over all reports in the window, still-open ones included, so the
+ * printed shares and the composition strip share one denominator and the open
+ * band shows directly how much of each row has not been answered yet. That
+ * band is the thing to read before comparing two rows: a category can look
+ * less favourable simply because more of its recent reports are still in
+ * progress.
  *
  * Two categories, CTP and CAS, are 100% "transferred to the operator" in every
  * window: the city routes them out and never records an outcome. Their 0%
@@ -184,27 +187,72 @@ export interface OutcomeShare {
   favorabil: number; partial: number; transferat: number; respins: number; deschise: number;
 }
 
-/** Anchored on the newest day in the data, like every other window here. */
-const OUTCOME_WINDOW = `
-  from public.tickets t, anchor a, ${DAY}
-  where dd > a.today - $1::int`;
+/** Whole weeks in the outcome window; see the note above OutcomeShare. */
+export const OUTCOME_WEEKS = 13;
 
-export async function getOutcomeByCategory(days: number): Promise<OutcomeShare[]> {
-  return query<OutcomeShare>(
-    `with ${ANCHOR}
-     select t.category_id::text as key, ${OUTCOME_COUNTS}
-     ${OUTCOME_WINDOW} group by 1`,
-    [days],
-  );
+/** total, favorabil, partial, transferat, respins, deschise -- OUTCOME_COUNTS order. */
+export type Counts = [number, number, number, number, number, number];
+
+export interface MatrixCell {
+  /** Outcome composition over the whole window. */
+  o: Counts;
+  /** Reports per week, oldest first; the last entry is the 7 days ending on the anchor. */
+  w: number[];
 }
 
-export async function getOutcomeByNeighborhood(days: number): Promise<OutcomeShare[]> {
-  return query<OutcomeShare>(
-    `with ${ANCHOR}
-     select coalesce(t.neighborhood, '(nelocalizat)') as key, ${OUTCOME_COUNTS}
-     ${OUTCOME_WINDOW} group by 1`,
-    [days],
+/**
+ * Outcome composition and weekly volume for every category × cartier pair, plus
+ * the per-category, per-cartier and city-wide margins, keyed `cat|cartier` with
+ * `*` for "all". This is everything the picker can ask, computed once per
+ * render: about 450 cells, small enough to ship to the browser whole, so
+ * choosing a pair costs no request and no database load.
+ *
+ * One query on purpose. GROUPING SETS answers all four levels from a single
+ * scan, and it replaces the two per-dimension outcome queries the dashboard used
+ * to run -- see getDailyBreakdown for why the query count matters against a
+ * pool of four.
+ */
+export interface OutcomeMatrix {
+  /** First day of each week, oldest first. */
+  weeks: string[];
+  cells: Record<string, MatrixCell>;
+}
+
+export async function getOutcomeMatrix(): Promise<OutcomeMatrix> {
+  const rows = await query<{
+    cat: string | null; nb: string | null; wk: number; week_start: string; g: number;
+    total: number; favorabil: number; partial: number; transferat: number; respins: number; deschise: number;
+  }>(
+    `with ${ANCHOR},
+     b as (
+       select t.category_id::text as cat,
+              coalesce(t.neighborhood, '(nelocalizat)') as nb,
+              ((a.today - dd) / 7)::int as wk,
+              t.status_label, t.status_code
+       from public.tickets t, anchor a, ${DAY}
+       where ${SCAN} and dd > a.today - ${OUTCOME_WEEKS * 7}
+     )
+     select cat, nb, wk,
+            ((select today from anchor) - 7 * wk - 6)::text as week_start,
+            grouping(cat, nb)::int as g,
+            ${OUTCOME_COUNTS}
+     from b
+     group by grouping sets ((cat, nb, wk), (cat, wk), (nb, wk), (wk))`,
   );
+
+  const weeks: string[] = Array.from({ length: OUTCOME_WEEKS }, () => '');
+  const cells: Record<string, MatrixCell> = {};
+  for (const r of rows) {
+    // grouping() sets a bit for each column rolled up: 1 = cartier, 2 = category.
+    const key = `${r.g & 2 ? '*' : r.cat}|${r.g & 1 ? '*' : r.nb}`;
+    const cell = (cells[key] ??= { o: [0, 0, 0, 0, 0, 0], w: Array(OUTCOME_WEEKS).fill(0) });
+    const i = OUTCOME_WEEKS - 1 - r.wk;
+    weeks[i] = r.week_start;
+    cell.w[i] = r.total;
+    cell.o[0] += r.total; cell.o[1] += r.favorabil; cell.o[2] += r.partial;
+    cell.o[3] += r.transferat; cell.o[4] += r.respins; cell.o[5] += r.deschise;
+  }
+  return { weeks, cells };
 }
 
 export async function getDaily(days = 182): Promise<DailyRow[]> {

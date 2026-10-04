@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
@@ -18,13 +18,6 @@ const inter = Inter({
   display: 'swap',
 });
 
-/* Mono carries only digits, dates and ticket ids, so `latin` covers it. */
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
   title: 'Sesizări Cluj',
   description:
@@ -39,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ro" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="ro" className={inter.variable}>
       {/*
         min-h-dvh + flex column lets one shell serve both shapes: the dashboard
         grows past the viewport and scrolls, while the map page's root claims the
@@ -51,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         its own overflow-x-auto box, and on a phone the whole page pans sideways.
         Every centred main therefore also carries `w-full`.
       */}
-      <body className="flex min-h-dvh flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
+      <body className="flex min-h-dvh flex-col bg-bg text-ink antialiased">
         <SiteHeader />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         {/*
