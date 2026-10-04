@@ -52,7 +52,7 @@ export default async function Recurente({
   const yr = (s: string): string => new Date(s).getFullYear().toString();
 
   return (
-    <main className="mx-auto max-w-5xl px-5 py-10">
+    <main className="mx-auto w-full max-w-5xl px-5 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Probleme recurente</h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
         Locuri unde aceeași categorie de problemă a fost raportată de cel puțin cinci

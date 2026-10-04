@@ -264,7 +264,7 @@ export default async function Dashboard() {
     name === '(nelocalizat)' ? `/harta?${win}` : `/harta?cartier=${encodeURIComponent(name)}&${win}`;
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8">
+    <main className="mx-auto w-full max-w-6xl px-5 py-8">
       <header className="pb-6">
         <h1 className="text-xl font-semibold tracking-tight">Panou general</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
@@ -468,10 +468,15 @@ export default async function Dashboard() {
             ))}
           </div>
           {/* Each day owns an equal slice and its step lands on the slice's right
-              edge, so right-aligning the labels puts them under their own step. */}
+              edge, so right-aligning the labels puts them under their own step.
+              A month of two-digit labels needs ~350px, wider than a small phone,
+              so below sm every slice stays (keeping the alignment) but only day 1
+              and the week marks print; min-w-0 stops any label widening the page. */}
           <div className="mt-1 flex text-[10px] text-neutral-500">
             {resolution.points.map((p) => (
-              <span key={p.day} className="flex-1 text-right tabular-nums">{p.day}</span>
+              <span key={p.day} className="min-w-0 flex-1 text-right tabular-nums">
+                <span className={p.day === 1 || p.day % 7 === 0 ? undefined : 'max-sm:hidden'}>{p.day}</span>
+              </span>
             ))}
           </div>
           <div className="mt-0.5 text-[10px] text-neutral-400">zile de la depunere</div>

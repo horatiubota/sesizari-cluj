@@ -44,6 +44,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         min-h-dvh + flex column lets one shell serve both shapes: the dashboard
         grows past the viewport and scrolls, while the map page's root claims the
         leftover height with flex-1 instead of measuring the header.
+
+        The catch: a page's `<main className="mx-auto max-w-…">` is a flex item
+        here, and auto side margins make it shrink-to-fit its content instead of
+        stretching. A wide table then widens main itself rather than scrolling in
+        its own overflow-x-auto box, and on a phone the whole page pans sideways.
+        Every centred main therefore also carries `w-full`.
       */}
       <body className="flex min-h-dvh flex-col bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
         <SiteHeader />

@@ -183,7 +183,7 @@ export default function WatchList() {
 
   if (!items.length) {
     return (
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto w-full max-w-3xl px-5 py-10">
         <h1 className="text-2xl font-semibold tracking-tight">Sesizări urmărite</h1>
         <p className="mt-3 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
           Nu urmărești nicio sesizare încă.
@@ -221,7 +221,7 @@ export default function WatchList() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-5 py-10">
+    <main className="mx-auto w-full max-w-3xl px-5 py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Sesizări urmărite</h1>
