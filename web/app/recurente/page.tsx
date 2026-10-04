@@ -87,7 +87,7 @@ export default async function Recurente({
       <div className="mt-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
           <Link key={t.key} href={`/recurente?tip=${t.key}`}
-            className={`rounded-full border px-3 py-1 text-sm transition ${
+            className={`rounded-full border px-3 py-1 text-sm transition pointer-coarse:min-h-11 ${
  meaning === t.key
  ? 'border-ink bg-ink text-surface '
  : 'border-line-strong '

@@ -42,6 +42,11 @@
 
   --up: #a1530b;
   --down: #0f6e6e;
+
+  /* Operational warnings (stale data). Separate from --up on purpose: --up
+     means "more than before" and must never read as a warning. */
+  --warn: #8a4b08;
+  --warn-bg: #fbf1e3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -66,6 +71,9 @@
 
     --up: #f0a35e;
     --down: #5cc7c0;
+
+    --warn: #f3b46b;
+    --warn-bg: #2d2214;
   }
 }
 
@@ -91,6 +99,8 @@
   --color-focus: var(--focus);
   --color-up: var(--up);
   --color-down: var(--down);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
 
   --color-o-fav: var(--o-fav);
   --color-o-part: var(--o-part);

@@ -291,6 +291,20 @@
           "#94d1d0",
           "#c5fbfa"
         ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Warn",
+        "canonical": "#8a4b08",
+        "dark": "#f3b46b",
+        "usage": "Operational warnings only (stale data); never a delta"
+      },
+      "warn-bg": {
+        "role": "neutral",
+        "displayName": "Warn ground",
+        "canonical": "#fbf1e3",
+        "dark": "#2d2214",
+        "usage": "Background behind warn text"
       }
     },
     "typographyMeta": {

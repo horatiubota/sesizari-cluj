@@ -92,6 +92,7 @@ function Status({ label }: { label: string }) {
 }
 
 function LatestList({ latest, compact = false }: { latest: LatestTicket[]; compact?: boolean }) {
+  if (!latest.length) return <p className="text-sm text-ink-2">Nicio sesizare preluată încă.</p>;
   return (
     <ul className="divide-y divide-line">
       {latest.map((t) => {
@@ -122,6 +123,37 @@ function LatestList({ latest, compact = false }: { latest: LatestTicket[]; compa
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * The monthly composition chart as numbers, for screen readers. By year rather
+ * than by month: 116 rows read aloud is not an alternative anyone would use,
+ * and a year per row still carries the 2021 break the chart is annotated for.
+ */
+function YearlyTable({ monthly }: { monthly: { month: string; total: number; favorabil: number; partial: number; transferat: number; respins: number; deschise: number }[] }) {
+  const years = new Map<string, Counts>();
+  for (const m of monthly) {
+    const y = years.get(m.month.slice(0, 4)) ?? [0, 0, 0, 0, 0, 0];
+    const c = counts(m);
+    for (let i = 0; i < 6; i++) y[i] += c[i]!;
+    years.set(m.month.slice(0, 4), y as Counts);
+  }
+  return (
+    <table className="sr-only">
+      <caption>Cum s-au închis sesizările, pe anul depunerii</caption>
+      <thead>
+        <tr><th scope="col">An</th><th scope="col">Sesizări</th>{BANDS.map((b) => <th key={b.key} scope="col">{b.label}</th>)}</tr>
+      </thead>
+      <tbody>
+        {[...years].map(([year, c]) => (
+          <tr key={year}>
+            <th scope="row">{year}</th><td>{nf.format(c[0])}</td>
+            {BANDS.map((b) => <td key={b.key}>{pct(c[b.idx], c[0])}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -215,8 +247,8 @@ export default async function Dashboard() {
             din {fmtLong(overview.first_day)} până azi.
           </p>
           <p className={`mt-3 inline-flex flex-wrap items-center gap-x-2 rounded-md px-2.5 py-1.5 text-xs ${
-            stale ? 'bg-up/10 text-up' : 'bg-sunken text-ink-2'}`}>
-            <span className={`inline-block h-1.5 w-1.5 rounded-full ${stale ? 'bg-up' : 'bg-o-fav'}`} aria-hidden="true" />
+            stale ? 'bg-warn-bg text-warn' : 'bg-sunken text-ink-2'}`} role={stale ? 'status' : undefined}>
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${stale ? 'bg-warn' : 'bg-o-fav'}`} aria-hidden="true" />
             {stale
               ? <>Datele nu s-au mai actualizat din {fmtStamp(overview.last_seen)}. Cifrele de mai jos pot fi învechite.</>
               : <>Actualizat zilnic. Ultima sesizare preluată: <span className="tabular-nums">{fmtStamp(overview.last_seen)}</span></>}
@@ -425,6 +457,7 @@ export default async function Dashboard() {
               </span>
             )}
           </div>
+          <YearlyTable monthly={monthly} />
           <div className="relative mt-1.5 h-4 text-xs text-ink-3 tabular-nums" aria-hidden="true">
             {years.map(({ i, year }) => (
               <span key={year}

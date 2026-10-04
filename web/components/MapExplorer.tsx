@@ -33,6 +33,9 @@ const BASEMAP = 'https://tiles.openfreemap.org/styles/positron';
  */
 const isSelected = (id: string | null) => ['==', ['get', 'ticket'], id ?? ''] as const;
 const STROKE_WIDTH = (id: string | null) => ['case', isSelected(id), 3, 1] as unknown as never;
+// Literal colours, not theme tokens: the basemap is positron, which stays light
+// in dark mode too, so a near-black ring is what reads against it either way. A
+// token would flip to near-white in dark mode and vanish into the map.
 const STROKE_COLOR = (id: string | null) =>
   ['case', isSelected(id), '#111111', 'rgba(255,255,255,0.85)'] as unknown as never;
 
@@ -608,7 +611,7 @@ export default function MapExplorer() {
                 inputMode="numeric"
                 aria-invalid={idMiss ? true : undefined}
                 aria-describedby={idMiss || idOutside ? 'id-lookup-msg' : undefined}
-                className="w-full rounded border border-line-strong bg-transparent px-2 py-1.5 font-mono text-sm outline-none focus:border-ink-3"
+                className="w-full rounded border border-line-strong bg-transparent px-2 py-1.5 font-mono text-sm focus:border-ink-3"
               />
               <button type="submit" disabled={idBusy || !idQuery.trim()}
                 className="shrink-0 rounded border border-line-strong px-2.5 text-sm transition hover:bg-sunken disabled:cursor-not-allowed disabled:text-line-strong">
@@ -630,7 +633,7 @@ export default function MapExplorer() {
             value={qLive}
             onChange={(e) => { setQLive(e.target.value); clearIdSearch(); }}
             placeholder="ex. groapă, iluminat, ambrozie"
-            className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm outline-none focus:border-ink-3"
+            className="mt-1 w-full rounded border border-line-strong bg-transparent px-2 py-1.5 text-sm focus:border-ink-3"
           />
           {/* The scope only does anything once there is a query, so it appears
               with one rather than sitting there inert. */}
@@ -830,7 +833,7 @@ export default function MapExplorer() {
               <button
                 onClick={() => watch.toggle(selectedId, selected?.status_label)}
                 aria-pressed={watch.has(selectedId)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition pointer-coarse:min-h-11 ${
  watch.has(selectedId)
  ? 'border-ink bg-ink text-surface '
  : 'border-line-strong hover:bg-sunken '

@@ -20,6 +20,8 @@ colors:
   o-open-hatch: "#c4c4bd"
   up: "#a1530b"
   down: "#0f6e6e"
+  warn: "#8a4b08"
+  warn-bg: "#fbf1e3"
 typography:
   display:
     fontFamily: "Inter, sans-serif"
@@ -159,7 +161,8 @@ Five bands in reading order, shared by every strip, stacked column, legend and k
 - **Hatched Pale Grey** (`o-open-hatch` stripes at 45deg, 1px on 4px, over `o-open`): Încă deschisă.
 
 ### Tertiary: direction of change
-- **Amber Up** (`up`) and **Teal Down** (`down`): year-on-year and period deltas, coloured only by direction, carrying no judgement about which is good. Zero change and bases under 10 print in `ink-3` (bases under 10 show "a → b" counts, not a percentage). This is the owner's explicit decision and is the current rule; the owner has it under review.
+- **Amber Up** (`up`) and **Teal Down** (`down`): year-on-year and period deltas, coloured only by direction, carrying no judgement about which is good. Zero change and bases under 10 print in `ink-3` (bases under 10 show "a → b" counts, not a percentage). This is the owner's explicit decision and the current rule (confirmed 2026-10-04).
+- **Warn** (`warn` on `warn-bg`): operational warnings only, such as the stale-data notice. Kept separate from `up` so that "more than before" never reads as an alarm. 6.1:1 light, 8.6:1 dark.
 
 ### Category identity (data, not tokens)
 The 16 category colours live in `web/lib/categories.ts` and are used only for category identity: 10px round dots beside category names, sparkline strokes, and map pins. They never paint an outcome, a state, or chrome.
@@ -179,7 +182,7 @@ The 16 category colours live in `web/lib/categories.ts` and are used only for ca
 
 **The Blue Means You Rule.** `focus` marks only focus, selection tint, and the active element of an interactive chart. Selected controls are ink, not blue.
 
-**The Text Is Ink Rule.** Every text colour is `ink`, `ink-2` or `ink-3` (or `surface` on an ink fill, or `up`/`down` on a delta). Anything that must recede further than `ink-3` becomes a rule or a fill, never text.
+**The Text Is Ink Rule.** Every text colour is `ink`, `ink-2` or `ink-3` (or `surface` on an ink fill, `up`/`down` on a delta, `warn` on a warning). Anything that must recede further than `ink-3` becomes a rule or a fill, never text.
 
 ## Typography
 

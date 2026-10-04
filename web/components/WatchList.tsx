@@ -198,7 +198,7 @@ export default function WatchList() {
               Linkul conține {pending.length === 1 ? 'o sesizare' : `${pending.length} sesizări`}.
             </span>
             <button onClick={() => merge(pending)}
-              className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition">
+              className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
               Adaugă în lista mea
             </button>
           </div>
@@ -231,12 +231,12 @@ export default function WatchList() {
         </div>
         <div className="flex gap-2">
           <button onClick={share}
-            className="rounded-full border border-line-strong px-3 py-1 text-sm transition hover:bg-sunken">
+            className="rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 transition hover:bg-sunken">
             {copied ? 'Link copiat' : 'Copiază link'}
           </button>
           <button
             onClick={() => { if (confirm('Ștergi toate sesizările urmărite?')) clear(); }}
-            className="rounded-full border border-line-strong px-3 py-1 text-sm text-ink-2 transition hover:bg-sunken">
+            className="rounded-full border border-line-strong px-3 py-1 text-sm pointer-coarse:min-h-11 text-ink-2 transition hover:bg-sunken">
             Golește
           </button>
         </div>
@@ -249,7 +249,7 @@ export default function WatchList() {
             care nu le urmărești.
           </span>
           <button onClick={() => setImported(merge(pending))}
-            className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition">
+            className="rounded-full border border-ink bg-ink px-3 py-1 text-xs text-surface transition pointer-coarse:min-h-11">
             Adaugă în lista mea
           </button>
         </div>
