@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-04T07:21:19.328Z",
+  "generated_at": "2026-11-01T11:31:46.056Z",
   "source": "https://mycluj.e-primariaclujnapoca.ro/",
   "totals": {
-    "tickets": 215296,
-    "open": 2066,
-    "closed": 213230,
-    "events": 218466,
-    "with_measured_resolution": 3149
+    "tickets": 217401,
+    "open": 2174,
+    "closed": 215227,
+    "events": 222356,
+    "with_measured_resolution": 4916
   },
   "date_range": {
     "first_ticket": "2017-03-22",
-    "latest_ticket": "2026-10-03"
+    "latest_ticket": "2026-11-01"
   },
-  "database_size": "329 MB",
+  "database_size": "335 MB",
   "by_year": [
     {
       "year": 2017,
@@ -52,29 +52,29 @@
     },
     {
       "year": 2026,
-      "tickets": 23171
+      "tickets": 25276
     }
   ],
   "by_status": [
     {
       "status": "C|Favorabil",
-      "tickets": 187138
+      "tickets": 189026
     },
     {
       "status": "C|Partial",
-      "tickets": 12612
+      "tickets": 12613
     },
     {
       "status": "C|Transferata operatorului",
-      "tickets": 9946
+      "tickets": 10053
     },
     {
       "status": "O|In lucru",
-      "tickets": 2045
+      "tickets": 2151
     },
     {
       "status": "C|Nefavorabil",
-      "tickets": 2038
+      "tickets": 2039
     },
     {
       "status": "C|Respinsa",
@@ -82,93 +82,93 @@
     },
     {
       "status": "O|Noua",
-      "tickets": 21
+      "tickets": 23
     }
   ],
   "by_category": [
     {
       "id": 16,
       "name": "Parcări neregulamentare",
-      "tickets": 40625,
-      "open": 122
+      "tickets": 41102,
+      "open": 133
     },
     {
       "id": 9,
       "name": "Străzi/Alei/Trotuare/Poduri",
-      "tickets": 39894,
-      "open": 339
+      "tickets": 40247,
+      "open": 429
     },
     {
       "id": 8,
       "name": "Spații verzi/Parcuri",
-      "tickets": 25750,
-      "open": 267
+      "tickets": 25970,
+      "open": 177
     },
     {
       "id": 13,
       "name": "Altele",
-      "tickets": 19018,
-      "open": 396
+      "tickets": 19175,
+      "open": 401
     },
     {
       "id": 7,
       "name": "Salubritate",
-      "tickets": 18128,
-      "open": 460
+      "tickets": 18351,
+      "open": 497
     },
     {
       "id": 11,
       "name": "Semnalizare rutieră",
-      "tickets": 14339,
-      "open": 92
+      "tickets": 14447,
+      "open": 89
     },
     {
       "id": 4,
       "name": "Iluminat public",
-      "tickets": 13299,
-      "open": 69
+      "tickets": 13469,
+      "open": 117
     },
     {
       "id": 5,
       "name": "Parcări/Parking-uri",
-      "tickets": 13260,
-      "open": 72
+      "tickets": 13370,
+      "open": 87
     },
     {
       "id": 2,
       "name": "Depozitări deşeuri",
-      "tickets": 9583,
-      "open": 93
+      "tickets": 9686,
+      "open": 94
     },
     {
       "id": 3,
       "name": "Construcții/lucrări neautorizate; organizare şantier",
-      "tickets": 7715,
-      "open": 102
+      "tickets": 7772,
+      "open": 99
     },
     {
       "id": 15,
       "name": "Transport public (CTP)",
-      "tickets": 6454,
+      "tickets": 6530,
       "open": 0
     },
     {
       "id": 14,
       "name": "Rețele de apă/canalizare (CAS)",
-      "tickets": 3157,
+      "tickets": 3188,
       "open": 0
     },
     {
       "id": 12,
       "name": "Tulburarea liniștii publice",
-      "tickets": 2180,
-      "open": 49
+      "tickets": 2193,
+      "open": 48
     },
     {
       "id": 1,
       "name": "Asistență socială",
-      "tickets": 816,
-      "open": 5
+      "tickets": 820,
+      "open": 3
     },
     {
       "id": 10,
@@ -179,7 +179,7 @@
     {
       "id": 6,
       "name": "Persoane fără adăpost sau care apelează la mila publicului",
-      "tickets": 298,
+      "tickets": 301,
       "open": 0
     }
   ]
