@@ -25,7 +25,8 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const PATHS = ['/', '/recurente'];
+// '/recurente' is left out while that page is switched off (lib/features.ts).
+const PATHS = ['/'];
 
 /**
  * Compares digests rather than the raw strings: timingSafeEqual throws on a

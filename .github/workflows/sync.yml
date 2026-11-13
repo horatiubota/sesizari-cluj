@@ -122,7 +122,9 @@ jobs:
           # follows an invalidation can still be answered from the stale copy
           # while the rebuild runs behind it. A HIT is the proof that the
           # rebuild finished and that what sits in the cache now is the new page.
-          for path in "" "recurente"; do
+          # /recurente is switched off (web/lib/features.ts); add "recurente"
+          # back to this list when it is re-enabled.
+          for path in ""; do
             url="$SITE_URL/$path"
             status=000
             cache=""

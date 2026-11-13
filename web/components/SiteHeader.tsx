@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { RECURENTE_ENABLED } from '@/lib/features';
 
 const LINKS = [
   { href: '/', label: 'Panou' },
   { href: '/harta', label: 'Hartă' },
-  { href: '/recurente', label: 'Recurente' },
+  ...(RECURENTE_ENABLED ? [{ href: '/recurente', label: 'Recurente' }] : []),
   { href: '/urmarite', label: 'Urmărite' },
 ];
 
