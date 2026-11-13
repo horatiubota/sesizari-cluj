@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { RECURENTE_ENABLED } from '@/lib/features';
 
 /**
  * Recurring problems: the same category reported repeatedly within ~11 m.
@@ -14,6 +15,9 @@ import { query } from '@/lib/db';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Switched off along with /recurente. See lib/features.ts.
+  if (!RECURENTE_ENABLED) return NextResponse.json({ ok: false }, { status: 404 });
+
   const sp = req.nextUrl.searchParams;
   const meaning = ['infrastructura', 'comportament', 'mixt', 'toate'].includes(sp.get('meaning') ?? '')
     ? sp.get('meaning')!

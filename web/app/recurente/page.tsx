@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { query } from '@/lib/db';
+import { RECURENTE_ENABLED } from '@/lib/features';
 
 export const metadata = {
   title: 'Probleme recurente — Sesizări Cluj',
@@ -27,6 +29,9 @@ export default async function Recurente({
 }: {
   searchParams: Promise<{ tip?: string }>;
 }) {
+  // Switched off: 404 before any query runs. See lib/features.ts.
+  if (!RECURENTE_ENABLED) notFound();
+
   const { tip } = await searchParams;
   const meaning = TABS.some((t) => t.key === tip) ? tip! : 'infrastructura';
 
