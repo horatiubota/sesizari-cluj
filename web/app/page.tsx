@@ -18,6 +18,13 @@ import {
  */
 export const revalidate = 1800;
 
+/**
+ * Explicit rather than the platform default, which differs by plan. 60s is the
+ * most every plan allows, and leaves room above the pool's 45s wait for a client
+ * (lib/db.ts): the 12 queries below share 4 connections.
+ */
+export const maxDuration = 60;
+
 const DAILY_DAYS = 182;
 
 /** Shared by the outcome bands and the resolution curve: both mean "closed". */

@@ -122,13 +122,25 @@ jobs:
           # follows an invalidation can still be answered from the stale copy
           # while the rebuild runs behind it. A HIT is the proof that the
           # rebuild finished and that what sits in the cache now is the new page.
+          #
+          # Not reaching a HIT fails this step. It is still continue-on-error,
+          # so the sync stays green, but the failure is now visible in the
+          # summary and as a warning on the run. Before, a page whose rebuild
+          # kept failing printed STALE and passed: on 2026-11-11 and -12 the
+          # homepage's rebuild hit a database pool timeout every time and the
+          # step reported success while the site stayed two days behind.
+          #
+          # Six attempts 15s apart: a rebuild runs 12 queries over 4 pooled
+          # connections and can take longer than the 30s the old loop allowed.
+          #
           # /recurente is switched off (web/lib/features.ts); add "recurente"
           # back to this list when it is re-enabled.
+          stale=""
           for path in ""; do
             url="$SITE_URL/$path"
             status=000
             cache=""
-            for attempt in 1 2 3; do
+            for attempt in 1 2 3 4 5 6; do
               status=$(curl -sS --max-time 60 -o /dev/null \
                 -D /tmp/warm-headers.txt -w '%{http_code}' "$url" || echo 000)
               cache=$(grep -i '^x-vercel-cache:' /tmp/warm-headers.txt \
@@ -142,10 +154,19 @@ jobs:
                 break
               fi
               if [ "$cache" = "HIT" ]; then break; fi
-              sleep 10
+              sleep 15
             done
             echo "warmed $url -> HTTP $status (x-vercel-cache: ${cache:-unknown}, attempts: $attempt)"
+            case "$cache" in
+              HIT|"uncached (rendered per request)") ;;
+              *) stale="$stale $url" ;;
+            esac
           done
+
+          if [ -n "$stale" ]; then
+            echo "::warning title=Dashboard not refreshed::Never got a fresh copy of:$stale -- the site is still serving an older render. Check the Vercel function logs for that path."
+            exit 1
+          fi
 
       - name: Summary
         if: always()
